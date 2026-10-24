@@ -1,7 +1,8 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { business, services } from "../src/config.js";
+import { build } from "vite";
+import { business, comparisonPairs, services } from "../src/config.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.join(root, "src");
@@ -10,11 +11,42 @@ const domain = (business.domain || "https://lavamed.example").replace(/\/$/, "")
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
-await cp(source, output, { recursive: true });
+
+await build({
+  configFile: false,
+  root,
+  publicDir: false,
+  logLevel: "warn",
+  build: {
+    outDir: output,
+    emptyOutDir: false,
+    manifest: true,
+    sourcemap: false,
+    rollupOptions: {
+      input: path.join(source, "assets/site.js"),
+      output: {
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/chunk-[hash].js",
+        assetFileNames: "assets/[name]-[hash][extname]"
+      }
+    }
+  }
+});
+
+await mkdir(path.join(output, "assets"), { recursive: true });
+await cp(path.join(source, "assets/images"), path.join(output, "assets/images"), { recursive: true });
+await cp(path.join(source, "assets/logo-mark.svg"), path.join(output, "assets/logo-mark.svg"));
+
+const manifest = JSON.parse(await readFile(path.join(output, ".vite/manifest.json"), "utf8"));
+const bundle = manifest["src/assets/site.js"] || manifest["assets/site.js"];
+if (!bundle?.file || !bundle.css?.[0]) throw new Error("Vite manifest did not contain the LavaMed entry bundle");
+const scriptSrc = `/${bundle.file}`;
+const styleHref = `/${bundle.css[0]}`;
+await rm(path.join(output, ".vite"), { recursive: true, force: true });
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
 
-function shell({ title, description, pathName, eyebrow, heading, accent = "", deck, image = "detail", content, bodyClass = "" }) {
+function shell({ title, description, pathName, eyebrow, heading, accent = "", deck, image = "detail", content, bodyClass = "", variant = "offset" }) {
   const canonical = `${domain}${pathName}`;
   const fullHeading = accent ? `${heading}<br><em>${accent}</em>` : heading;
   return `<!doctype html>
@@ -23,7 +55,7 @@ function shell({ title, description, pathName, eyebrow, heading, accent = "", de
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}">
   <meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website"><meta property="og:image" content="${domain}/assets/images/lavamed-${image}.jpg">
-  <link rel="canonical" href="${canonical}"><link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/assets/site.css"><script type="module" src="/assets/site.js"></script>
+  <link rel="canonical" href="${canonical}"><link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
   <title>${escapeHtml(title)}</title>
   <script type="application/ld+json">${JSON.stringify({ "@context": "https://schema.org", "@type": "AutoWash", name: "LavaMed Estética Automotiva", url: domain })}</script>
 </head>
@@ -31,7 +63,7 @@ function shell({ title, description, pathName, eyebrow, heading, accent = "", de
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a><div class="noise" aria-hidden="true"></div><div class="transition" aria-hidden="true"><span></span><span></span><span></span></div><div class="cursor" aria-hidden="true"><i></i></div><div class="scroll-progress" aria-hidden="true"><span></span></div>
   ${header(pathName)}${menu(pathName)}
   <main class="internal-main" id="conteudo">
-    <section class="page-hero"><div class="page-hero-media" aria-hidden="true"><img src="/assets/images/lavamed-${image}.jpg" width="1536" height="1024" alt=""></div><p class="page-kicker">${eyebrow}</p><h1 class="page-title">${fullHeading}</h1><p class="page-deck">${deck}</p></section>
+    <section class="page-hero page-hero--${variant}"><div class="page-hero-media" aria-hidden="true"><img src="/assets/images/lavamed-${image}.jpg" width="1536" height="1024" alt=""></div><span class="page-hero-code" aria-hidden="true">LVM / ${variant.toUpperCase()}</span><p class="page-kicker">${eyebrow}</p><h1 class="page-title">${fullHeading}</h1><p class="page-deck">${deck}</p></section>
     ${content}
   </main>
   ${footer()}
@@ -55,38 +87,46 @@ const directory = `<section class="content-section dark"><div class="content-gri
 
 const pages = [
   {
-    pathName: "/servicos/", title: "Serviços | LavaMed Estética Automotiva", description: "Conheça os processos de cuidado automotivo da LavaMed.", eyebrow: "Serviços / método", heading: "CUIDADO EM", accent: "CAMADAS.", deck: "Da leitura inicial ao acabamento, cada processo é orientado pelo material e pelo estado real do veículo.", content: directory
+    pathName: "/servicos/", title: "Serviços | LavaMed Estética Automotiva", description: "Conheça os processos de cuidado automotivo da LavaMed.", eyebrow: "Serviços / método", heading: "CUIDADO EM", accent: "CAMADAS.", deck: "Da leitura inicial ao acabamento, cada processo é orientado pelo material e pelo estado real do veículo.", variant: "split", content: directory
   },
   {
-    pathName: "/portfolio/", title: "Portfólio | LavaMed Estética Automotiva", description: "Portfólio e direção visual da LavaMed.", eyebrow: "Portfólio / reflexos", heading: "CADA REFLEXO", accent: "CONTA.", deck: "Uma galeria para documentar processos, superfícies e resultados reais com consistência visual.", image: "hero", content: `<section class="content-section dark"><div class="content-grid"><div class="content-index">Acervo / em preparação</div><div class="content-copy"><h2>Trabalhos reais, sem atalhos.</h2><p>O portfólio será preenchido somente com fotografias confirmadas de serviços executados pela LavaMed. As imagens atuais definem a direção de arte e não são apresentadas como trabalhos de clientes.</p><div class="empty-state"><strong>Acervo real em atualização.</strong><p>Substitua os arquivos de campanha por fotografias autorizadas em <code>src/assets/images</code> e cadastre cada trabalho com serviço, veículo e contexto.</p></div></div></div></section>`
+    pathName: "/portfolio/", title: "Portfólio | LavaMed Estética Automotiva", description: "Portfólio e direção visual da LavaMed.", eyebrow: "Portfólio / reflexos", heading: "CADA REFLEXO", accent: "CONTA.", deck: "Uma galeria para documentar processos, superfícies e resultados reais com consistência visual.", image: "hero", variant: "wide", content: `<section class="content-section dark"><div class="content-grid"><div class="content-index">Acervo / em preparação</div><div class="content-copy"><h2>Trabalhos reais, sem atalhos.</h2><p>O portfólio será preenchido somente com fotografias confirmadas de serviços executados pela LavaMed. As imagens atuais definem a direção de arte e não são apresentadas como trabalhos de clientes.</p><div class="empty-state"><strong>Acervo real em atualização.</strong><p>Substitua os arquivos de campanha por fotografias autorizadas em <code>src/assets/images</code> e cadastre cada trabalho com serviço, veículo e contexto.</p></div></div></div></section>`
   },
   {
-    pathName: "/antes-e-depois/", title: "Antes e Depois | LavaMed", description: "Comparações de antes e depois da LavaMed com pares fotográficos reais e correspondentes.", eyebrow: "Comparação / transparência", heading: "ANTES. DEPOIS.", accent: "MESMO ÂNGULO.", deck: "Resultados só fazem sentido quando a comparação é honesta: mesmo veículo, mesmo enquadramento e contexto confirmado.", content: `<section class="content-section dark"><div class="content-grid"><div class="content-index">Componente / pronto</div><div class="content-copy"><h2>O comparador está pronto para o acervo real.</h2><p>O controle aceita mouse, toque e teclado. Até a inclusão de pares correspondentes e autorizados, nenhum resultado de cliente é simulado.</p><div class="empty-state"><strong>Fotografias aguardando confirmação.</strong><p>Inclua pares reais com alinhamento equivalente. A página passará a exibir os trabalhos assim que esses materiais forem fornecidos.</p></div></div></div></section>`
+    pathName: "/antes-e-depois/", title: "Antes e Depois | LavaMed", description: "Comparações de antes e depois da LavaMed com pares fotográficos reais e correspondentes.", eyebrow: "Comparação / transparência", heading: "ANTES. DEPOIS.", accent: "MESMO ÂNGULO.", deck: "Resultados só fazem sentido quando a comparação é honesta: mesmo veículo, mesmo enquadramento e contexto confirmado.", variant: "aperture", content: comparisonContent()
   },
   {
-    pathName: "/sobre/", title: "Sobre a LavaMed | Estética Automotiva", description: "Conheça o conceito, o método e a atenção ao detalhe da LavaMed.", eyebrow: "Sobre / manifesto", heading: "PRECISÃO QUE", accent: "APARECE.", deck: "A LavaMed organiza o cuidado automotivo em torno de três elementos: água, luz e matéria.", image: "hero", content: `<section class="content-section"><div class="content-grid"><div class="content-index">Manifesto / 01</div><div class="content-copy"><h2>Olhar antes de agir.</h2><p>Superfícies diferentes pedem decisões diferentes. Por isso, a proposta da LavaMed começa pela leitura do veículo e continua em uma sequência de cuidado coerente com cada material.</p><p>A água conduz o processo. A luz revela o acabamento. A matéria determina a técnica.</p><p class="small">História, equipe e credenciais devem ser adicionadas quando as informações oficiais forem fornecidas.</p></div></div></section><section class="content-section dark"><div class="content-grid"><div class="content-index">Princípios / 02</div><div class="content-copy"><div class="process-list"><div class="process-item"><span>01</span><h3>Observação</h3><p>A condição real orienta a indicação.</p></div><div class="process-item"><span>02</span><h3>Precisão</h3><p>Cada produto e ferramenta tem uma função.</p></div><div class="process-item"><span>03</span><h3>Transparência</h3><p>Sem promessas universais ou resultados fabricados.</p></div></div></div></div></section>`
+    pathName: "/sobre/", title: "Sobre a LavaMed | Estética Automotiva", description: "Conheça o conceito, o método e a atenção ao detalhe da LavaMed.", eyebrow: "Sobre / manifesto", heading: "PRECISÃO QUE", accent: "APARECE.", deck: "A LavaMed organiza o cuidado automotivo em torno de três elementos: água, luz e matéria.", image: "hero", variant: "vertical", content: `<section class="content-section"><div class="content-grid"><div class="content-index">Manifesto / 01</div><div class="content-copy"><h2>Olhar antes de agir.</h2><p>Superfícies diferentes pedem decisões diferentes. Por isso, a proposta da LavaMed começa pela leitura do veículo e continua em uma sequência de cuidado coerente com cada material.</p><p>A água conduz o processo. A luz revela o acabamento. A matéria determina a técnica.</p><p class="small">História, equipe e credenciais devem ser adicionadas quando as informações oficiais forem fornecidas.</p></div></div></section><section class="content-section dark"><div class="content-grid"><div class="content-index">Princípios / 02</div><div class="content-copy"><div class="process-list"><div class="process-item"><span>01</span><h3>Observação</h3><p>A condição real orienta a indicação.</p></div><div class="process-item"><span>02</span><h3>Precisão</h3><p>Cada produto e ferramenta tem uma função.</p></div><div class="process-item"><span>03</span><h3>Transparência</h3><p>Sem promessas universais ou resultados fabricados.</p></div></div></div></div></section>`
   },
   {
-    pathName: "/contato/", title: "Contato e agendamento | LavaMed", description: "Entre em contato com a LavaMed para avaliar seu veículo.", eyebrow: "Contato / avaliação", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o seu carro precisa. A indicação correta começa com contexto e avaliação.", content: contactContent()
+    pathName: "/contato/", title: "Contato e agendamento | LavaMed", description: "Entre em contato com a LavaMed para avaliar seu veículo.", eyebrow: "Contato / avaliação", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o seu carro precisa. A indicação correta começa com contexto e avaliação.", variant: "split", content: contactContent()
   },
   {
-    pathName: "/faq/", title: "Perguntas frequentes | LavaMed", description: "Dúvidas frequentes sobre os processos de estética automotiva da LavaMed.", eyebrow: "FAQ / informação", heading: "PERGUNTAS", accent: "FREQUENTES.", deck: "Respostas diretas para entender o processo antes de agendar uma avaliação.", content: faqContent()
+    pathName: "/faq/", title: "Perguntas frequentes | LavaMed", description: "Dúvidas frequentes sobre os processos de estética automotiva da LavaMed.", eyebrow: "FAQ / informação", heading: "PERGUNTAS", accent: "FREQUENTES.", deck: "Respostas diretas para entender o processo antes de agendar uma avaliação.", variant: "quiet", content: faqContent()
   },
   {
-    pathName: "/politica-de-privacidade/", title: "Política de Privacidade | LavaMed", description: "Política de privacidade do site LavaMed.", eyebrow: "Legal / privacidade", heading: "PRIVACIDADE", accent: "COM CLAREZA.", deck: "Como este site trata as informações enviadas pelo visitante.", content: privacyContent()
+    pathName: "/politica-de-privacidade/", title: "Política de Privacidade | LavaMed", description: "Política de privacidade do site LavaMed.", eyebrow: "Legal / privacidade", heading: "PRIVACIDADE", accent: "COM CLAREZA.", deck: "Como este site trata as informações enviadas pelo visitante.", variant: "vertical", content: privacyContent()
   }
 ];
 
 for (const service of services) {
+  const serviceVariants = ["split", "aperture", "wide", "vertical", "offset", "quiet"];
   pages.push({
     pathName: `/servicos/${service.slug}/`,
-    title: `${service.name} | LavaMed`, description: `${service.summary} Consulte a LavaMed para avaliação.`, eyebrow: `${service.number} / ${service.eyebrow}`, heading: service.name.toUpperCase(), deck: service.summary,
+    title: `${service.name} | LavaMed`, description: `${service.summary} Consulte a LavaMed para avaliação.`, eyebrow: `${service.number} / ${service.eyebrow}`, heading: service.name.toUpperCase(), deck: service.summary, variant: serviceVariants[Number(service.number) - 1],
     content: `<section class="content-section"><div class="content-grid"><div class="content-index">${service.number} / Processo</div><div class="content-copy"><h2>Indicação começa pela avaliação.</h2><p>${service.detail}</p><p class="small">Etapas, prazo, produtos e valores dependem da avaliação do veículo. Nenhuma condição comercial foi presumida nesta página.</p><div class="process-list"><div class="process-item"><span>01</span><h3>Leitura</h3><p>Condição, material e objetivo.</p></div><div class="process-item"><span>02</span><h3>Processo</h3><p>Sequência definida para o veículo.</p></div><div class="process-item"><span>03</span><h3>Entrega</h3><p>Orientação de cuidado e manutenção.</p></div></div><a class="cta-pill" href="/contato/" data-booking data-service="${service.name}"><span>Solicitar avaliação</span><i>↗</i></a></div></div></section>${directory}`
   });
 }
 
 function contactContent() {
   return `<section class="content-section dark"><div class="contact-panel"><form class="contact-form" data-contact-form><div class="field"><label for="nome">Seu nome</label><input id="nome" name="nome" autocomplete="name" required></div><div class="field"><label for="servico">Serviço de interesse</label><select id="servico" name="servico"><option value="uma avaliação">Quero uma avaliação</option>${services.map((s) => `<option value="${s.name}">${s.name}</option>`).join("")}</select></div><div class="field"><label for="mensagem">Conte um pouco sobre o veículo</label><textarea id="mensagem" name="mensagem"></textarea></div><button class="submit-button" type="submit">Continuar agendamento ↗</button><p class="form-status" aria-live="polite"></p></form><aside class="contact-aside"><h2>A conversa começa aqui.</h2><p>O número oficial do WhatsApp, endereço, cidade e horário ainda não foram fornecidos. Assim que forem preenchidos em <code>src/config.js</code>, os botões de todo o site serão atualizados automaticamente.</p><div data-business-meta><span>Dados comerciais em atualização</span></div></aside></div></section>`;
+}
+
+function comparisonContent() {
+  if (!comparisonPairs.length) {
+    return `<section class="content-section dark"><div class="content-grid"><div class="content-index">Componente / pronto</div><div class="content-copy"><h2>O comparador está pronto para o acervo real.</h2><p>O controle aceita mouse, toque e teclado. Até a inclusão de pares correspondentes e autorizados, nenhum resultado de cliente é simulado.</p><div class="empty-state"><strong>Fotografias aguardando confirmação.</strong><p>Inclua pares reais com alinhamento equivalente em <code>comparisonPairs</code>, dentro de <code>src/config.js</code>. A página passará a exibir os trabalhos assim que esses materiais forem fornecidos.</p></div></div></div></section>`;
+  }
+  return `<section class="content-section dark"><div class="content-grid"><div class="content-index">Resultados / 01—${String(comparisonPairs.length).padStart(2,"0")}</div><div class="content-copy"><h2>Pares reais e correspondentes.</h2><p>Arraste a linha ou use as setas do teclado para comparar cada trabalho.</p></div></div>${comparisonPairs.map((pair) => `<article class="result-pair"><h2>${escapeHtml(pair.title)}</h2><div class="compare" data-compare data-before="${escapeHtml(pair.before)}" data-after="${escapeHtml(pair.after)}" style="--position:50%"><img class="compare-base" src="${escapeHtml(pair.after)}" alt="${escapeHtml(pair.altAfter)}"><div class="compare-overlay"><img src="${escapeHtml(pair.before)}" alt="${escapeHtml(pair.altBefore)}"></div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(pair.title)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div></article>`).join("")}</section>`;
 }
 
 function faqContent() {
@@ -115,6 +155,10 @@ await writeFile(path.join(output, "sitemap.xml"), `<?xml version="1.0" encoding=
 await writeFile(path.join(output, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${domain}/sitemap.xml\n`, "utf8");
 await writeFile(path.join(output, "404.html"), shell({ title: "Página não encontrada | LavaMed", description: "A página solicitada não foi encontrada.", pathName: "/404.html", eyebrow: "Erro / 404", heading: "FORA DA", accent: "ROTA.", deck: "Este endereço não existe ou mudou.", content: `<section class="content-section dark"><div class="content-copy"><h2>Volte ao início da experiência.</h2><a class="cta-pill" href="/"><span>Ir para o início</span><i>↗</i></a></div></section>` }), "utf8");
 
-const home = await readFile(path.join(output, "index.html"), "utf8");
-await writeFile(path.join(output, "index.html"), home.replaceAll("https://lavamed.example", domain), "utf8");
-console.log(`Built ${routes.length} routes in ${path.relative(root, output)}`);
+const homeSource = await readFile(path.join(source, "index.html"), "utf8");
+const home = homeSource
+  .replace('href="/assets/site.css"', `href="${styleHref}"`)
+  .replace('src="/assets/site.js"', `src="${scriptSrc}"`)
+  .replaceAll("https://lavamed.example", domain);
+await writeFile(path.join(output, "index.html"), home, "utf8");
+console.log(`Built ${routes.length} routes with ${path.basename(scriptSrc)} and ${path.basename(styleHref)}`);

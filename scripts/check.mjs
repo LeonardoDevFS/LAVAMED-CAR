@@ -11,6 +11,15 @@ const home = await readFile(path.join(root, "index.html"), "utf8");
 for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "lang=\"pt-BR\""]) {
   if (!home.includes(required)) problems.push(`Home missing marker: ${required}`);
 }
+if (!/\/assets\/site-[\w-]+\.js/.test(home)) problems.push("Home is not using a fingerprinted JavaScript bundle");
+if (!/\/assets\/site-[\w-]+\.css/.test(home)) problems.push("Home is not using a fingerprinted CSS bundle");
+if (home.includes('/assets/site.js') || home.includes('/assets/site.css')) problems.push("Home still references unhashed source assets");
+const assetNames = await readdir(path.join(root, "assets"));
+const scriptBundle = assetNames.find((name) => /^site-[\w-]+\.js$/.test(name));
+if (!scriptBundle) problems.push("Missing bundled site JavaScript");
+else if ((await stat(path.join(root, "assets", scriptBundle))).size < 50_000) problems.push("JavaScript bundle is unexpectedly small");
+const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
+if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
 for (const image of ["lavamed-hero.jpg","lavamed-detail.jpg"]) {
   const info = await stat(path.join(root, "assets/images", image));
   if (info.size < 100_000) problems.push(`Image unexpectedly small: ${image}`);

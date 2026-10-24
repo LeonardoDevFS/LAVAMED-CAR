@@ -5,3 +5,7 @@ node_modules/
 lavamed-desktop.png
 lavamed-mobile.png
 lavamed-section.png
+audit-desktop.png
+audit-mobile.png
+test-results/
+playwright-report/
