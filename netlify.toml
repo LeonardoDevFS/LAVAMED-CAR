@@ -3,9 +3,29 @@
   publish = "dist"
 
 [[headers]]
-  for = "/assets/*"
+  for = "/assets/*.js"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
+
+[[headers]]
+  for = "/assets/*.woff2"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/logo-mark.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
 
 [[headers]]
   for = "/*"
