@@ -1,5 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
+import { servicePriceLabel, services } from "../../src/config.js";
 
 const screenshotDirectory = "test-results/screenshots";
 
@@ -13,9 +14,9 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
 
   await page.goto("/");
-  await page.waitForTimeout(2300);
+  await page.waitForTimeout(2100);
   await expect(page.locator("h1")).toContainText("NÃO É SÓ");
-  await expect(page.locator("h1")).toBeVisible();
+  await expect(page.locator(".eyebrow")).toContainText("Itajubá");
   await expect(page.locator(".hero-car-layer")).toBeVisible();
   await page.screenshot({ path: `${screenshotDirectory}/desktop.png`, fullPage: false });
 
@@ -24,6 +25,8 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(menu).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#menu-panel")).toHaveAttribute("aria-hidden", "false");
   await expect(page.locator("#menu-panel a").first()).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.locator("#menu-panel a").last()).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveAttribute("aria-expanded", "false");
   await expect(menu).toBeFocused();
@@ -34,11 +37,34 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
     page.locator('#menu-panel a[href="/servicos/"]').click()
   ]);
   await expect(page.locator("h1")).toContainText("CUIDADO EM");
+  await expect(page.locator(".catalog-row")).toHaveCount(11);
 
-  await page.goto("/servicos/polimento-automotivo/");
-  await expect(page.locator("h1")).toContainText("POLIMENTO AUTOMOTIVO");
-  await expect(page.locator("link[rel=canonical]")).toHaveAttribute("href", /polimento-automotivo/);
+  await page.goto("/servicos/lavagem-simples/");
+  await expect(page.locator("h1")).toContainText("LAVAGEM SIMPLES");
+  await expect(page.locator(".service-notes")).toContainText("Não inclui limpeza nem aspiração");
+  await expect(page.locator(".service-cta")).toHaveAttribute("href", "/contato/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await page.screenshot({ path: `${screenshotDirectory}/service-detail.png`, fullPage: false });
   expect(runtimeErrors).toEqual([]);
+});
+
+test("hero title stays inside the viewport on target desktop sizes", async ({ page }) => {
+  for (const viewport of [
+    { width: 1366, height: 768 },
+    { width: 1440, height: 900 },
+    { width: 1920, height: 1080 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await page.waitForTimeout(2000);
+    const geometry = await page.locator(".title-indent > span").evaluate((node) => {
+      const rect = node.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, scrollWidth: document.documentElement.scrollWidth, viewport: innerWidth };
+    });
+    expect(geometry.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.right).toBeLessThanOrEqual(geometry.viewport + 1);
+    expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewport);
+  }
 });
 
 test("scroll story changes acts and reverses consistently", async ({ page }) => {
@@ -59,7 +85,7 @@ test("scroll story changes acts and reverses consistently", async ({ page }) => 
   await expect(page.locator('[data-scene="0"]')).toHaveClass(/is-active/);
 });
 
-test("comparison, gallery keyboard and drag interactions work", async ({ page }) => {
+test("service transitions, comparison and gallery input modes work", async ({ page }) => {
   await page.goto("/");
   await page.waitForTimeout(2100);
 
@@ -69,15 +95,21 @@ test("comparison, gallery keyboard and drag interactions work", async ({ page })
   const initialValue = Number(await handle.getAttribute("aria-valuenow"));
   await page.keyboard.press("ArrowRight");
   await expect(handle).toHaveAttribute("aria-valuenow", String(initialValue + 4));
-  const beforeSource = await page.locator(".compare-base").getAttribute("src");
-  const afterSource = await page.locator(".compare-overlay img").getAttribute("src");
-  expect(beforeSource).not.toBe(afterSource);
+  expect(await page.locator(".compare-base").getAttribute("src")).not.toBe(await page.locator(".compare-overlay img").getAttribute("src"));
 
-  const secondService = page.locator('[data-service="higienizacao-interna"]');
-  await secondService.scrollIntoViewIfNeeded();
-  await secondService.focus();
-  await expect(page.locator("[data-service-caption]")).toHaveText("Higienização interna");
-  await expect(page.locator("[data-service-placeholder]")).toHaveClass(/is-higienizacao-interna/);
+  const simple = page.locator('[data-service="lavagem-simples"]');
+  const complete = page.locator('[data-service="lavagem-completa"]');
+  await complete.scrollIntoViewIfNeeded();
+  for (let index = 0; index < 4; index += 1) {
+    await complete.focus();
+    await simple.focus();
+  }
+  await complete.focus();
+  await page.waitForTimeout(850);
+  await expect(page.locator("[data-service-caption]")).toHaveText("Lavagem Completa");
+  await expect(page.locator("[data-service-price]")).toHaveText("A partir de R$ 80");
+  await expect(page.locator("[data-service-placeholder]")).toHaveClass(/is-lavagem-completa/);
+  await expect(page.locator("[data-service-placeholder]")).toBeVisible();
   await expect(page.locator("[data-service-image]")).toBeHidden();
   await page.screenshot({ path: `${screenshotDirectory}/services.png`, fullPage: false });
 
@@ -94,20 +126,57 @@ test("comparison, gallery keyboard and drag interactions work", async ({ page })
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * .3, box.y + box.height * .5, { steps: 6 });
   await page.mouse.up();
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(180);
   expect(new URL(page.url()).pathname).toBe("/");
+
+  await firstItem.focus();
+  await page.keyboard.press("Enter");
+  await page.waitForURL("**/portfolio/");
+});
+
+test("catalog publishes all prices, service routes and responsible copy", async ({ page, request }) => {
+  await page.goto("/servicos/");
+  await expect(page.locator(".catalog-row")).toHaveCount(11);
+  await expect(page.locator("#comparar")).toContainText("Não inclui limpeza ou aspiração interna");
+  await expect(page.locator("body")).toContainText("A partir de R$ 80 o par");
+  await expect(page.locator("body")).toContainText("Sob consulta");
+  await page.screenshot({ path: `${screenshotDirectory}/catalog-desktop.png`, fullPage: false });
+
+  for (const service of services) {
+    const response = await request.get(`/servicos/${service.slug}/`);
+    expect(response.status(), service.slug).toBe(200);
+    const html = await response.text();
+    expect(html).toContain(service.name);
+    expect(html).toContain(servicePriceLabel(service));
+    expect(html).not.toContain("lavamed.example");
+  }
+
+  await page.goto("/servicos/lavagem-motor/");
+  await expect(page.locator(".service-modalities")).toContainText("Com verniz de motor");
+  await expect(page.locator(".service-modalities")).toContainText("Valor a confirmar");
+  await page.goto("/servicos/polimento-farol/");
+  await expect(page.locator("main")).toContainText("Grafeno + SiO₂");
+  await expect(page.locator(".service-notes")).toContainText("dependem do estado da lente");
+  await page.goto("/servicos/adicionais/");
+  await expect(page.locator(".scope-list article")).toHaveCount(10);
 });
 
 test.describe("mobile and reduced motion", () => {
   test.use({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
 
-  test("keeps the narrative legible without motion", async ({ page }) => {
+  test("keeps the narrative and catalog legible without motion", async ({ page }) => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.locator(".menu-toggle")).toBeVisible();
+    await expect(page.locator(".title-indent > span")).toBeInViewport();
     await page.screenshot({ path: `${screenshotDirectory}/mobile.png`, fullPage: false });
     await page.locator("[data-camera]").scrollIntoViewIfNeeded();
     await expect(page.locator('[data-scene="0"]')).toBeVisible();
     await expect(page.locator('[data-scene="1"]')).toBeHidden();
+
+    await page.goto("/servicos/");
+    await expect(page.locator(".catalog-row")).toHaveCount(11);
+    await expect(page.locator(".catalog-row").first()).toBeVisible();
+    await page.screenshot({ path: `${screenshotDirectory}/catalog-mobile.png`, fullPage: false });
   });
 });

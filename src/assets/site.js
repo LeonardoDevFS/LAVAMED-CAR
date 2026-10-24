@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import "./site.css";
-import { business, services, whatsappUrl } from "../config.js";
+import { business, servicePriceLabel, services, whatsappUrl } from "../config.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,7 +21,9 @@ document.querySelectorAll("[data-booking]").forEach((link) => {
 });
 
 document.querySelectorAll("[data-business-meta]").forEach((meta) => {
-  const items = [business.city, business.address, business.openingHours].filter(Boolean).map((item) => `<span>${item}</span>`);
+  const location = [business.city, business.state].filter(Boolean).join(", ");
+  const neighborhood = business.neighborhood ? `Bairro ${business.neighborhood}` : "";
+  const items = [location, neighborhood, business.address, business.openingHours].filter(Boolean).map((item) => `<span>${item}</span>`);
   if (business.instagram) items.push(`<a href="${business.instagram}" target="_blank" rel="noopener">Instagram ↗</a>`);
   if (business.mapsUrl) items.push(`<a href="${business.mapsUrl}" target="_blank" rel="noopener">Como chegar ↗</a>`);
   meta.innerHTML = items.length ? items.join("") : "<span>Dados comerciais em atualização</span>";
@@ -161,8 +163,10 @@ function initServiceVisual() {
   const image = visual.querySelector("[data-service-image]");
   const placeholder = visual.querySelector("[data-service-placeholder]");
   const caption = visual.querySelector("[data-service-caption]");
+  const price = visual.querySelector("[data-service-price]");
   const number = visual.querySelector(".visual-number");
-  let active = services[0]?.slug;
+  let active = document.querySelector(".service-row.is-active")?.dataset.service || "";
+  let timeline;
 
   const render = (slug) => {
     if (!slug || slug === active) return;
@@ -171,11 +175,14 @@ function initServiceVisual() {
     active = slug;
     document.querySelectorAll(".service-row").forEach((row) => row.classList.toggle("is-active", row.dataset.service === slug));
 
+    const incoming = service.image ? image : placeholder;
+    const outgoing = image.hidden ? placeholder : image;
     const swap = () => {
       placeholder.className = `service-placeholder is-${service.slug}`;
       placeholder.querySelector(":scope > span").textContent = `LVM / ${service.number}`;
       number.textContent = service.number;
       caption.textContent = service.name;
+      if (price) price.textContent = servicePriceLabel(service);
       if (service.image) {
         image.src = service.image;
         image.alt = `Imagem do serviço ${service.name}`;
@@ -188,10 +195,14 @@ function initServiceVisual() {
       }
     };
 
-    if (reducedMotion) { swap(); return; }
-    gsap.timeline()
-      .to([image, placeholder], { autoAlpha: 0, scale: 1.06, duration: .2, ease: "power2.in", onComplete: swap })
-      .fromTo([image, placeholder], { autoAlpha: 0, scale: .96, clipPath: "inset(0 100% 0 0)" }, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)", duration: .7, ease: "power4.out" });
+    timeline?.kill();
+    gsap.killTweensOf([image, placeholder]);
+    gsap.set(outgoing, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" });
+    if (reducedMotion) { swap(); gsap.set(incoming, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" }); return; }
+    timeline = gsap.timeline()
+      .to(outgoing, { autoAlpha: 0, scale: 1.035, duration: .18, ease: "power2.in" })
+      .call(() => { swap(); gsap.set(incoming, { autoAlpha: 0, scale: .97, clipPath: "inset(0 100% 0 0)" }); })
+      .to(incoming, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)", duration: .62, ease: "power4.out" });
   };
 
   document.querySelectorAll(".service-row").forEach((row) => {
@@ -245,13 +256,14 @@ function initGallery() {
       gallery.scrollLeft = startScroll - distance * 1.25;
     });
     const finish = () => {
-      if (moved) { suppressClick = true; setTimeout(() => suppressClick = false, 80); }
+      if (moved) { suppressClick = true; setTimeout(() => suppressClick = false, 120); }
       down = false; gallery.classList.remove("is-dragging");
+      moved = false;
     };
     gallery.addEventListener("pointerup", finish);
     gallery.addEventListener("pointercancel", finish);
     gallery.addEventListener("click", (event) => {
-      if (suppressClick || moved) { event.preventDefault(); event.stopPropagation(); }
+      if (event.detail > 0 && suppressClick) { event.preventDefault(); event.stopPropagation(); }
     }, true);
     gallery.addEventListener("keydown", (event) => {
       const amount = Math.max(260, gallery.clientWidth * .68);
@@ -315,10 +327,12 @@ function initMenu() {
   const button = document.querySelector(".menu-toggle");
   const panel = document.querySelector(".menu-panel");
   if (!button || !panel) return;
+  panel.inert = true;
   let returnFocus = null;
   const setMenu = (open) => {
     body.classList.toggle("menu-open", open); panel.classList.toggle("is-open", open);
     panel.setAttribute("aria-hidden", String(!open)); button.setAttribute("aria-expanded", String(open));
+    panel.inert = !open;
     button.querySelector(".menu-label").textContent = open ? "Fechar" : "Menu";
     if (open) { returnFocus = document.activeElement; setTimeout(() => panel.querySelector("a")?.focus(), reducedMotion ? 0 : 180); }
     else if (returnFocus) returnFocus.focus();
@@ -411,3 +425,9 @@ initPointerEffects();
 document.querySelectorAll("[data-liquid-canvas]").forEach(initLiquidCanvas);
 
 addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
+let refreshTimer;
+addEventListener("resize", () => {
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(() => ScrollTrigger.refresh(), 180);
+}, { passive: true });
+addEventListener("orientationchange", () => setTimeout(() => ScrollTrigger.refresh(), 220), { passive: true });

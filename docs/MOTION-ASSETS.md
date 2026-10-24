@@ -25,12 +25,17 @@ Os atos aceitam fotografias diferentes. A timeline atual usa as duas artes dispo
 
 Uma fotografia horizontal por serviço, preferencialmente 3:2:
 
-- lavagem técnica;
-- higienização interna;
-- polimento automotivo;
-- vitrificação;
-- detalhamento;
-- revitalização.
+- lavagem simples de carro;
+- lavagem completa de carro;
+- lavagem detalhada de carro;
+- higienização e estética avançada;
+- lavagem técnica do motor;
+- polimento de farol;
+- descontaminação de pintura;
+- polimento comercial;
+- lavagem simples de moto;
+- lavagem detalhada de moto;
+- serviços adicionais e estética personalizada.
 
 Definir o caminho no campo `image` do serviço em `src/config.js`. Sem imagem, permanece o placeholder gráfico com a mensagem de acervo pendente.
 
