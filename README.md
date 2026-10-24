@@ -21,12 +21,14 @@ O servidor local abre em `http://127.0.0.1:4173`. A saída de produção fica em
 Edite `src/config.js` para cadastrar apenas dados confirmados:
 
 - WhatsApp com código do país e DDD;
-- cidade e endereço;
+- rua/número e demais detalhes de endereço;
 - horário de funcionamento;
 - Instagram e Google Maps;
 - domínio canônico.
 
-Enquanto esses campos estiverem vazios, o site não publica informações presumidas. Os botões de agendamento levam à página de contato e o formulário informa que o canal oficial está em atualização.
+A cidade de Itajubá e o bairro Medicina já estão confirmados. Enquanto os demais campos estiverem vazios, o site não publica informações presumidas. Os botões de agendamento levam à página de contato e o formulário informa que o canal oficial está em atualização.
+
+Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informado ou `sob consulta`), inclusões e ressalvas também ficam em `src/config.js`. A mesma fonte alimenta catálogo, páginas individuais, formulário, dados estruturados e seleção editorial da home.
 
 ## Conteúdo real
 
@@ -45,7 +47,7 @@ O logotipo em `src/assets/logo-mark.svg` é uma assinatura tipográfica provisó
 - `tests/e2e`: testes reais de navegador com Playwright;
 - `netlify.toml`: publicação e cabeçalhos de segurança/cache.
 
-As rotas geradas incluem home, índice e seis páginas de serviços, portfólio, antes/depois, sobre, contato, FAQ, privacidade e página 404.
+As rotas geradas incluem home, catálogo e 11 páginas de serviços, portfólio, antes/depois, sobre, contato, FAQ, privacidade e página 404.
 
 ## Acessibilidade e movimento
 
@@ -55,13 +57,18 @@ O menu retém foco e fecha com `Esc`; o comparador funciona com ponteiro, toque 
 
 O hero utiliza uma composição 2.5D com fundo, carro recortado, camada especular, luz e profundidade. O storytelling possui quatro atos sincronizados ao scroll por ScrollTrigger, com pinning no desktop e versão sticky mais leve no mobile. A terceira cena combina filtro SVG de deslocamento, máscara orgânica e canvas de cáusticas.
 
-Serviços sem fotografia exibem composições gráficas identificadas como placeholders. Para adicionar imagens específicas, preencha o campo `image` de cada serviço em `src/config.js`. Pares reais de antes/depois são cadastrados em `comparisonPairs`.
+Serviços sem fotografia exibem composições gráficas identificadas como placeholders. Para adicionar imagens específicas, preencha o campo `image` de cada serviço em `src/config.js`. Os quatro atos da narrativa usam `storyActs`, e pares reais de antes/depois são cadastrados em `comparisonPairs`.
 
 ## Publicação
 
-O `netlify.toml` já aponta para `dist/`. Na Netlify, use o comando `npm run build` e publique a pasta `dist`.
+O `netlify.toml` já aponta para `dist/`, inclui os redirecionamentos 301 dos slugs antigos e mantém os cabeçalhos de cache. Na Netlify, use o comando `npm run build` e publique a pasta `dist`.
+
+Defina `SITE_URL` com o domínio definitivo. Na Netlify, a variável nativa `URL` também é reconhecida. Sem uma dessas opções, o build local omite canonical e gera um sitemap vazio em vez de publicar um endereço `.example`.
 
 ## Capturas verificadas
 
-- [Desktop 1440 × 900](docs/screenshots/lavamed-desktop.jpg)
-- [Mobile 390 × 844](docs/screenshots/lavamed-mobile.jpg)
+- [Home desktop 1440 × 900](docs/screenshots/home-desktop.png)
+- [Home mobile 390 × 844](docs/screenshots/home-mobile.png)
+- [Catálogo desktop](docs/screenshots/catalog-desktop.png)
+- [Catálogo mobile](docs/screenshots/catalog-mobile.png)
+- [Detalhe de serviço com placeholder](docs/screenshots/service-detail.png)

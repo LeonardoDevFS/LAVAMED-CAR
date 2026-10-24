@@ -39,3 +39,33 @@
   to = "/servicos/"
   status = 301
 
+[[redirects]]
+  from = "/servicos/lavagem-tecnica/*"
+  to = "/servicos/"
+  status = 301
+
+[[redirects]]
+  from = "/servicos/higienizacao-interna/*"
+  to = "/servicos/higienizacao-avancada/"
+  status = 301
+
+[[redirects]]
+  from = "/servicos/polimento-automotivo/*"
+  to = "/servicos/polimento-comercial/"
+  status = 301
+
+[[redirects]]
+  from = "/servicos/vitrificacao/*"
+  to = "/servicos/"
+  status = 301
+
+[[redirects]]
+  from = "/servicos/detalhamento/*"
+  to = "/servicos/lavagem-detalhada/"
+  status = 301
+
+[[redirects]]
+  from = "/servicos/revitalizacao/*"
+  to = "/servicos/adicionais/"
+  status = 301
+
