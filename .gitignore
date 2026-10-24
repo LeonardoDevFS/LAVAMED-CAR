@@ -1,0 +1,7 @@
+dist/
+.netlify/
+node_modules/
+*.log
+lavamed-desktop.png
+lavamed-mobile.png
+lavamed-section.png
