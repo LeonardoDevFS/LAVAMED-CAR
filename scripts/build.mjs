@@ -12,6 +12,7 @@ import {
   serviceGroups,
   servicePriceLabel,
   services,
+  siteCredits,
   storyActs,
   whatsappUrl
 } from "../src/config.js";
@@ -59,6 +60,10 @@ const bundle = manifest["src/assets/site.js"] || manifest["assets/site.js"];
 if (!bundle?.file || !bundle.css?.[0]) throw new Error("Vite manifest did not contain the LavaMed entry bundle");
 const scriptSrc = `/${bundle.file}`;
 const styleHref = `/${bundle.css[0]}`;
+const fontPreloads = (bundle.assets || [])
+  .filter((asset) => asset.endsWith(".woff2"))
+  .map((asset) => `<link rel="preload" href="/${asset}" as="font" type="font/woff2" crossorigin>`)
+  .join("");
 await rm(path.join(output, ".vite"), { recursive: true, force: true });
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
@@ -70,7 +75,7 @@ function localBusinessSchema() {
     "@type": "AutoWash",
     name: business.name,
     description: "Estética automotiva, lavagem e cuidados técnicos em Itajubá, no bairro Medicina.",
-    telephone: business.whatsapp,
+    telephone: `+${business.whatsapp}`,
     priceRange: "R$ 40–R$ 350",
     areaServed: { "@type": "City", name: `${business.city}, ${business.state}` },
     address: {
@@ -78,6 +83,13 @@ function localBusinessSchema() {
       addressLocality: business.city,
       addressRegion: business.state,
       addressCountry: "BR"
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: `+${business.whatsapp}`,
+      contactType: "customer service",
+      areaServed: "BR",
+      availableLanguage: "Portuguese"
     },
     sameAs: [business.instagram],
     hasMap: business.mapsUrl
@@ -90,6 +102,38 @@ function localBusinessSchema() {
   }
   if (business.address) schema.address.streetAddress = business.address;
   return schema;
+}
+
+function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${domain}/#website`,
+    url: `${domain}/`,
+    name: business.name,
+    alternateName: "LavaMed",
+    inLanguage: "pt-BR",
+    publisher: { "@id": `${domain}/#lavamed` }
+  };
+}
+
+function webPageSchema({ title, description, pathName, image }) {
+  const pageUrl = absoluteUrl(pathName);
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: title,
+    description,
+    inLanguage: "pt-BR",
+    isPartOf: { "@id": `${domain}/#website` },
+    about: { "@id": `${domain}/#lavamed` },
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: absoluteUrl(typeof image === "string" ? image : image.src)
+    }
+  };
 }
 
 function serviceSchema(service) {
@@ -130,18 +174,20 @@ function breadcrumbSchema(items) {
 
 function headMetadata({ title, description, pathName, image = socialImagePath, schemas = [], indexable = true }) {
   const canonical = domain && indexable ? `<link rel="canonical" href="${absoluteUrl(pathName)}">` : "";
+  const languageAlternate = domain && indexable ? `<link rel="alternate" hreflang="pt-BR" href="${absoluteUrl(pathName)}">` : "";
   const ogUrl = domain && indexable ? `<meta property="og:url" content="${absoluteUrl(pathName)}">` : "";
   const imagePath = typeof image === "string" ? image : image.src;
   const ogImage = domain ? absoluteUrl(imagePath) : imagePath;
   const robots = domain && indexable ? "index,follow,max-image-preview:large" : indexable ? "noindex,nofollow" : "noindex,follow";
   const verification = googleSiteVerification ? `<meta name="google-site-verification" content="${escapeHtml(googleSiteVerification)}">` : "";
-  const structuredData = [localBusinessSchema(), ...schemas]
+  const pageIdentitySchemas = domain && indexable ? [websiteSchema(), webPageSchema({ title, description, pathName, image })] : [];
+  const structuredData = [localBusinessSchema(), ...pageIdentitySchemas, ...schemas]
     .map((schema) => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
     .join("");
   return `<meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}"><meta name="robots" content="${robots}">${verification}
-  <meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="LavaMed Estética Automotiva"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website">${ogUrl}<meta property="og:image" content="${escapeHtml(ogImage)}"><meta property="og:image:alt" content="LavaMed Estética Automotiva em Itajubá">
+  <meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="LavaMed Estética Automotiva"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website">${ogUrl}<meta property="og:image" content="${escapeHtml(ogImage)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:alt" content="LavaMed Estética Automotiva em Itajubá">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(ogImage)}">
-  ${canonical}<link rel="icon" href="${logoPath}" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
+  ${canonical}${languageAlternate}<link rel="icon" href="${logoPath}" type="image/svg+xml">${fontPreloads}<link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
   <title>${escapeHtml(title)}</title>${structuredData}`;
 }
 
@@ -222,8 +268,31 @@ function menu(pathName) {
   return `<div class="menu-panel" id="menu-panel" aria-hidden="true"><div class="menu-glow" aria-hidden="true"></div><nav aria-label="Navegação principal">${links.map(([href,label], index) => `<a href="${href}"${pathName === href ? ' aria-current="page"' : ""}><sup>${String(index + 1).padStart(2,"0")}</sup><span>${label}</span></a>`).join("")}</nav><div class="menu-meta"><span>Itajubá / bairro Medicina</span><span>Precisão em movimento</span></div></div>`;
 }
 
+function footerServiceLinks() {
+  const prioritySlugs = [
+    "lavagem-detalhada",
+    "higienizacao-avancada",
+    "polimento-comercial",
+    "polimento-farol",
+    "lavagem-moto-detalhada",
+    "lavagem-motor"
+  ];
+  return prioritySlugs.map((slug) => {
+    const service = services.find((item) => item.slug === slug);
+    return `<a href="/servicos/${service.slug}/">${escapeHtml(service.name)}</a>`;
+  }).join("");
+}
+
 function footer() {
-  return `<footer class="site-footer"><div class="footer-top"><div class="footer-brand">${brandBlock()}</div><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div><div class="footer-grid"><nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav><nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav><div class="footer-contact" data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></div><div class="footer-bottom"><span>© <span data-year></span> LavaMed</span><span>Itajubá / Minas Gerais</span><a href="#conteudo">Voltar ao topo ↑</a></div></footer>`;
+  return `<footer class="site-footer">
+    <div class="footer-top"><div class="footer-brand">${brandBlock()}</div><div class="footer-intro"><span>Estética automotiva em Itajubá / bairro Medicina</span><p>Seu carro merece<br><em>esse cuidado.</em></p><a class="footer-booking" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener" data-booking>Agendar pelo WhatsApp <i aria-hidden="true">↗</i></a></div></div>
+    <div class="footer-grid">
+      <section class="footer-column"><p class="footer-heading">Explorar</p><nav aria-label="Navegação do rodapé"><a href="/servicos/">Todos os serviços</a><a href="/portfolio/">Portfólio</a><a href="/antes-e-depois/">Antes e depois</a><a href="/sobre/">Sobre a LavaMed</a><a href="/faq/">Perguntas frequentes</a></nav></section>
+      <section class="footer-column footer-services"><p class="footer-heading">Serviços em Itajubá</p><nav aria-label="Serviços em destaque">${footerServiceLinks()}</nav></section>
+      <section class="footer-column footer-contact"><p class="footer-heading">Contato e localização</p><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">WhatsApp da LavaMed<br><strong>${escapeHtml(business.phoneDisplay)}</strong></a><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">Bairro Medicina<br><strong>Itajubá, Minas Gerais</strong></a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener">Instagram<br><strong>@lavamed.itajuba</strong></a><a href="/contato/">Formulário de contato</a></section>
+    </div>
+    <div class="footer-bottom"><div class="footer-legal"><p>© <span data-year></span> LavaMed Estética Automotiva. Todos os direitos reservados.</p><p class="footer-credit">Desenvolvimento: <strong>${escapeHtml(siteCredits.developer)}</strong> · <a href="tel:${escapeHtml(siteCredits.phone)}" aria-label="Telefone de Leonardo Jonathan do Carmo: ${escapeHtml(siteCredits.phoneDisplay)}">${escapeHtml(siteCredits.phoneDisplay)}</a></p></div><a class="footer-to-top" href="#conteudo">Voltar ao topo <span aria-hidden="true">↑</span></a></div>
+  </footer>`;
 }
 
 function catalogContent() {
@@ -385,6 +454,7 @@ let home = homeSource
   .replace('src="/assets/site.js"', `src="${scriptSrc}"`)
   .replaceAll("{{LOGO_PATH}}", logoPath)
   .replaceAll("<!-- BRAND_CHANNELS -->", brandChannels())
+  .replace("<!-- SITE_FOOTER -->", footer())
   .replace("<!-- HOME_HERO_BACKDROP -->", pictureMarkup(homeMedia, { className: "hero-backdrop", alt: "", loading: "eager", fetchpriority: "high", sizes: "100vw" }))
   .replace("<!-- HOME_HERO_CAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", fetchpriority: "high", sizes: "100vw" }))
   .replace("<!-- HOME_HERO_SPECULAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", sizes: "100vw" }))

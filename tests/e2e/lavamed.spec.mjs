@@ -96,6 +96,56 @@ test("hero title stays inside the viewport on target desktop sizes", async ({ pa
   }
 });
 
+test("loads the brand fonts, tracks the pointer and publishes a readable footer", async ({ page }) => {
+  const failedRequests = [];
+  page.on("requestfailed", (request) => failedRequests.push(request.url()));
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+
+  const typography = await page.evaluate(() => ({
+    archivo: [...document.fonts].some((font) => font.family.includes("Archivo Black") && font.status === "loaded"),
+    spaceGrotesk: [...document.fonts].some((font) => font.family.includes("Space Grotesk") && font.status === "loaded"),
+    displayFamily: getComputedStyle(document.querySelector("h1")).fontFamily,
+    bodyFamily: getComputedStyle(document.body).fontFamily,
+    damagedEncoding: /�|Ã[\u0080-\u00bf]|Â[\u0080-\u00bf]|â€/.test(document.body.innerText),
+    loadedFontFiles: performance.getEntriesByType("resource").filter((entry) => entry.name.includes(".woff2")).length
+  }));
+  expect(typography.archivo).toBe(true);
+  expect(typography.spaceGrotesk).toBe(true);
+  expect(typography.displayFamily).toContain("Archivo Black");
+  expect(typography.bodyFamily).toContain("Space Grotesk");
+  expect(typography.damagedEncoding).toBe(false);
+  expect(typography.loadedFontFiles).toBeGreaterThanOrEqual(2);
+  await expect(page.locator('link[rel="preload"][as="font"]')).toHaveCount(2);
+
+  await page.mouse.move(620, 410);
+  await page.waitForTimeout(260);
+  const cursor = await page.locator(".cursor").evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, opacity: getComputedStyle(node).opacity };
+  });
+  expect(Math.abs(cursor.x - 620)).toBeLessThanOrEqual(2);
+  expect(Math.abs(cursor.y - 410)).toBeLessThanOrEqual(2);
+  expect(Number(cursor.opacity)).toBe(1);
+
+  const footer = page.locator(".site-footer");
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toContainText("Todos os direitos reservados");
+  await expect(footer).toContainText("Leonardo Jonathan do Carmo");
+  await expect(footer.locator('a[href="tel:+5535988267259"]')).toHaveText("(35) 98826-7259");
+  await expect(footer.locator(".footer-services a")).toHaveCount(6);
+  const footerSizes = await footer.evaluate((node) => ({
+    link: parseFloat(getComputedStyle(node.querySelector(".footer-grid a")).fontSize),
+    legal: parseFloat(getComputedStyle(node.querySelector(".footer-bottom")).fontSize)
+  }));
+  expect(footerSizes.link).toBeGreaterThanOrEqual(13);
+  expect(footerSizes.legal).toBeGreaterThanOrEqual(13);
+  expect(failedRequests.filter((url) => url.includes(".woff2"))).toEqual([]);
+  await page.screenshot({ path: `${screenshotDirectory}/footer-desktop.png`, fullPage: false });
+  await footer.locator(".footer-bottom").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: `${screenshotDirectory}/footer-legal-desktop.png`, fullPage: false });
+});
+
 test("scroll story changes acts and reverses consistently", async ({ page }) => {
   await page.goto("/");
   await page.waitForTimeout(2100);
@@ -293,6 +343,14 @@ test.describe("mobile and reduced motion", () => {
     await page.locator("[data-service-visual]").scrollIntoViewIfNeeded();
     await expect(page.locator("[data-service-quote]")).toBeVisible();
     await page.screenshot({ path: `${screenshotDirectory}/mobile-services.png`, fullPage: false });
+
+    await page.locator(".site-footer").scrollIntoViewIfNeeded();
+    await expect(page.locator(".footer-credit")).toContainText("Leonardo Jonathan do Carmo");
+    const footerLayout = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, viewport: innerWidth }));
+    expect(footerLayout.scrollWidth).toBeLessThanOrEqual(footerLayout.viewport);
+    await page.screenshot({ path: `${screenshotDirectory}/footer-mobile.png`, fullPage: false });
+    await page.locator(".footer-bottom").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `${screenshotDirectory}/footer-legal-mobile.png`, fullPage: false });
 
     await page.goto("/servicos/");
     await expect(page.locator(".catalog-row")).toHaveCount(11);

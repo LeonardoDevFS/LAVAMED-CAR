@@ -69,6 +69,7 @@ async function validateScenario(name, siteUrl) {
     const robots = valueOf(html, /<meta name="robots" content="([^"]+)">/);
     const title = valueOf(html, /<title>([^<]+)<\/title>/);
     const description = valueOf(html, /<meta name="description" content="([^"]+)">/);
+    const languageAlternate = valueOf(html, /<link rel="alternate" hreflang="pt-BR" href="([^"]+)">/);
 
     invariant(title, `${name}: missing title in ${route}`);
     invariant(description, `${name}: missing description in ${route}`);
@@ -77,9 +78,7 @@ async function validateScenario(name, siteUrl) {
     titles.add(title);
     descriptions.add(description);
 
-    for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
-      JSON.parse(match[1]);
-    }
+    const schemas = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((match) => JSON.parse(match[1]));
 
     if (indexable && !is404) {
       const expected = `${siteUrl}${route}`;
@@ -87,12 +86,21 @@ async function validateScenario(name, siteUrl) {
       invariant(ogUrl === expected, `${name}: og:url mismatch in ${route}`);
       invariant(ogImage.startsWith(`${siteUrl}/`), `${name}: Open Graph image is not absolute in ${route}`);
       invariant(robots === "index,follow,max-image-preview:large", `${name}: indexability mismatch in ${route}`);
+      invariant(languageAlternate === expected, `${name}: pt-BR alternate mismatch in ${route}`);
+      invariant(schemas.some((schema) => schema["@type"] === "WebSite"), `${name}: WebSite schema missing in ${route}`);
+      invariant(schemas.some((schema) => schema["@type"] === "WebPage"), `${name}: WebPage schema missing in ${route}`);
     } else {
       invariant(!canonical, `${name}: canonical must be absent in ${route}`);
       invariant(!ogUrl, `${name}: og:url must be absent in ${route}`);
+      invariant(!languageAlternate, `${name}: hreflang must be absent in ${route}`);
       invariant(robots === (is404 ? "noindex,follow" : "noindex,nofollow"), `${name}: noindex mismatch in ${route}`);
       if (!indexable) invariant(ogImage.startsWith("/"), `${name}: local Open Graph image must stay relative in ${route}`);
     }
+
+    invariant(html.includes('<meta property="og:image:width" content="1200">'), `${name}: Open Graph width missing in ${route}`);
+    invariant(html.includes('<meta property="og:image:height" content="630">'), `${name}: Open Graph height missing in ${route}`);
+    invariant(schemas.some((schema) => schema["@type"] === "AutoWash"), `${name}: AutoWash schema missing in ${route}`);
+    if (!indexable) invariant(!schemas.some((schema) => schema["@type"] === "WebSite" || schema["@type"] === "WebPage"), `${name}: local build leaked absolute website schema in ${route}`);
 
     const otherDomains = [domainConfig.provisionalUrl, domainConfig.futureCommercialUrl].filter((candidate) => candidate !== siteUrl);
     for (const other of otherDomains) invariant(!html.includes(other), `${name}: inactive domain leaked into ${route}: ${other}`);

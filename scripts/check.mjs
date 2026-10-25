@@ -21,6 +21,7 @@ if (!/\/assets\/site-[\w-]+\.js/.test(home)) problems.push("Home is not using a 
 if (!/\/assets\/site-[\w-]+\.css/.test(home)) problems.push("Home is not using a fingerprinted CSS bundle");
 if (home.includes('/assets/site.js') || home.includes('/assets/site.css')) problems.push("Home still references unhashed source assets");
 if (home.includes("{{") || home.includes("HOME_SERVICE_ROWS")) problems.push("Home contains unresolved build tokens");
+if (/�|Ã[\u0080-\u00bf]|Â[\u0080-\u00bf]|â€/.test(home)) problems.push("Home contains damaged UTF-8 text");
 if (!home.includes("Itajubá") || !home.includes("bairro Medicina")) problems.push("Home is missing the confirmed local context");
 if (home.includes("lavamed.example")) problems.push("Home contains the retired .example domain");
 if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
@@ -34,6 +35,11 @@ if (home.includes("data-sound-toggle") || home.includes("experiência sonora")) 
 if (home.includes("<video") || home.includes("type=\"video/")) problems.push("Home must not pretend that procedural videos exist");
 if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
 if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
+if ((home.match(/rel="preload" href="[^"]+\.woff2"/g) || []).length !== 2) problems.push("Home must preload both local brand fonts");
+if (!home.includes("Leonardo Jonathan do Carmo") || !home.includes('href="tel:+5535988267259"')) problems.push("Footer is missing the developer credit or telephone link");
+for (const servicePath of ["lavagem-detalhada", "higienizacao-avancada", "polimento-comercial", "polimento-farol", "lavagem-moto-detalhada", "lavagem-motor"]) {
+  if (!home.includes(`/servicos/${servicePath}/`)) problems.push(`Footer is missing priority service link: ${servicePath}`);
+}
 for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
   if (!home.includes(channel)) problems.push(`Home is missing official channel: ${channel}`);
 }
@@ -50,6 +56,8 @@ else {
 const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
 if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
 if (sourceCss.includes(".compare>img") || !sourceCss.includes(".compare img")) problems.push("Comparison picture images are not receiving the complete frame styles");
+const sourceJs = await readFile(path.resolve("src/assets/site.js"), "utf8");
+if (sourceJs.includes("event.clientX - 19") || sourceJs.includes("event.clientY - 19")) problems.push("Custom pointer still contains the obsolete double offset");
 for (const media of Object.values(mediaCatalog)) {
   const derivatives = [
     media.src,
@@ -117,6 +125,7 @@ for (const file of htmlFiles) {
   const description = html.match(/<meta name="description" content="([^"]+)">/)?.[1] || "";
   if (!html.includes("<title>")) problems.push(`Missing title: ${path.relative(root,file)}`);
   if (!description) problems.push(`Missing description: ${path.relative(root,file)}`);
+  if (/�|Ã[\u0080-\u00bf]|Â[\u0080-\u00bf]|â€/.test(html)) problems.push(`Damaged UTF-8 text: ${path.relative(root,file)}`);
   if (titles.has(title)) problems.push(`Duplicate title: ${title}`); else titles.add(title);
   if (descriptions.has(description)) problems.push(`Duplicate description: ${description}`); else descriptions.add(description);
   if ((html.match(/<h1(?:\s|>)/g) || []).length !== 1) problems.push(`Expected exactly one h1: ${path.relative(root,file)}`);

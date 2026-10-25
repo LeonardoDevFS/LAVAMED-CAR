@@ -484,9 +484,17 @@ function initCommonInteractions() {
 function initPointerEffects() {
   if (!finePointer || reducedMotion) return;
   const cursor = document.querySelector(".cursor");
-  const moveCursorX = gsap.quickTo(cursor, "x", { duration: .18, ease: "power3" });
-  const moveCursorY = gsap.quickTo(cursor, "y", { duration: .18, ease: "power3" });
-  addEventListener("pointermove", (event) => { cursor.style.opacity = "1"; moveCursorX(event.clientX - 19); moveCursorY(event.clientY - 19); }, { passive: true });
+  if (!cursor) return;
+  gsap.set(cursor, { xPercent: -50, yPercent: -50, force3D: true });
+  const moveCursorX = gsap.quickTo(cursor, "x", { duration: .1, ease: "power2.out" });
+  const moveCursorY = gsap.quickTo(cursor, "y", { duration: .1, ease: "power2.out" });
+  addEventListener("pointermove", (event) => {
+    cursor.style.opacity = "1";
+    moveCursorX(event.clientX);
+    moveCursorY(event.clientY);
+  }, { passive: true });
+  document.documentElement.addEventListener("pointerleave", () => { cursor.style.opacity = "0"; });
+  addEventListener("blur", () => { cursor.style.opacity = "0"; });
   document.querySelectorAll("a,button,[data-compare]").forEach((node) => {
     node.addEventListener("pointerenter", () => cursor?.classList.add("is-link")); node.addEventListener("pointerleave", () => cursor?.classList.remove("is-link"));
   });

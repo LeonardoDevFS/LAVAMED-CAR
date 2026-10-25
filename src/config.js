@@ -17,6 +17,12 @@ export const business = {
   mapsUrl: "https://share.google/Vm2BAGotXmrrtKJi1"
 };
 
+export const siteCredits = Object.freeze({
+  developer: "Leonardo Jonathan do Carmo",
+  phone: "+5535988267259",
+  phoneDisplay: "(35) 98826-7259"
+});
+
 export const serviceGroups = [
   { key: "carros", number: "01", name: "Lavagens de carros", note: "Manutenção, cuidado completo e estética premium." },
   { key: "tecnicos", number: "02", name: "Cuidados técnicos", note: "Tratamentos focados em motor, faróis e pintura." },
