@@ -5,7 +5,7 @@ import path from "node:path";
 
 spawnSync(process.execPath, ["scripts/build.mjs"], { stdio: "inherit" });
 const root = path.resolve("dist");
-const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".svg":"image/svg+xml", ".png":"image/png", ".jpg":"image/jpeg", ".woff2":"font/woff2", ".xml":"application/xml; charset=utf-8", ".txt":"text/plain; charset=utf-8" };
+const mime = { ".html":"text/html; charset=utf-8", ".css":"text/css; charset=utf-8", ".js":"text/javascript; charset=utf-8", ".svg":"image/svg+xml", ".png":"image/png", ".jpg":"image/jpeg", ".webp":"image/webp", ".avif":"image/avif", ".mp4":"video/mp4", ".webm":"video/webm", ".woff2":"font/woff2", ".xml":"application/xml; charset=utf-8", ".txt":"text/plain; charset=utf-8" };
 
 createServer(async (request, response) => {
   try {

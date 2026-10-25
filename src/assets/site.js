@@ -11,6 +11,132 @@ const finePointer = matchMedia("(pointer: fine)").matches;
 const header = document.querySelector("[data-header]");
 const progress = document.querySelector(".scroll-progress span");
 
+class SoundDesign {
+  constructor() {
+    this.context = null;
+    this.master = null;
+    this.enabled = false;
+    this.lastPlayed = new Map();
+    try { this.remembered = localStorage.getItem("lavamed-sound") === "enabled"; }
+    catch { this.remembered = false; }
+  }
+
+  updateControls() {
+    document.querySelectorAll("[data-sound-toggle]").forEach((button) => {
+      const state = button.querySelector("[data-sound-state]");
+      button.classList.toggle("is-on", this.enabled);
+      button.classList.toggle("is-remembered", !this.enabled && this.remembered);
+      button.setAttribute("aria-pressed", String(this.enabled));
+      button.setAttribute("aria-label", this.enabled ? "Desativar experiência sonora" : this.remembered ? "Reativar experiência sonora" : "Ativar experiência sonora");
+      if (state) state.textContent = this.enabled ? "ON" : this.remembered ? "READY" : "OFF";
+    });
+  }
+
+  async enable() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    this.context ||= new AudioContextClass({ latencyHint: "interactive" });
+    if (this.context.state === "suspended") await this.context.resume();
+    this.master ||= this.context.createGain();
+    this.master.disconnect();
+    this.master.gain.setValueAtTime(.72, this.context.currentTime);
+    this.master.connect(this.context.destination);
+    this.enabled = true;
+    this.remembered = true;
+    try { localStorage.setItem("lavamed-sound", "enabled"); } catch {}
+    this.updateControls();
+    this.play("hero", true);
+  }
+
+  disable() {
+    this.enabled = false;
+    this.remembered = false;
+    if (this.master && this.context) this.master.gain.setTargetAtTime(.0001, this.context.currentTime, .015);
+    try { localStorage.setItem("lavamed-sound", "disabled"); } catch {}
+    this.updateControls();
+  }
+
+  async toggle() {
+    if (this.enabled) this.disable();
+    else await this.enable();
+  }
+
+  tone({ frequency = 440, endFrequency = frequency, duration = .1, volume = .025, type = "sine", delay = 0 }) {
+    if (!this.context || !this.master) return;
+    const start = this.context.currentTime + delay;
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), start + duration);
+    gain.gain.setValueAtTime(.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + Math.min(.018, duration / 3));
+    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+    oscillator.connect(gain).connect(this.master);
+    oscillator.start(start);
+    oscillator.stop(start + duration + .02);
+  }
+
+  noise({ duration = .3, volume = .018, from = 350, to = 1500 }) {
+    if (!this.context || !this.master) return;
+    const length = Math.ceil(this.context.sampleRate * duration);
+    const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let index = 0; index < length; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
+    const source = this.context.createBufferSource();
+    const filter = this.context.createBiquadFilter();
+    const gain = this.context.createGain();
+    const now = this.context.currentTime;
+    source.buffer = buffer;
+    filter.type = "bandpass";
+    filter.Q.value = .65;
+    filter.frequency.setValueAtTime(from, now);
+    filter.frequency.exponentialRampToValueAtTime(to, now + duration * .72);
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + .035);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    source.connect(filter).connect(gain).connect(this.master);
+    source.start(now);
+    source.stop(now + duration + .02);
+  }
+
+  play(name, immediate = false) {
+    if (!this.enabled || !this.context || !this.master) return;
+    const intervals = { click: 90, reveal: 650, scene: 850, liquid: 1000, whoosh: 700, hero: 1200 };
+    const now = performance.now();
+    if (!immediate && now - (this.lastPlayed.get(name) || 0) < (intervals[name] || 300)) return;
+    this.lastPlayed.set(name, now);
+
+    if (name === "click") this.tone({ frequency: 920, endFrequency: 560, duration: .055, volume: .014, type: "triangle" });
+    if (name === "scene") {
+      this.tone({ frequency: 92, endFrequency: 124, duration: .34, volume: .026, type: "sine" });
+      this.tone({ frequency: 620, endFrequency: 410, duration: .18, volume: .008, type: "triangle", delay: .025 });
+    }
+    if (name === "whoosh") this.noise({ duration: .42, volume: .018, from: 260, to: 1850 });
+    if (name === "liquid") {
+      this.noise({ duration: .46, volume: .016, from: 1100, to: 360 });
+      [0, .075, .145].forEach((delay, index) => this.tone({ frequency: 1180 - index * 170, endFrequency: 430 - index * 45, duration: .16, volume: .008, type: "sine", delay }));
+    }
+    if (name === "reveal") {
+      this.tone({ frequency: 210, endFrequency: 520, duration: .28, volume: .014, type: "sine" });
+      this.noise({ duration: .24, volume: .009, from: 480, to: 1240 });
+    }
+    if (name === "hero") {
+      this.tone({ frequency: 58, endFrequency: 86, duration: .9, volume: .034, type: "sine" });
+      this.tone({ frequency: 232, endFrequency: 348, duration: .72, volume: .009, type: "triangle", delay: .08 });
+      this.noise({ duration: .68, volume: .012, from: 220, to: 1380 });
+    }
+  }
+}
+
+const soundDesign = new SoundDesign();
+
+function initSoundDesign() {
+  soundDesign.updateControls();
+  document.querySelectorAll("[data-sound-toggle]").forEach((button) => button.addEventListener("click", () => soundDesign.toggle()));
+  document.querySelectorAll(".cta-pill,.header-cta,.submit-button,.faq-item button").forEach((control) => control.addEventListener("pointerdown", () => soundDesign.play("click")));
+}
+
 document.querySelectorAll("[data-year]").forEach((node) => node.textContent = new Date().getFullYear());
 document.querySelectorAll("[data-booking]").forEach((link) => {
   link.href = whatsappUrl(link.dataset.service || "");
@@ -121,7 +247,11 @@ function initCameraStory() {
           invalidateOnRefresh: true,
           onUpdate: ({ progress: value }) => {
             const index = value < .25 ? 0 : value < .5 ? 1 : value < .75 ? 2 : 3;
-            if (index !== activeScene) { activeScene = index; showScene(index); }
+            if (index !== activeScene) {
+              if (activeScene >= 0) soundDesign.play(index === 2 ? "liquid" : "scene");
+              activeScene = index;
+              showScene(index);
+            }
             gsap.set(meter, { scaleY: value });
           }
         }
@@ -164,6 +294,7 @@ function initServiceVisual() {
   const image = visual.querySelector("[data-service-image]");
   const placeholder = visual.querySelector("[data-service-placeholder]");
   const caption = visual.querySelector("[data-service-caption]");
+  const mediaLabel = visual.querySelector("[data-service-media-label]");
   const price = visual.querySelector("[data-service-price]");
   const number = visual.querySelector(".visual-number");
   let active = document.querySelector(".service-row.is-active")?.dataset.service || "";
@@ -185,8 +316,17 @@ function initServiceVisual() {
       caption.textContent = service.name;
       if (price) price.textContent = servicePriceLabel(service);
       if (service.image) {
-        image.src = service.image;
-        image.alt = `Imagem do serviço ${service.name}`;
+        image.src = service.image.src;
+        image.srcset = service.image.webpSrcSet;
+        image.sizes = "(max-width: 900px) 100vw, 50vw";
+        image.width = service.image.width;
+        image.height = service.image.height;
+        image.alt = service.image.alt;
+        if (mediaLabel) mediaLabel.textContent = service.image.illustrative
+          ? "Composição conceitual — não representa atendimento real"
+          : service.image.classification.startsWith("Exterior finalizado")
+            ? "Acervo LavaMed / exterior finalizado"
+            : `Acervo LavaMed / ${service.image.classification.split("—")[0].trim()}`;
         image.hidden = false;
         placeholder.hidden = true;
       } else {
@@ -197,6 +337,7 @@ function initServiceVisual() {
     };
 
     timeline?.kill();
+    soundDesign.play("whoosh");
     gsap.killTweensOf([image, placeholder]);
     gsap.set(outgoing, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" });
     if (reducedMotion) { swap(); gsap.set(incoming, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" }); return; }
@@ -222,7 +363,7 @@ function initCompare() {
       compare.style.setProperty("--position", `${position}%`);
       handle.setAttribute("aria-valuenow", String(Math.round(position)));
     };
-    compare.addEventListener("pointerdown", (event) => { dragging = true; compare.setPointerCapture(event.pointerId); setPosition(event.clientX); });
+    compare.addEventListener("pointerdown", (event) => { dragging = true; compare.setPointerCapture(event.pointerId); setPosition(event.clientX); soundDesign.play("reveal"); });
     compare.addEventListener("pointermove", (event) => { if (dragging) setPosition(event.clientX); });
     compare.addEventListener("pointerup", () => dragging = false);
     compare.addEventListener("pointercancel", () => dragging = false);
@@ -234,6 +375,7 @@ function initCompare() {
       const value = Math.max(2, Math.min(98, next));
       compare.style.setProperty("--position", `${value}%`);
       handle.setAttribute("aria-valuenow", String(value));
+      soundDesign.play("reveal");
     });
   });
 }
@@ -331,14 +473,20 @@ function initMenu() {
   panel.inert = true;
   let returnFocus = null;
   const setMenu = (open) => {
+    soundDesign.play("whoosh");
     body.classList.toggle("menu-open", open); panel.classList.toggle("is-open", open);
     panel.setAttribute("aria-hidden", String(!open)); button.setAttribute("aria-expanded", String(open));
     panel.inert = !open;
     button.querySelector(".menu-label").textContent = open ? "Fechar" : "Menu";
-    if (open) { returnFocus = document.activeElement; setTimeout(() => panel.querySelector("a")?.focus(), reducedMotion ? 0 : 180); }
+    if (open) { returnFocus = document.activeElement; panel.querySelector("a")?.focus({ preventScroll: true }); }
     else if (returnFocus) returnFocus.focus();
   };
-  button.addEventListener("click", () => setMenu(button.getAttribute("aria-expanded") !== "true"));
+  button.addEventListener("click", (event) => {
+    event.preventDefault();
+    const opening = button.getAttribute("aria-expanded") !== "true";
+    setMenu(opening);
+    if (opening) setTimeout(() => panel.querySelector("a")?.focus({ preventScroll: true }), 900);
+  });
   addEventListener("keydown", (event) => {
     if (event.key === "Escape" && body.classList.contains("menu-open")) setMenu(false);
     if (event.key !== "Tab" || !body.classList.contains("menu-open")) return;
@@ -415,6 +563,7 @@ function initPointerEffects() {
 }
 
 initHeroMotion();
+initSoundDesign();
 initCameraStory();
 initServiceVisual();
 initCompare();

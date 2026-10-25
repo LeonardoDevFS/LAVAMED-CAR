@@ -1,60 +1,36 @@
-# Assets necessários para a versão final
+# Assets e evolução da narrativa
 
-A arquitetura já aceita os materiais abaixo sem reprogramar as timelines. Enquanto não forem fornecidos, o site usa artes de campanha ou placeholders declarados.
-
-## Identidade oficial
-
-O arquivo `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` foi fornecido e já está aplicado no cabeçalho, rodapé e favicon. Se futuras variações oficiais forem disponibilizadas, ainda serão úteis:
-
-- versão horizontal e simplificada para tamanhos muito pequenos;
-- símbolo isolado, se existir;
-- manual de área de proteção e cores oficiais.
+A experiência já usa o acervo recebido sem depender de placeholders na home ou nas páginas de serviço. O manifesto em `src/media-manifest.js` é gerado por `npm run media:process`; sua fonte editável é `media/catalog.json`.
 
 ## Storytelling — quatro atos
 
-Preferência por arquivos JPEG ou AVIF entre 2000 e 3000 px de largura, com autorização de uso:
+1. cabine desmontada durante higienização;
+2. comparativo confirmado de polimento de farol;
+3. cofre do motor do Onix Joy finalizado;
+4. Honda Civic G10 com exterior finalizado.
 
-1. veículo completo em estúdio escuro, enquadramento três quartos;
-2. detalhe real de roda, farol ou pintura;
-3. macro de superfície molhada compatível com deslocamento de água;
-4. veículo finalizado em enquadramento amplo.
-
-Os atos aceitam fotografias diferentes. A timeline atual usa as duas artes disponíveis e não apresenta essa duplicação como geometria 3D.
+Cada ato mantém sua máscara, deslocamento, profundidade e movimento de câmera GSAP. Novas fotos podem substituir um ato sem reescrever a timeline: cadastre a mídia e altere `storyActs` em `src/config.js`.
 
 ## Serviços
 
-Uma fotografia horizontal por serviço, preferencialmente 3:2:
+Os 11 serviços possuem mídia associada. Quando uma fotografia mostra somente o estado final, a interface diz “exterior finalizado” ou “interior finalizado” e não atribui vitrificação, polimento ou outra técnica não comprovada. Descontaminação de pintura usa uma composição conceitual declarada até existir um registro específico.
 
-- lavagem simples de carro;
-- lavagem completa de carro;
-- lavagem detalhada de carro;
-- higienização e estética avançada;
-- lavagem técnica do motor;
-- polimento de farol;
-- descontaminação de pintura;
-- polimento comercial;
-- lavagem simples de moto;
-- lavagem detalhada de moto;
-- serviços adicionais e estética personalizada.
+## Portfólio e antes/depois
 
-Definir o caminho no campo `image` do serviço em `src/config.js`. Sem imagem, permanece o placeholder gráfico com a mensagem de acervo pendente.
+O portfólio publica seis itens fornecidos pela LavaMed. O comparador usa apenas:
 
-## Portfólio
+- detalhe do trilho do banco, antes e depois;
+- farol do mesmo veículo, antes e depois.
 
-Fornecer de seis a dez trabalhos reais, com autorização, nome do serviço e contexto mínimo. Alternar enquadramentos horizontais e verticais. As duas imagens atuais são direção de campanha, não serviços realizados.
+Não usar as fotografias de cabine desmontada e piso tratado como slider: embora pertençam ao mesmo tipo de processo, o enquadramento não é equivalente.
 
-## Antes e depois
+## Materiais que ainda agregariam valor
 
-Cada par deve registrar o mesmo veículo, ângulo, distância focal, corte e iluminação comparável. Cadastrar em `comparisonPairs`, dentro de `src/config.js`, no formato:
+- vídeo horizontal curto de água, espuma ou acabamento para desktop;
+- vídeo vertical correspondente para mobile;
+- fotografia de execução de descontaminação de pintura;
+- fotografia confirmada de polimento comercial em andamento;
+- fotografias distintas que comprovem lavagem simples e detalhada de moto;
+- imagem real da estrutura ou da equipe, caso haja autorização de uso.
 
-```js
-{
-  title: "Descrição confirmada do trabalho",
-  before: "/assets/images/trabalho-antes.jpg",
-  after: "/assets/images/trabalho-depois.jpg",
-  altBefore: "Descrição acessível da imagem anterior",
-  altAfter: "Descrição acessível da imagem posterior"
-}
-```
-
-Nenhum par é publicado enquanto o array permanecer vazio.
+Vídeos futuros precisam ter placa ocultada em todos os frames relevantes, poster estático e versões MP4/WebM antes de entrarem na página.

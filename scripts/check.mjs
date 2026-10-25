@@ -1,6 +1,7 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { servicePriceLabel, services } from "../src/config.js";
+import { mediaCatalog } from "../src/media-manifest.js";
 import { resolveActiveSiteUrl } from "../src/site-config.js";
 
 const root = path.resolve("dist");
@@ -12,7 +13,7 @@ for (const route of routes) {
   try { await access(path.join(root, route)); } catch { problems.push(`Missing: ${route}`); }
 }
 const home = await readFile(path.join(root, "index.html"), "utf8");
-for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "lang=\"pt-BR\""]) {
+for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "data-sound-toggle", "lang=\"pt-BR\""]) {
   if (required === "canonical") continue;
   if (!home.includes(required)) problems.push(`Home missing marker: ${required}`);
 }
@@ -23,6 +24,8 @@ if (home.includes("{{") || home.includes("HOME_SERVICE_ROWS")) problems.push("Ho
 if (!home.includes("Itajubá") || !home.includes("bairro Medicina")) problems.push("Home is missing the confirmed local context");
 if (home.includes("lavamed.example")) problems.push("Home contains the retired .example domain");
 if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
+if (!home.includes('type="image/avif"') || !home.includes("srcset=")) problems.push("Home is missing responsive AVIF/WebP media");
+if ((home.match(/class="gallery-item/g) || []).length !== 6) problems.push("Home gallery does not contain the six classified portfolio items");
 if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
 if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
 for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
@@ -34,10 +37,22 @@ if (!scriptBundle) problems.push("Missing bundled site JavaScript");
 else if ((await stat(path.join(root, "assets", scriptBundle))).size < 50_000) problems.push("JavaScript bundle is unexpectedly small");
 const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
 if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
-for (const image of ["lavamed-hero.jpg","lavamed-detail.jpg"]) {
-  const info = await stat(path.join(root, "assets/images", image));
-  if (info.size < 100_000) problems.push(`Image unexpectedly small: ${image}`);
+for (const media of Object.values(mediaCatalog)) {
+  const derivatives = [
+    media.src,
+    ...media.webpSrcSet.split(",").map((item) => item.trim().split(" ")[0]),
+    ...media.avifSrcSet.split(",").map((item) => item.trim().split(" ")[0])
+  ].filter(Boolean);
+  for (const reference of derivatives) {
+    try {
+      const info = await stat(path.join(root, reference));
+      if (info.size < 1_000) problems.push(`Media derivative unexpectedly small: ${reference}`);
+      if (info.size > 500_000) problems.push(`Media derivative exceeds 500 KB: ${reference}`);
+    } catch { problems.push(`Missing media derivative: ${reference}`); }
+  }
 }
+const socialImage = await stat(path.join(root, "assets/images/hero/lavamed-social.jpg"));
+if (socialImage.size < 40_000 || socialImage.size > 500_000) problems.push("Social sharing image has an unexpected size");
 const logo = await stat(path.join(root, "assets", "images", "hero", "LavaMed_logo_vetorial_HD.svg"));
 if (logo.size < 10_000) problems.push("Official logo asset is unexpectedly small");
 for (const service of services) {
@@ -45,12 +60,17 @@ for (const service of services) {
   const expectedPrice = servicePriceLabel(service);
   if (!html.includes(expectedPrice)) problems.push(`Missing price label for ${service.slug}: ${expectedPrice}`);
   if (!html.includes(service.name)) problems.push(`Missing service name: ${service.slug}`);
-  if (!service.image && !html.includes("Imagem real aguardando acervo")) problems.push(`Missing honest image placeholder: ${service.slug}`);
+  if (service.image && !html.includes(service.image.src)) problems.push(`Missing classified service media: ${service.slug}`);
+  if (service.image?.illustrative && !html.includes("Composição conceitual")) problems.push(`Missing illustrative-media disclosure: ${service.slug}`);
 }
 const catalog = await readFile(path.join(root, "servicos", "index.html"), "utf8");
 if ((catalog.match(/class="catalog-row"/g) || []).length !== 11) problems.push("Catalog does not contain exactly 11 service groups");
 if (!catalog.includes("Não inclui limpeza ou aspiração interna")) problems.push("Package comparison is missing the Lavagem Simples interior exclusion");
 if (catalog.includes("A partir de R$ 40 o par") || !catalog.includes("A partir de R$ 80 o par")) problems.push("Headlight pricing unit is incorrect");
+const portfolio = await readFile(path.join(root, "portfolio", "index.html"), "utf8");
+if ((portfolio.match(/class="portfolio-card/g) || []).length !== 6) problems.push("Portfolio does not contain six classified items");
+const comparisons = await readFile(path.join(root, "antes-e-depois", "index.html"), "utf8");
+if ((comparisons.match(/class="result-pair"/g) || []).length !== 2) problems.push("Before/after page does not contain the two confirmed pairs");
 const sitemap = await readFile(path.join(root, "sitemap.xml"), "utf8");
 if (sitemap.includes(".example")) problems.push("Sitemap contains a .example domain");
 const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
@@ -88,8 +108,11 @@ for (const file of htmlFiles) {
   }
   if (html.includes("lavamed.example")) problems.push(`Retired .example domain in ${path.relative(root,file)}`);
   if (html.includes('src="/assets/logo-mark.svg"')) problems.push(`Provisional logo still rendered in ${path.relative(root,file)}`);
-  if (html.includes("lavamed-hero.png") || html.includes("lavamed-detail.png")) problems.push(`Stale PNG reference: ${path.relative(root,file)}`);
-  const references = [...html.matchAll(/(?:href|src)="(\/[^"]+)"/g)].map((match) => match[1].split(/[?#]/)[0]);
+  if (html.includes("/assets/images/lavamed-hero.jpg") || html.includes("/assets/images/lavamed-detail.jpg")) problems.push(`Stale conceptual media reference: ${path.relative(root,file)}`);
+  const references = [
+    ...[...html.matchAll(/(?:href|src)="(\/[^"]+)"/g)].map((match) => match[1].split(/[?#]/)[0]),
+    ...[...html.matchAll(/srcset="([^"]+)"/g)].flatMap((match) => match[1].split(",").map((item) => item.trim().split(" ")[0]))
+  ];
   for (const reference of references) {
     if (reference === "/" || reference.startsWith("//")) continue;
     const candidate = reference.endsWith("/") ? path.join(root, reference, "index.html") : path.join(root, reference);

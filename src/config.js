@@ -1,3 +1,5 @@
+import { mediaById } from "./media-manifest.js";
+
 /**
  * Fonte única para dados comerciais e conteúdo de serviços da LavaMed.
  * Campos vazios são intencionais: publique somente informações confirmadas.
@@ -42,7 +44,7 @@ export const services = [
     ],
     benefits: ["Manutenção externa objetiva", "Cuidado adequado a cada área", "Acabamento visual renovado"],
     exclusions: ["Não inclui limpeza nem aspiração do interior do veículo."],
-    image: "",
+    image: mediaById("hyundai-hb20-finalizado"),
     featured: true
   },
   {
@@ -66,7 +68,7 @@ export const services = [
     ],
     benefits: ["Interior e exterior no mesmo cuidado", "Mais conforto na cabine", "Manutenção visual do conjunto"],
     exclusions: [],
-    image: "",
+    image: mediaById("jeep-compass-interior-finalizado"),
     featured: true
   },
   {
@@ -92,7 +94,7 @@ export const services = [
     ],
     benefits: ["Acesso a áreas normalmente esquecidas", "Cuidado interno e externo ampliado", "Acabamento premium"],
     exclusions: [],
-    image: "",
+    image: mediaById("honda-civic-interior-finalizado"),
     featured: true
   },
   {
@@ -117,7 +119,7 @@ export const services = [
     ],
     benefits: ["Limpeza interna intensiva", "Tratamento de áreas inferiores e frestas", "Escopo definido após avaliação técnica"],
     exclusions: ["A remoção dos bancos depende das condições de segurança e das particularidades do veículo.", "O serviço não promete eliminação absoluta de microrganismos, manchas ou odores."],
-    image: "",
+    image: mediaById("cabine-desmontada"),
     featured: true
   },
   {
@@ -142,7 +144,7 @@ export const services = [
     ],
     benefits: ["Remoção de resíduos visíveis", "Acabamento visual renovado", "Manutenção posterior potencialmente mais simples nas superfícies tratadas"],
     exclusions: ["O valor da modalidade com verniz ainda não foi informado.", "A aplicação do verniz depende da compatibilidade com materiais e condições de uso."],
-    image: "",
+    image: mediaById("onix-joy-motor-finalizado"),
     featured: false
   },
   {
@@ -165,7 +167,7 @@ export const services = [
     ],
     benefits: ["Melhora potencial da transparência", "Efeito hidrofóbico conforme produto e aplicação", "Maior facilidade relativa de limpeza"],
     exclusions: ["Resultados, proteção UV e durabilidade dependem do estado da lente, do produto utilizado e da manutenção.", "Craquelamento interno ou danos profundos podem exigir outra solução; a segurança da iluminação vem primeiro."],
-    image: "",
+    image: mediaById("farol-depois"),
     featured: false
   },
   {
@@ -186,7 +188,7 @@ export const services = [
     ],
     benefits: ["Toque potencialmente mais liso", "Melhora visual da pintura", "Preparo para proteção posterior", "Remoção de contaminantes aderidos", "Manutenção potencialmente mais simples"],
     exclusions: ["Nem todo contaminante pode ser removido da mesma forma; o resultado depende da condição da superfície."],
-    image: "",
+    image: mediaById("conceitual-detalhe-agua"),
     featured: false
   },
   {
@@ -207,7 +209,7 @@ export const services = [
     ],
     benefits: ["Resgate visual de brilho e cor", "Suavização possível de marcas leves", "Apresentação estética para revenda", "Processo mais objetivo que uma correção profunda"],
     exclusions: ["Não há garantia de remoção de todos os riscos nem de valorização financeira do veículo."],
-    image: "",
+    image: mediaById("honda-civic-g10-tres-quartos"),
     featured: false
   },
   {
@@ -227,7 +229,7 @@ export const services = [
     ],
     benefits: ["Manutenção estética prática", "Produtos adequados ao uso automotivo", "Finalização cuidadosa"],
     exclusions: ["R$ 40 é o valor informado atualmente e deve ser confirmado caso haja variação por porte."],
-    image: "",
+    image: mediaById("yamaha-fz15-finalizada"),
     featured: false
   },
   {
@@ -250,7 +252,7 @@ export const services = [
     ],
     benefits: ["Atenção a áreas de difícil acesso", "Acabamento de pintura e plásticos", "Processo orientado pela compatibilidade dos materiais"],
     exclusions: ["Proteção e duração variam conforme os produtos, o uso e a manutenção da moto."],
-    image: "",
+    image: mediaById("yamaha-fz15-finalizada"),
     featured: false
   },
   {
@@ -278,27 +280,53 @@ export const services = [
     ],
     benefits: ["Contratação avulsa ou combinada", "Escopo personalizado", "Orçamento definido após avaliação"],
     exclusions: ["O preço depende dos itens escolhidos, da condição e do material do veículo."],
-    image: "",
+    image: mediaById("piso-interno-tratado"),
     featured: false
   }
 ];
 
-/**
- * Cada ato aceita uma foto independente. Os fallbacks abaixo são artes de
- * campanha e não representam serviços ou veículos de clientes.
- */
+export const homeMedia = mediaById("honda-civic-g10-frente");
+
+export const campaignMedia = {
+  detail: mediaById("conceitual-detalhe-agua"),
+  silhouette: mediaById("conceitual-coupe-escuro")
+};
+
+/** Cada ato usa uma mídia classificada no inventário. */
 export const storyActs = [
-  { key: "diagnostico", image: "/assets/images/lavamed-hero.jpg", fallback: true },
-  { key: "precisao", image: "/assets/images/lavamed-detail.jpg", fallback: true },
-  { key: "controle", image: "/assets/images/lavamed-detail.jpg", fallback: true },
-  { key: "presenca", image: "/assets/images/lavamed-hero.jpg", fallback: true }
+  { key: "diagnostico", image: mediaById("cabine-desmontada"), fallback: false },
+  { key: "precisao", image: mediaById("farol-comparativo-pronto"), fallback: false },
+  { key: "controle", image: mediaById("onix-joy-motor-finalizado"), fallback: false },
+  { key: "presenca", image: mediaById("honda-civic-g10-tres-quartos"), fallback: false }
 ];
 
 /**
  * Pares reais e correspondentes para o comparador antes/depois.
  * Formato: { title, before, after, altBefore, altAfter }.
  */
-export const comparisonPairs = [];
+export const comparisonPairs = [
+  {
+    title: "Detalhe do trilho do banco",
+    service: "Higienização e estética avançada",
+    before: mediaById("trilho-banco-antes"),
+    after: mediaById("trilho-banco-depois")
+  },
+  {
+    title: "Polimento de farol",
+    service: "Polimento de farol",
+    before: mediaById("farol-antes"),
+    after: mediaById("farol-depois")
+  }
+];
+
+export const portfolioItems = [
+  { number: "01", title: "Honda Civic G10", note: "Exterior finalizado", media: mediaById("honda-civic-g10-frente"), shape: "wide" },
+  { number: "02", title: "Hyundai HB20", note: "Exterior finalizado", media: mediaById("hyundai-hb20-finalizado"), shape: "tall" },
+  { number: "03", title: "Jeep Compass", note: "Exterior finalizado", media: mediaById("jeep-compass-finalizado"), shape: "wide" },
+  { number: "04", title: "Interior Honda Civic", note: "Interior finalizado", media: mediaById("honda-civic-interior-finalizado"), shape: "tall" },
+  { number: "05", title: "Motor Onix Joy", note: "Cofre finalizado", media: mediaById("onix-joy-motor-finalizado"), shape: "close" },
+  { number: "06", title: "Yamaha Fazer FZ15", note: "Moto finalizada", media: mediaById("yamaha-fz15-finalizada"), shape: "tall" }
+];
 
 export function servicePriceLabel(service) {
   if (service.priceQualifier === "consult") return "Sob consulta";
