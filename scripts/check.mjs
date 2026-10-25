@@ -1,6 +1,6 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
-import { servicePriceLabel, services } from "../src/config.js";
+import { comparisonPairs, servicePriceLabel, services } from "../src/config.js";
 import { mediaCatalog } from "../src/media-manifest.js";
 import { resolveActiveSiteUrl } from "../src/site-config.js";
 
@@ -49,6 +49,7 @@ else {
 }
 const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
 if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
+if (sourceCss.includes(".compare>img") || !sourceCss.includes(".compare img")) problems.push("Comparison picture images are not receiving the complete frame styles");
 for (const media of Object.values(mediaCatalog)) {
   const derivatives = [
     media.src,
@@ -83,6 +84,10 @@ const portfolio = await readFile(path.join(root, "portfolio", "index.html"), "ut
 if ((portfolio.match(/class="portfolio-card/g) || []).length !== 7) problems.push("Portfolio does not contain seven classified items");
 const comparisons = await readFile(path.join(root, "antes-e-depois", "index.html"), "utf8");
 if ((comparisons.match(/class="result-pair"/g) || []).length !== 3) problems.push("Before/after page does not contain the three confirmed pairs");
+const cabinPair = comparisonPairs.find((pair) => pair.title === "Cabine desmontada");
+if (cabinPair?.before?.id !== "cabine-desmontada-antes" || cabinPair?.after?.id !== "cabine-desmontada-depois") problems.push("Cabin comparison is not using the confirmed same-angle source pair");
+const headlightPair = comparisonPairs.find((pair) => pair.title === "Polimento de farol");
+if (headlightPair?.before?.id !== "farol-antes" || headlightPair?.after?.id !== "farol-depois") problems.push("Headlight comparison is not using the complete confirmed source pair");
 const sitemap = await readFile(path.join(root, "sitemap.xml"), "utf8");
 if (sitemap.includes(".example")) problems.push("Sitemap contains a .example domain");
 const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);

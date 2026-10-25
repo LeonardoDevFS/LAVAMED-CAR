@@ -135,7 +135,21 @@ test("service transitions, comparison and gallery input modes work", async ({ pa
   await page.keyboard.press("ArrowRight");
   await expect(handle).toHaveAttribute("aria-valuenow", String(initialValue + 4));
   expect(await comparison.locator(".compare-base").getAttribute("src")).not.toBe(await comparison.locator(".compare-overlay img").getAttribute("src"));
+  const headlightFrame = await comparison.evaluate((node) => {
+    const frame = node.getBoundingClientRect();
+    const after = node.querySelector(".compare-base").getBoundingClientRect();
+    return { frameWidth: frame.width, frameHeight: frame.height, afterWidth: after.width, afterHeight: after.height };
+  });
+  expect(Math.abs(headlightFrame.frameWidth - headlightFrame.afterWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(headlightFrame.frameHeight - headlightFrame.afterHeight)).toBeLessThanOrEqual(1);
+  const cabinComparison = page.locator(".results-feature--cabin .compare");
+  await expect(cabinComparison.locator(".compare-base")).toHaveAttribute("src", /cabine-desmontada-depois-higienizacao/);
+  await expect(cabinComparison.locator(".compare-overlay img")).toHaveAttribute("src", /cabine-desmontada-antes-higienizacao/);
   await page.screenshot({ path: `${screenshotDirectory}/home-comparison.png`, fullPage: false });
+  await cabinComparison.scrollIntoViewIfNeeded();
+  await cabinComparison.locator(".compare-base").evaluate((image) => image.complete || new Promise((resolve) => image.addEventListener("load", resolve, { once: true })));
+  await page.waitForTimeout(950);
+  await page.screenshot({ path: `${screenshotDirectory}/home-cabin-comparison.png`, fullPage: false });
 
   const simple = page.locator('.service-row[data-service="lavagem-simples"]');
   const complete = page.locator('.service-row[data-service="lavagem-completa"]');

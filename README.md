@@ -82,6 +82,7 @@ Use `npm run test:domains` para validar automaticamente os cenários local, prov
 - [Home mobile 390 × 844](docs/screenshots/home-mobile.png)
 - [Processo documental](docs/screenshots/process-cinema.png)
 - [Comparador em destaque na home](docs/screenshots/home-comparison.png)
+- [Comparador de higienização no mesmo ângulo](docs/screenshots/home-cabin-comparison.png)
 - [Portfólio horizontal na home](docs/screenshots/home-portfolio.png)
 - [Encerramento cinematográfico](docs/screenshots/final-scene.png)
 - [Catálogo desktop](docs/screenshots/catalog-desktop.png)
