@@ -11,6 +11,7 @@ npm install
 npm run media:process
 npm run build
 npm run check
+npm run audit:performance
 npm run dev
 npm run test:e2e
 ```
@@ -32,9 +33,9 @@ Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informa
 
 ## Conteúdo real
 
-O acervo recebido foi classificado, preservado em `media-originals/` e publicado por meio de derivados WebP/AVIF responsivos. O inventário completo, com hash, resolução, confiança da classificação e destino, está em [docs/MEDIA-INVENTORY.md](docs/MEDIA-INVENTORY.md). O fluxo de atualização e o sound design estão documentados em [docs/MEDIA-AND-SOUND.md](docs/MEDIA-AND-SOUND.md).
+O acervo recebido foi classificado, preservado em `media-originals/` e publicado por meio de derivados WebP/AVIF responsivos. O inventário completo, com hash, resolução, confiança da classificação e destino, está em [docs/MEDIA-INVENTORY.md](docs/MEDIA-INVENTORY.md). O fluxo de atualização e a política de mídia estão documentados em [docs/MEDIA.md](docs/MEDIA.md).
 
-O portfólio usa seis mídias fornecidas pela LavaMed. Fotografias de carro ou moto limpos são descritas somente como “exterior finalizado” quando o procedimento específico não pode ser confirmado visualmente. A página de antes/depois publica apenas três pares compatíveis: cabine desmontada, trilho do banco e farol. As duas antigas artes de campanha continuam disponíveis apenas como composições conceituais claramente identificadas.
+O portfólio usa sete mídias fornecidas pela LavaMed. Fotografias de carro ou moto limpos são descritas somente como “exterior finalizado” quando o procedimento específico não pode ser confirmado visualmente. A página de antes/depois publica apenas três pares compatíveis: cabine desmontada, trilho do banco e farol. As duas antigas artes de campanha continuam disponíveis apenas como composições conceituais claramente identificadas.
 
 O logotipo oficial está em `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` e aparece no cabeçalho, no rodapé e como favicon. O arquivo legado `src/assets/logo-mark.svg` permanece apenas como histórico da assinatura provisória.
 
@@ -57,13 +58,13 @@ As rotas geradas incluem home, catálogo e 11 páginas de serviços, portfólio,
 
 ## Acessibilidade e movimento
 
-O menu retém foco e fecha com `Esc`; o comparador funciona com ponteiro, toque e setas; há link de salto, foco visível e conteúdo semântico. `prefers-reduced-motion` remove a narrativa presa ao scroll e as animações contínuas. O som começa desligado e só cria um `AudioContext` depois do clique explícito do visitante.
+O menu retém foco e fecha com `Esc`; o comparador funciona com ponteiro, toque e setas; há link de salto, foco visível e conteúdo semântico. `prefers-reduced-motion` remove a narrativa presa ao scroll e as animações contínuas. A experiência é deliberadamente silenciosa e não cria contexto de áudio.
 
 ## Motion design
 
-O hero utiliza uma composição 2.5D com fundo, carro recortado, camada especular, luz e profundidade. O storytelling possui quatro atos sincronizados ao scroll por ScrollTrigger, com pinning no desktop e versão sticky mais leve no mobile. A terceira cena combina filtro SVG de deslocamento, máscara orgânica e canvas de cáusticas.
+O hero utiliza o cupê preto da campanha conceitual original em uma composição 2.5D com fundo, carro recortado, camada especular, luz e profundidade. O storytelling possui quatro atos sincronizados ao scroll por ScrollTrigger, com pinning no desktop e versão sticky mais leve no mobile. A terceira cena combina filtro SVG de deslocamento, máscara orgânica e canvas de cáusticas.
 
-Os quatro atos da narrativa usam mídias independentes classificadas no manifesto. As páginas de serviço exibem a origem visual com rótulos de procedência; composições conceituais não são apresentadas como atendimentos reais. O sound design é sintetizado com Web Audio API, sem música ou arquivo de terceiros: impacto discreto no acionamento, whoosh, transição líquida, mudança de cena, clique e revelação do comparador.
+Os quatro atos da narrativa usam mídias independentes classificadas no manifesto. As páginas de serviço exibem a origem visual com rótulos de procedência; composições conceituais não são apresentadas como atendimentos reais. A seção de processo usa fotografias reais como fallback editorial até que vídeos autorizados sejam fornecidos.
 
 ## Publicação
 
@@ -79,6 +80,10 @@ Use `npm run test:domains` para validar automaticamente os cenários local, prov
 
 - [Home desktop 1440 × 900](docs/screenshots/home-desktop.png)
 - [Home mobile 390 × 844](docs/screenshots/home-mobile.png)
+- [Processo documental](docs/screenshots/process-cinema.png)
+- [Comparador em destaque na home](docs/screenshots/home-comparison.png)
+- [Portfólio horizontal na home](docs/screenshots/home-portfolio.png)
+- [Encerramento cinematográfico](docs/screenshots/final-scene.png)
 - [Catálogo desktop](docs/screenshots/catalog-desktop.png)
 - [Catálogo mobile](docs/screenshots/catalog-mobile.png)
 - [Detalhe de serviço com mídia real](docs/screenshots/service-detail.png)

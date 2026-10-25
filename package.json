@@ -11,6 +11,7 @@
     "media:process": "node scripts/process-media.mjs",
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
+    "audit:performance": "node scripts/perf-audit.mjs",
     "test:domains": "node scripts/check-domains.mjs",
     "test:e2e": "playwright test"
   },

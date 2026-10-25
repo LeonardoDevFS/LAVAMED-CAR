@@ -4,9 +4,9 @@ A experiência já usa o acervo recebido sem depender de placeholders na home ou
 
 ## Storytelling — quatro atos
 
-1. cabine desmontada durante higienização;
+1. cupê preto da campanha conceitual, identificado como publicidade;
 2. comparativo confirmado de polimento de farol;
-3. cofre do motor do Onix Joy finalizado;
+3. cabine desmontada durante higienização;
 4. Honda Civic G10 com exterior finalizado.
 
 Cada ato mantém sua máscara, deslocamento, profundidade e movimento de câmera GSAP. Novas fotos podem substituir um ato sem reescrever a timeline: cadastre a mídia e altere `storyActs` em `src/config.js`.
@@ -17,7 +17,7 @@ Os 11 serviços possuem mídia associada. Quando uma fotografia mostra somente o
 
 ## Portfólio e antes/depois
 
-O portfólio publica seis itens fornecidos pela LavaMed. O comparador usa apenas:
+O portfólio publica sete itens fornecidos pela LavaMed, incluindo o Volkswagen do acervo. A home destaca farol e cabine, e a página completa mantém os três pares confirmados:
 
 - cabine desmontada antes e depois da etapa de higienização;
 - detalhe do trilho do banco, antes e depois;

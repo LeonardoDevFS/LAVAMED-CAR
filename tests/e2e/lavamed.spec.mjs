@@ -13,6 +13,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
 
+  await page.addInitScript(() => localStorage.setItem("lavamed-sound", "enabled"));
   await page.goto("/");
   await page.waitForTimeout(2100);
   await expect(page.locator("h1")).toContainText("NÃO É SÓ");
@@ -24,20 +25,12 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator('.site-header .brand-channels a[aria-label*="Instagram"]')).toHaveAttribute("href", "https://www.instagram.com/lavamed.itajuba/");
   await expect(page.locator('.site-header .brand-channels a[aria-label*="Maps"]')).toHaveAttribute("href", "https://share.google/Vm2BAGotXmrrtKJi1");
   await expect(page.locator('picture source[type="image/avif"]')).not.toHaveCount(0);
-  await expect(page.locator(".gallery-item")).toHaveCount(6);
-  const sound = page.locator("[data-sound-toggle]");
-  await expect(sound).toHaveAttribute("aria-pressed", "false");
-  await sound.click();
-  await expect(sound).toHaveAttribute("aria-pressed", "true");
-  await expect(sound.locator("[data-sound-state]")).toHaveText("ON");
-  expect(await page.evaluate(() => localStorage.getItem("lavamed-sound"))).toBe("enabled");
-  await page.reload();
-  await expect(sound).toHaveAttribute("aria-pressed", "false");
-  await expect(sound.locator("[data-sound-state]")).toHaveText("READY");
-  await sound.click();
-  await expect(sound).toHaveAttribute("aria-pressed", "true");
-  await sound.click();
-  await expect(sound).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".gallery-item")).toHaveCount(7);
+  await expect(page.locator("[data-sound-toggle]")).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("lavamed-sound"))).toBeNull();
+  await expect(page.locator(".hero-backdrop")).toHaveAttribute("src", /conceitual-coupe-escuro/);
+  await expect(page.locator(".process-frame")).toHaveCount(3);
+  await expect(page.locator("video")).toHaveCount(0);
   await page.screenshot({ path: `${screenshotDirectory}/desktop.png`, fullPage: false });
 
   const menu = page.locator(".menu-toggle");
@@ -79,6 +72,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await page.locator("[data-contact-form]").evaluate((form) => form.requestSubmit());
   await expect(page.locator(".form-status")).toHaveText("Abrindo o WhatsApp…");
   expect(await page.evaluate(() => window.__whatsappUrl)).toContain("wa.me/5535984586615");
+  expect(decodeURIComponent(await page.evaluate(() => window.__whatsappUrl))).toContain("valor inicial de A partir de R$ 40");
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -98,6 +92,7 @@ test("hero title stays inside the viewport on target desktop sizes", async ({ pa
     expect(geometry.left).toBeGreaterThanOrEqual(0);
     expect(geometry.right).toBeLessThanOrEqual(geometry.viewport + 1);
     expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.viewport);
+    await page.screenshot({ path: `${screenshotDirectory}/hero-${viewport.width}x${viewport.height}.png`, fullPage: false });
   }
 });
 
@@ -117,22 +112,33 @@ test("scroll story changes acts and reverses consistently", async ({ page }) => 
   await page.waitForTimeout(900);
   await expect(page.locator("[data-camera-count]")).toHaveText("01");
   await expect(page.locator('[data-scene="0"]')).toHaveClass(/is-active/);
+
+  await page.locator(".final-scene").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(700);
+  await expect(page.locator(".final-scene .cta-pill")).toContainText("Agendar pelo WhatsApp");
+  await page.screenshot({ path: `${screenshotDirectory}/final-scene.png`, fullPage: false });
 });
 
 test("service transitions, comparison and gallery input modes work", async ({ page }) => {
   await page.goto("/");
   await page.waitForTimeout(2100);
 
-  const handle = page.locator(".compare-handle");
+  await page.locator("[data-process-cinema]").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: `${screenshotDirectory}/process-cinema.png`, fullPage: false });
+
+  const comparison = page.locator(".results-feature--headlight .compare");
+  const handle = comparison.locator(".compare-handle");
   await handle.scrollIntoViewIfNeeded();
   await handle.focus();
   const initialValue = Number(await handle.getAttribute("aria-valuenow"));
   await page.keyboard.press("ArrowRight");
   await expect(handle).toHaveAttribute("aria-valuenow", String(initialValue + 4));
-  expect(await page.locator(".compare-base").getAttribute("src")).not.toBe(await page.locator(".compare-overlay img").getAttribute("src"));
+  expect(await comparison.locator(".compare-base").getAttribute("src")).not.toBe(await comparison.locator(".compare-overlay img").getAttribute("src"));
+  await page.screenshot({ path: `${screenshotDirectory}/home-comparison.png`, fullPage: false });
 
-  const simple = page.locator('[data-service="lavagem-simples"]');
-  const complete = page.locator('[data-service="lavagem-completa"]');
+  const simple = page.locator('.service-row[data-service="lavagem-simples"]');
+  const complete = page.locator('.service-row[data-service="lavagem-completa"]');
   await complete.scrollIntoViewIfNeeded();
   for (let index = 0; index < 4; index += 1) {
     await complete.focus();
@@ -147,6 +153,9 @@ test("service transitions, comparison and gallery input modes work", async ({ pa
   await expect(page.locator("[data-service-image]")).toBeVisible();
   await expect(page.locator("[data-service-image]")).toHaveAttribute("src", /jeep-compass-interior-finalizado/);
   await expect(page.locator("[data-service-media-label]")).toContainText("Acervo LavaMed");
+  const serviceQuote = page.locator("[data-service-quote]");
+  await expect(serviceQuote).toHaveAttribute("href", /wa\.me\/5535984586615/);
+  expect(decodeURIComponent(await serviceQuote.getAttribute("href"))).toContain("valor inicial de A partir de R$ 80");
   await page.screenshot({ path: `${screenshotDirectory}/services.png`, fullPage: false });
 
   const gallery = page.locator("[data-gallery]");
@@ -155,6 +164,7 @@ test("service transitions, comparison and gallery input modes work", async ({ pa
   await page.keyboard.press("ArrowRight");
   await page.waitForTimeout(500);
   expect(await gallery.evaluate((node) => node.scrollLeft)).toBeGreaterThan(0);
+  await page.screenshot({ path: `${screenshotDirectory}/home-portfolio.png`, fullPage: false });
 
   const firstItem = gallery.locator(".gallery-item").first();
   const box = await firstItem.boundingBox();
@@ -197,11 +207,21 @@ test("catalog publishes all prices, service routes and responsible copy", async 
   await expect(page.locator(".scope-list article")).toHaveCount(10);
 
   await page.goto("/portfolio/");
-  await expect(page.locator(".portfolio-card")).toHaveCount(6);
+  await expect(page.locator(".portfolio-card")).toHaveCount(7);
   await expect(page.locator(".archive-note")).toContainText("procedimento que ela não confirme");
+  for (const card of await page.locator(".portfolio-card").all()) await card.scrollIntoViewIfNeeded();
+  await page.locator(".portfolio-card img").evaluateAll((images) => Promise.all(images.map((image) => image.complete ? true : new Promise((resolve) => image.addEventListener("load", resolve, { once: true })))));
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${screenshotDirectory}/portfolio-page.png`, fullPage: true });
   await page.goto("/antes-e-depois/");
   await expect(page.locator(".result-pair")).toHaveCount(3);
   await expect(page.locator(".result-pair").first()).toContainText("Cabine desmontada");
+  for (const pair of await page.locator(".result-pair").all()) await pair.scrollIntoViewIfNeeded();
+  await page.locator(".result-pair img").evaluateAll((images) => Promise.all(images.map((image) => image.complete ? true : new Promise((resolve) => image.addEventListener("load", resolve, { once: true })))));
+  await page.evaluate(() => scrollTo(0, 0));
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: `${screenshotDirectory}/comparison-page.png`, fullPage: true });
 });
 
 test("keeps the home within the local Core Web Vitals budget", async ({ page }) => {
@@ -232,15 +252,33 @@ test.describe("mobile and reduced motion", () => {
   test.use({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
 
   test("keeps the narrative and catalog legible without motion", async ({ page }) => {
+    for (const viewport of [{ width: 390, height: 844 }, { width: 360, height: 800 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto("/");
+      await expect(page.locator("h1")).toBeVisible();
+      await expect(page.locator(".menu-toggle")).toBeVisible();
+      await expect(page.locator(".site-header .brand-channels")).toBeVisible();
+      await expect(page.locator(".title-indent > span")).toBeInViewport();
+      await expect(page.locator(".hero-booking")).toBeInViewport();
+      const layout = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, viewport: innerWidth }));
+      expect(layout.scrollWidth).toBeLessThanOrEqual(layout.viewport);
+      await page.screenshot({ path: `${screenshotDirectory}/mobile-${viewport.width}.png`, fullPage: false });
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await expect(page.locator("h1")).toBeVisible();
-    await expect(page.locator(".menu-toggle")).toBeVisible();
-    await expect(page.locator(".site-header .brand-channels")).toBeVisible();
-    await expect(page.locator(".title-indent > span")).toBeInViewport();
-    await page.screenshot({ path: `${screenshotDirectory}/mobile.png`, fullPage: false });
     await page.locator("[data-camera]").scrollIntoViewIfNeeded();
     await expect(page.locator('[data-scene="0"]')).toBeVisible();
     await expect(page.locator('[data-scene="1"]')).toBeHidden();
+    await page.locator("[data-process-cinema]").scrollIntoViewIfNeeded();
+    await expect(page.locator(".process-frame").first()).toBeVisible();
+    await page.screenshot({ path: `${screenshotDirectory}/mobile-process.png`, fullPage: false });
+    await page.locator(".results-feature--headlight").scrollIntoViewIfNeeded();
+    await expect(page.getByRole("slider", { name: /Polimento de farol/ })).toBeVisible();
+    await page.locator(".results-feature--headlight .compare-base").evaluate((image) => image.complete || new Promise((resolve) => image.addEventListener("load", resolve, { once: true })));
+    await page.screenshot({ path: `${screenshotDirectory}/mobile-comparison.png`, fullPage: false });
+    await page.locator("[data-service-visual]").scrollIntoViewIfNeeded();
+    await expect(page.locator("[data-service-quote]")).toBeVisible();
+    await page.screenshot({ path: `${screenshotDirectory}/mobile-services.png`, fullPage: false });
 
     await page.goto("/servicos/");
     await expect(page.locator(".catalog-row")).toHaveCount(11);

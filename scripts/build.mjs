@@ -8,6 +8,7 @@ import {
   comparisonPairs,
   homeMedia,
   portfolioItems,
+  processMedia,
   serviceGroups,
   servicePriceLabel,
   services,
@@ -205,11 +206,7 @@ function shell({ title, description, pathName, eyebrow, heading, accent = "", de
 }
 
 function header() {
-  return `<header class="site-header" data-header>${brandBlock()}<div class="header-actions">${soundControl()}<a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
-}
-
-function soundControl() {
-  return `<button class="sound-toggle magnetic" type="button" data-sound-toggle aria-pressed="false" aria-label="Ativar experiência sonora"><span>Som</span><i aria-hidden="true"><b></b><b></b><b></b></i><small data-sound-state>OFF</small></button>`;
+  return `<header class="site-header" data-header>${brandBlock()}<div class="header-actions"><a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
 }
 
 function brandChannels() {
@@ -262,7 +259,7 @@ function serviceContent(service) {
   const currentIndex = services.indexOf(service);
   const previous = services.at(currentIndex - 1);
   const next = services[(currentIndex + 1) % services.length];
-  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.name)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Use o botão de agendamento para abrir uma conversa no WhatsApp oficial da LavaMed, já com o serviço selecionado na mensagem.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
+  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.slug)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Use o botão de agendamento para abrir uma conversa no WhatsApp oficial da LavaMed, já com o serviço selecionado na mensagem.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
 }
 
 function contactContent() {
@@ -369,6 +366,10 @@ const featuredServices = services.filter((service) => service.featured);
 const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homePortfolio = portfolioItems.map((item) => `<a class="gallery-item gallery-${item.shape}" href="/portfolio/" aria-label="Ver no portfólio — ${escapeHtml(item.title)}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: item.shape === "tall" ? "(max-width: 760px) 65vw, 34vw" : "(max-width: 760px) 84vw, 70vw" })}<span><b>${item.number}</b>${escapeHtml(item.note)} / ${escapeHtml(item.title)}</span></a>`).join("");
+const homeProcessFrames = processMedia.map((item, index) => `<figure class="process-frame process-frame--${index + 1}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: index === 0 ? "(max-width: 760px) 88vw, 52vw" : "(max-width: 760px) 72vw, 28vw" })}<figcaption><span>${item.number}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div></figcaption></figure>`).join("");
+const compareMarkup = (pair, label) => `<div class="compare" data-compare style="--position:50%">${pictureMarkup(pair.after, { className: "compare-base", alt: pair.after.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}<div class="compare-overlay">${pictureMarkup(pair.before, { alt: pair.before.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}</div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div>`;
+const headlightPair = comparisonPairs.find((pair) => pair.title === "Polimento de farol");
+const cabinPair = comparisonPairs.find((pair) => pair.title === "Cabine desmontada");
 const homePreloadUrl = homeMedia.avifSrcSet.split(",")[0].trim().split(" ")[0] || homeMedia.src;
 const homeHead = headMetadata({
   title: "Estética Automotiva em Itajubá | LavaMed",
@@ -389,8 +390,9 @@ let home = homeSource
   .replace("<!-- HOME_HERO_SPECULAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", sizes: "100vw" }))
   .replace("<!-- HOME_SERVICE_ROWS -->", homeRows)
   .replace("<!-- HOME_PORTFOLIO_ITEMS -->", homePortfolio)
-  .replace("<!-- CAMPAIGN_SILHOUETTE -->", imageMarkup(campaignMedia.silhouette, { className: "compare-base", alt: campaignMedia.silhouette.alt, sizes: "(max-width: 760px) 100vw, 90vw" }))
-  .replace("<!-- CAMPAIGN_DETAIL -->", imageMarkup(campaignMedia.detail, { alt: campaignMedia.detail.alt, sizes: "(max-width: 760px) 100vw, 90vw" }))
+  .replace("<!-- HOME_PROCESS_FRAMES -->", homeProcessFrames)
+  .replace("<!-- HOME_RESULT_HEADLIGHT -->", compareMarkup(headlightPair, "Polimento de farol"))
+  .replace("<!-- HOME_RESULT_CABIN -->", compareMarkup(cabinPair, "Higienização interna"))
   .replace("<!-- HOME_FINAL_MEDIA -->", pictureMarkup(homeMedia, { alt: "", sizes: "100vw" }))
   .replaceAll("{{HOME_SERVICE_SLUG}}", firstFeatured.slug)
   .replaceAll("{{HOME_SERVICE_NUMBER}}", firstFeatured.number)

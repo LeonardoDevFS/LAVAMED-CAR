@@ -13,7 +13,7 @@ for (const route of routes) {
   try { await access(path.join(root, route)); } catch { problems.push(`Missing: ${route}`); }
 }
 const home = await readFile(path.join(root, "index.html"), "utf8");
-for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "data-sound-toggle", "lang=\"pt-BR\""]) {
+for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "data-process-video-slot", "data-service-quote", "lang=\"pt-BR\""]) {
   if (required === "canonical") continue;
   if (!home.includes(required)) problems.push(`Home missing marker: ${required}`);
 }
@@ -25,7 +25,13 @@ if (!home.includes("Itajubá") || !home.includes("bairro Medicina")) problems.pu
 if (home.includes("lavamed.example")) problems.push("Home contains the retired .example domain");
 if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
 if (!home.includes('type="image/avif"') || !home.includes("srcset=")) problems.push("Home is missing responsive AVIF/WebP media");
-if ((home.match(/class="gallery-item/g) || []).length !== 6) problems.push("Home gallery does not contain the six classified portfolio items");
+if ((home.match(/class="gallery-item/g) || []).length !== 7) problems.push("Home gallery does not contain the seven classified portfolio items");
+if ((home.match(/class="process-frame/g) || []).length !== 3) problems.push("Home process reel does not contain the three real-photo fallbacks");
+if ((home.match(/class="service-row/g) || []).length !== 8) problems.push("Home does not prioritize the eight requested commercial services");
+if ((home.match(/class="results-feature/g) || []).length !== 2) problems.push("Home does not contain the two featured real comparisons");
+if (!home.includes("conceitual-coupe-escuro")) problems.push("Home is not using the original black campaign car");
+if (home.includes("data-sound-toggle") || home.includes("experiência sonora")) problems.push("Home still contains removed sound controls");
+if (home.includes("<video") || home.includes("type=\"video/")) problems.push("Home must not pretend that procedural videos exist");
 if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
 if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
 for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
@@ -35,6 +41,12 @@ const assetNames = await readdir(path.join(root, "assets"));
 const scriptBundle = assetNames.find((name) => /^site-[\w-]+\.js$/.test(name));
 if (!scriptBundle) problems.push("Missing bundled site JavaScript");
 else if ((await stat(path.join(root, "assets", scriptBundle))).size < 50_000) problems.push("JavaScript bundle is unexpectedly small");
+else {
+  const script = await readFile(path.join(root, "assets", scriptBundle), "utf8");
+  for (const removedAudioApi of ["AudioContext", "createOscillator", "createBufferSource", "data-sound-toggle"]) {
+    if (script.includes(removedAudioApi)) problems.push(`Bundled JavaScript still contains removed audio system: ${removedAudioApi}`);
+  }
+}
 const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
 if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
 for (const media of Object.values(mediaCatalog)) {
@@ -68,7 +80,7 @@ if ((catalog.match(/class="catalog-row"/g) || []).length !== 11) problems.push("
 if (!catalog.includes("Não inclui limpeza ou aspiração interna")) problems.push("Package comparison is missing the Lavagem Simples interior exclusion");
 if (catalog.includes("A partir de R$ 40 o par") || !catalog.includes("A partir de R$ 80 o par")) problems.push("Headlight pricing unit is incorrect");
 const portfolio = await readFile(path.join(root, "portfolio", "index.html"), "utf8");
-if ((portfolio.match(/class="portfolio-card/g) || []).length !== 6) problems.push("Portfolio does not contain six classified items");
+if ((portfolio.match(/class="portfolio-card/g) || []).length !== 7) problems.push("Portfolio does not contain seven classified items");
 const comparisons = await readFile(path.join(root, "antes-e-depois", "index.html"), "utf8");
 if ((comparisons.match(/class="result-pair"/g) || []).length !== 3) problems.push("Before/after page does not contain the three confirmed pairs");
 const sitemap = await readFile(path.join(root, "sitemap.xml"), "utf8");

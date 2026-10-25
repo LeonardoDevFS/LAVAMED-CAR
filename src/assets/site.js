@@ -11,135 +11,13 @@ const finePointer = matchMedia("(pointer: fine)").matches;
 const header = document.querySelector("[data-header]");
 const progress = document.querySelector(".scroll-progress span");
 
-class SoundDesign {
-  constructor() {
-    this.context = null;
-    this.master = null;
-    this.enabled = false;
-    this.lastPlayed = new Map();
-    try { this.remembered = localStorage.getItem("lavamed-sound") === "enabled"; }
-    catch { this.remembered = false; }
-  }
-
-  updateControls() {
-    document.querySelectorAll("[data-sound-toggle]").forEach((button) => {
-      const state = button.querySelector("[data-sound-state]");
-      button.classList.toggle("is-on", this.enabled);
-      button.classList.toggle("is-remembered", !this.enabled && this.remembered);
-      button.setAttribute("aria-pressed", String(this.enabled));
-      button.setAttribute("aria-label", this.enabled ? "Desativar experiência sonora" : this.remembered ? "Reativar experiência sonora" : "Ativar experiência sonora");
-      if (state) state.textContent = this.enabled ? "ON" : this.remembered ? "READY" : "OFF";
-    });
-  }
-
-  async enable() {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextClass) return;
-    this.context ||= new AudioContextClass({ latencyHint: "interactive" });
-    if (this.context.state === "suspended") await this.context.resume();
-    this.master ||= this.context.createGain();
-    this.master.disconnect();
-    this.master.gain.setValueAtTime(.72, this.context.currentTime);
-    this.master.connect(this.context.destination);
-    this.enabled = true;
-    this.remembered = true;
-    try { localStorage.setItem("lavamed-sound", "enabled"); } catch {}
-    this.updateControls();
-    this.play("hero", true);
-  }
-
-  disable() {
-    this.enabled = false;
-    this.remembered = false;
-    if (this.master && this.context) this.master.gain.setTargetAtTime(.0001, this.context.currentTime, .015);
-    try { localStorage.setItem("lavamed-sound", "disabled"); } catch {}
-    this.updateControls();
-  }
-
-  async toggle() {
-    if (this.enabled) this.disable();
-    else await this.enable();
-  }
-
-  tone({ frequency = 440, endFrequency = frequency, duration = .1, volume = .025, type = "sine", delay = 0 }) {
-    if (!this.context || !this.master) return;
-    const start = this.context.currentTime + delay;
-    const oscillator = this.context.createOscillator();
-    const gain = this.context.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, start);
-    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), start + duration);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + Math.min(.018, duration / 3));
-    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
-    oscillator.connect(gain).connect(this.master);
-    oscillator.start(start);
-    oscillator.stop(start + duration + .02);
-  }
-
-  noise({ duration = .3, volume = .018, from = 350, to = 1500 }) {
-    if (!this.context || !this.master) return;
-    const length = Math.ceil(this.context.sampleRate * duration);
-    const buffer = this.context.createBuffer(1, length, this.context.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let index = 0; index < length; index += 1) data[index] = (Math.random() * 2 - 1) * (1 - index / length);
-    const source = this.context.createBufferSource();
-    const filter = this.context.createBiquadFilter();
-    const gain = this.context.createGain();
-    const now = this.context.currentTime;
-    source.buffer = buffer;
-    filter.type = "bandpass";
-    filter.Q.value = .65;
-    filter.frequency.setValueAtTime(from, now);
-    filter.frequency.exponentialRampToValueAtTime(to, now + duration * .72);
-    gain.gain.setValueAtTime(.0001, now);
-    gain.gain.exponentialRampToValueAtTime(volume, now + .035);
-    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
-    source.connect(filter).connect(gain).connect(this.master);
-    source.start(now);
-    source.stop(now + duration + .02);
-  }
-
-  play(name, immediate = false) {
-    if (!this.enabled || !this.context || !this.master) return;
-    const intervals = { click: 90, reveal: 650, scene: 850, liquid: 1000, whoosh: 700, hero: 1200 };
-    const now = performance.now();
-    if (!immediate && now - (this.lastPlayed.get(name) || 0) < (intervals[name] || 300)) return;
-    this.lastPlayed.set(name, now);
-
-    if (name === "click") this.tone({ frequency: 920, endFrequency: 560, duration: .055, volume: .014, type: "triangle" });
-    if (name === "scene") {
-      this.tone({ frequency: 92, endFrequency: 124, duration: .34, volume: .026, type: "sine" });
-      this.tone({ frequency: 620, endFrequency: 410, duration: .18, volume: .008, type: "triangle", delay: .025 });
-    }
-    if (name === "whoosh") this.noise({ duration: .42, volume: .018, from: 260, to: 1850 });
-    if (name === "liquid") {
-      this.noise({ duration: .46, volume: .016, from: 1100, to: 360 });
-      [0, .075, .145].forEach((delay, index) => this.tone({ frequency: 1180 - index * 170, endFrequency: 430 - index * 45, duration: .16, volume: .008, type: "sine", delay }));
-    }
-    if (name === "reveal") {
-      this.tone({ frequency: 210, endFrequency: 520, duration: .28, volume: .014, type: "sine" });
-      this.noise({ duration: .24, volume: .009, from: 480, to: 1240 });
-    }
-    if (name === "hero") {
-      this.tone({ frequency: 58, endFrequency: 86, duration: .9, volume: .034, type: "sine" });
-      this.tone({ frequency: 232, endFrequency: 348, duration: .72, volume: .009, type: "triangle", delay: .08 });
-      this.noise({ duration: .68, volume: .012, from: 220, to: 1380 });
-    }
-  }
-}
-
-const soundDesign = new SoundDesign();
-
-function initSoundDesign() {
-  soundDesign.updateControls();
-  document.querySelectorAll("[data-sound-toggle]").forEach((button) => button.addEventListener("click", () => soundDesign.toggle()));
-  document.querySelectorAll(".cta-pill,.header-cta,.submit-button,.faq-item button").forEach((control) => control.addEventListener("pointerdown", () => soundDesign.play("click")));
-}
+// Remove a preferência legada para que versões anteriores não deixem estado residual.
+try { localStorage.removeItem("lavamed-sound"); } catch {}
 
 document.querySelectorAll("[data-year]").forEach((node) => node.textContent = new Date().getFullYear());
 document.querySelectorAll("[data-booking]").forEach((link) => {
-  link.href = whatsappUrl(link.dataset.service || "");
+  const service = services.find((item) => item.slug === link.dataset.service || item.name === link.dataset.service);
+  link.href = whatsappUrl(service || link.dataset.service || "");
   if (business.whatsapp) {
     link.target = "_blank";
     link.rel = "noopener";
@@ -168,35 +46,54 @@ function initHeroMotion() {
   const titleLines = hero.querySelectorAll(".title-mask > span");
   const eyebrow = hero.querySelector(".eyebrow");
   const bottom = hero.querySelector(".hero-bottom");
+  const provenance = hero.querySelector(".hero-provenance");
 
   const context = gsap.context(() => {
     gsap.set(titleLines, { yPercent: 115, clipPath: "inset(0 0 100% 0)" });
-    gsap.set([eyebrow, bottom], { autoAlpha: 0, y: 24 });
-    gsap.set(car, { xPercent: 13, scale: 1.1, rotateY: -5, transformPerspective: 1200 });
+    gsap.set([eyebrow, bottom, provenance], { autoAlpha: 0, y: 24 });
+    gsap.set(car, { xPercent: 10, scale: 1.085, rotateY: -4, clipPath: "polygon(20% 31%, 66% 20%, 100% 24%, 100% 91%, 7% 91%)", transformPerspective: 1200 });
     gsap.set(specular, { xPercent: -12, opacity: 0 });
-    gsap.set(backdrop, { scale: 1.16, filter: "brightness(.38) saturate(.55) blur(2px)" });
+    gsap.set(backdrop, { scale: 1.145, filter: "brightness(.24) saturate(.72) blur(2px)" });
 
-    gsap.timeline({ defaults: { ease: "power4.out" } })
-      .to(backdrop, { scale: 1.08, filter: "brightness(.58) saturate(.7) blur(1.2px)", duration: 1.65 }, 0)
-      .to(car, { xPercent: 0, scale: 1, rotateY: 0, duration: 1.8 }, .08)
-      .to(carImage, { filter: "brightness(.88) saturate(.92)", duration: 1.5 }, .1)
-      .to(beam, { xPercent: 660, opacity: .82, duration: 1.45, ease: "power2.inOut" }, .28)
-      .to(specular, { xPercent: 7, opacity: .52, duration: 1.25, ease: "power2.inOut" }, .42)
-      .to(titleLines, { yPercent: 0, clipPath: "inset(0)", duration: .92, stagger: .11 }, .46)
-      .to(eyebrow, { autoAlpha: 1, y: 0, duration: .65 }, .66)
-      .to(bottom, { autoAlpha: 1, y: 0, duration: .72 }, .82)
-      .to(lens, { scale: 1.16, opacity: .52, duration: 1.2 }, .35);
+    gsap.timeline({ defaults: { ease: "expo.out" } })
+      .to(backdrop, { scale: 1.07, filter: "brightness(.47) saturate(.84) blur(.8px)", duration: 1.55 }, 0)
+      .to(car, { xPercent: 0, scale: 1, rotateY: 0, clipPath: "polygon(5% 27%, 62% 17%, 100% 21%, 100% 94%, 3% 94%)", duration: 1.72 }, .06)
+      .to(carImage, { filter: "brightness(.9) saturate(1.02) contrast(1.04)", duration: 1.45 }, .08)
+      .to(beam, { xPercent: 660, opacity: .78, duration: 1.34, ease: "power2.inOut" }, .2)
+      .to(specular, { xPercent: 8, opacity: .5, duration: 1.2, ease: "power2.inOut" }, .34)
+      .to(titleLines, { yPercent: 0, clipPath: "inset(0)", duration: .86, stagger: .09 }, .42)
+      .to(eyebrow, { autoAlpha: 1, y: 0, duration: .58 }, .61)
+      .to(bottom, { autoAlpha: 1, y: 0, duration: .68 }, .76)
+      .to(provenance, { autoAlpha: 1, y: 0, duration: .55 }, .9)
+      .to(lens, { scale: 1.14, opacity: .5, duration: 1.1 }, .3);
 
     gsap.timeline({
       scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: 1.15, invalidateOnRefresh: true }
     })
-      .to(backdrop, { yPercent: 9, scale: 1.14, ease: "none" }, 0)
-      .to(car, { xPercent: 7, yPercent: 4, scale: 1.06, rotateY: 2.2, ease: "none" }, 0)
+      .to(backdrop, { yPercent: 10, scale: 1.13, ease: "none" }, 0)
+      .to(car, { xPercent: 5, yPercent: 3, scale: 1.045, rotateY: 1.5, ease: "none" }, 0)
       .to(specular, { xPercent: 25, opacity: .22, ease: "none" }, 0)
       .to(".hero-copy", { yPercent: -12, opacity: .08, ease: "none" }, 0)
       .to(".hero-wordmark", { xPercent: -7, opacity: .35, ease: "none" }, 0);
   }, hero);
 
+  return () => context.revert();
+}
+
+function initProcessCinema() {
+  const section = document.querySelector("[data-process-cinema]");
+  if (!section || reducedMotion) return;
+  const frames = [...section.querySelectorAll(".process-frame")];
+  const context = gsap.context(() => {
+    frames.forEach((frame, index) => {
+      const image = frame.querySelector("img");
+      gsap.fromTo(frame,
+        { clipPath: index === 0 ? "inset(0 0 100% 0)" : "inset(0 100% 0 0)", y: 45 },
+        { clipPath: "inset(0%)", y: 0, duration: 1.05, ease: "expo.out", scrollTrigger: { trigger: frame, start: "top 88%", toggleActions: "play none none reverse" } }
+      );
+      gsap.fromTo(image, { scale: 1.1, yPercent: -2 }, { scale: 1.01, yPercent: 4, ease: "none", scrollTrigger: { trigger: frame, start: "top bottom", end: "bottom top", scrub: .8 } });
+    });
+  }, section);
   return () => context.revert();
 }
 
@@ -248,7 +145,6 @@ function initCameraStory() {
           onUpdate: ({ progress: value }) => {
             const index = value < .25 ? 0 : value < .5 ? 1 : value < .75 ? 2 : 3;
             if (index !== activeScene) {
-              if (activeScene >= 0) soundDesign.play(index === 2 ? "liquid" : "scene");
               activeScene = index;
               showScene(index);
             }
@@ -296,6 +192,7 @@ function initServiceVisual() {
   const caption = visual.querySelector("[data-service-caption]");
   const mediaLabel = visual.querySelector("[data-service-media-label]");
   const price = visual.querySelector("[data-service-price]");
+  const quote = visual.querySelector("[data-service-quote]");
   const number = visual.querySelector(".visual-number");
   let active = document.querySelector(".service-row.is-active")?.dataset.service || "";
   let timeline;
@@ -315,6 +212,10 @@ function initServiceVisual() {
       number.textContent = service.number;
       caption.textContent = service.name;
       if (price) price.textContent = servicePriceLabel(service);
+      if (quote) {
+        quote.href = whatsappUrl(service);
+        quote.dataset.service = service.slug;
+      }
       if (service.image) {
         image.src = service.image.src;
         image.srcset = service.image.webpSrcSet;
@@ -337,7 +238,6 @@ function initServiceVisual() {
     };
 
     timeline?.kill();
-    soundDesign.play("whoosh");
     gsap.killTweensOf([image, placeholder]);
     gsap.set(outgoing, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" });
     if (reducedMotion) { swap(); gsap.set(incoming, { autoAlpha: 1, scale: 1, clipPath: "inset(0%)" }); return; }
@@ -357,13 +257,19 @@ function initCompare() {
   document.querySelectorAll("[data-compare]").forEach((compare) => {
     const handle = compare.querySelector(".compare-handle");
     let dragging = false;
+    if (!reducedMotion) {
+      gsap.fromTo(compare, { clipPath: "inset(7% 0 7% 0)", autoAlpha: .55 }, {
+        clipPath: "inset(0%)", autoAlpha: 1, duration: .9, ease: "expo.out",
+        scrollTrigger: { trigger: compare, start: "top 86%", toggleActions: "play none none reverse" }
+      });
+    }
     const setPosition = (clientX) => {
       const bounds = compare.getBoundingClientRect();
       const position = Math.max(2, Math.min(98, ((clientX - bounds.left) / bounds.width) * 100));
       compare.style.setProperty("--position", `${position}%`);
       handle.setAttribute("aria-valuenow", String(Math.round(position)));
     };
-    compare.addEventListener("pointerdown", (event) => { dragging = true; compare.setPointerCapture(event.pointerId); setPosition(event.clientX); soundDesign.play("reveal"); });
+    compare.addEventListener("pointerdown", (event) => { dragging = true; compare.setPointerCapture(event.pointerId); setPosition(event.clientX); });
     compare.addEventListener("pointermove", (event) => { if (dragging) setPosition(event.clientX); });
     compare.addEventListener("pointerup", () => dragging = false);
     compare.addEventListener("pointercancel", () => dragging = false);
@@ -375,18 +281,41 @@ function initCompare() {
       const value = Math.max(2, Math.min(98, next));
       compare.style.setProperty("--position", `${value}%`);
       handle.setAttribute("aria-valuenow", String(value));
-      soundDesign.play("reveal");
     });
   });
 }
 
 function initGallery() {
   document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const section = gallery.closest(".portfolio");
+    const meter = section?.querySelector("[data-gallery-meter]");
+    const count = section?.querySelector("[data-gallery-count]");
+    const items = [...gallery.querySelectorAll(".gallery-item")];
     let down = false;
     let moved = false;
     let suppressClick = false;
     let startX = 0;
     let startScroll = 0;
+    let galleryTicking = false;
+    const updateGallery = () => {
+      const available = Math.max(1, gallery.scrollWidth - gallery.clientWidth);
+      const ratio = Math.max(0, Math.min(1, gallery.scrollLeft / available));
+      if (meter) meter.style.transform = `scaleX(${Math.max(.08, ratio)})`;
+      const center = gallery.scrollLeft + gallery.clientWidth / 2;
+      let activeIndex = 0;
+      let distance = Infinity;
+      items.forEach((item, index) => {
+        const itemCenter = item.offsetLeft + item.offsetWidth / 2;
+        const nextDistance = Math.abs(itemCenter - center);
+        if (nextDistance < distance) { distance = nextDistance; activeIndex = index; }
+      });
+      items.forEach((item, index) => item.classList.toggle("is-active", index === activeIndex));
+      if (count) count.textContent = `${String(activeIndex + 1).padStart(2, "0")} / ${String(items.length).padStart(2, "0")}`;
+      galleryTicking = false;
+    };
+    gallery.addEventListener("scroll", () => {
+      if (!galleryTicking) { requestAnimationFrame(updateGallery); galleryTicking = true; }
+    }, { passive: true });
     gallery.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       down = true; moved = false; startX = event.clientX; startScroll = gallery.scrollLeft;
@@ -417,7 +346,18 @@ function initGallery() {
         event.preventDefault(); gallery.scrollTo({ left: event.key === "End" ? gallery.scrollWidth : 0, behavior: reducedMotion ? "auto" : "smooth" });
       }
     });
+    updateGallery();
   });
+}
+
+function initFinalScene() {
+  const section = document.querySelector(".final-scene");
+  if (!section || reducedMotion) return;
+  const image = section.querySelector(".final-media img");
+  const content = section.querySelector(".final-content");
+  gsap.timeline({ scrollTrigger: { trigger: section, start: "top bottom", end: "bottom top", scrub: 1.1 } })
+    .fromTo(image, { scale: 1.13, xPercent: 5, yPercent: -3 }, { scale: 1.02, xPercent: -3, yPercent: 3, ease: "none" }, 0)
+    .fromTo(content, { yPercent: 7 }, { yPercent: -4, ease: "none" }, 0);
 }
 
 function initLiquidCanvas(canvas) {
@@ -473,7 +413,6 @@ function initMenu() {
   panel.inert = true;
   let returnFocus = null;
   const setMenu = (open) => {
-    soundDesign.play("whoosh");
     body.classList.toggle("menu-open", open); panel.classList.toggle("is-open", open);
     panel.setAttribute("aria-hidden", String(!open)); button.setAttribute("aria-expanded", String(open));
     panel.inert = !open;
@@ -535,7 +474,9 @@ function initCommonInteractions() {
     event.preventDefault(); const data = new FormData(form); const status = form.querySelector(".form-status");
     if (!business.whatsapp) { status.textContent = "O canal de agendamento será publicado assim que o contato oficial for confirmado."; return; }
     const name = String(data.get("nome") || "").trim(); const service = String(data.get("servico") || "uma avaliação"); const message = String(data.get("mensagem") || "").trim();
-    const text = `Olá, LavaMed! Meu nome é ${name}. Gostaria de conversar sobre ${service}.${message ? ` ${message}` : ""}`;
+    const selectedService = services.find((item) => item.name === service);
+    const priceContext = selectedService?.price != null ? ` Consultei o valor inicial de ${servicePriceLabel(selectedService)}, sujeito à avaliação do veículo.` : "";
+    const text = `Olá, LavaMed! Meu nome é ${name}. Tenho interesse em uma avaliação para ${service}.${priceContext}${message ? ` ${message}` : ""}`;
     open(`https://wa.me/${business.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank", "noopener"); status.textContent = "Abrindo o WhatsApp…";
   });
 }
@@ -563,11 +504,12 @@ function initPointerEffects() {
 }
 
 initHeroMotion();
-initSoundDesign();
 initCameraStory();
+initProcessCinema();
 initServiceVisual();
 initCompare();
 initGallery();
+initFinalScene();
 initMenu();
 initPageTransitions();
 initCommonInteractions();
