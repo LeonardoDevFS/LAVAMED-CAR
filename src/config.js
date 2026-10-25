@@ -4,14 +4,15 @@
  */
 export const business = {
   name: "LavaMed Estética Automotiva",
-  whatsapp: "",
+  whatsapp: "5535984586615",
+  phoneDisplay: "(35) 98458-6615",
   city: "Itajubá",
   state: "MG",
   neighborhood: "Medicina",
   address: "",
   openingHours: "",
-  instagram: "",
-  mapsUrl: "",
+  instagram: "https://www.instagram.com/lavamed.itajuba/",
+  mapsUrl: "https://share.google/Vm2BAGotXmrrtKJi1",
   domain: ""
 };
 

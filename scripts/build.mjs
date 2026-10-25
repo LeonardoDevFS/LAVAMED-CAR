@@ -8,7 +8,8 @@ import {
   serviceGroups,
   servicePriceLabel,
   services,
-  storyActs
+  storyActs,
+  whatsappUrl
 } from "../src/config.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -16,6 +17,7 @@ const source = path.join(root, "src");
 const output = path.join(root, "dist");
 const requestedDomain = (process.env.SITE_URL || process.env.URL || business.domain || "").trim();
 const domain = requestedDomain ? requestedDomain.replace(/\/$/, "") : "";
+const logoPath = "/assets/images/hero/LavaMed_logo_vetorial_HD.svg";
 
 if (domain && !/^https?:\/\//.test(domain)) {
   throw new Error("SITE_URL, URL or business.domain must be an absolute http(s) URL");
@@ -108,7 +110,7 @@ function headMetadata({ title, description, pathName, image = "/assets/images/la
     .join("");
   return `<meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}">
   <meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website"><meta property="og:image" content="${escapeHtml(ogImage)}">
-  ${canonical}<link rel="icon" href="/assets/logo-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
+  ${canonical}<link rel="icon" href="${logoPath}" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
   <title>${escapeHtml(title)}</title>${structuredData}`;
 }
 
@@ -139,7 +141,15 @@ function shell({ title, description, pathName, eyebrow, heading, accent = "", de
 }
 
 function header() {
-  return `<header class="site-header" data-header><a class="brand" href="/" aria-label="LavaMed — início"><img src="/assets/logo-mark.svg" width="172" height="44" alt="LavaMed"></a><div class="header-actions"><a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
+  return `<header class="site-header" data-header>${brandBlock()}<div class="header-actions"><a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
+}
+
+function brandChannels() {
+  return `<nav class="brand-channels" aria-label="Canais da LavaMed"><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener" aria-label="Abrir localização da LavaMed no Google Maps"><span data-short="MAP">Maps</span><i aria-hidden="true">↗</i></a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener" aria-label="Abrir Instagram da LavaMed"><span data-short="IG">Instagram</span><i aria-hidden="true">↗</i></a><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener" aria-label="Conversar com a LavaMed pelo WhatsApp"><span data-short="WA">WhatsApp</span><i aria-hidden="true">↗</i></a></nav>`;
+}
+
+function brandBlock() {
+  return `<div class="brand-cluster"><a class="brand" href="/" aria-label="LavaMed — início"><img src="${logoPath}" width="112" height="99" alt="LavaMed Estética Automotiva"></a>${brandChannels()}</div>`;
 }
 
 function menu(pathName) {
@@ -148,7 +158,7 @@ function menu(pathName) {
 }
 
 function footer() {
-  return `<footer class="site-footer"><div class="footer-top"><img src="/assets/logo-mark.svg" width="172" height="44" alt="LavaMed"><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div><div class="footer-grid"><nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav><nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav><div class="footer-contact" data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></div><div class="footer-bottom"><span>© <span data-year></span> LavaMed</span><span>Itajubá / Minas Gerais</span><a href="#conteudo">Voltar ao topo ↑</a></div></footer>`;
+  return `<footer class="site-footer"><div class="footer-top"><div class="footer-brand">${brandBlock()}</div><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div><div class="footer-grid"><nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav><nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav><div class="footer-contact" data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></div><div class="footer-bottom"><span>© <span data-year></span> LavaMed</span><span>Itajubá / Minas Gerais</span><a href="#conteudo">Voltar ao topo ↑</a></div></footer>`;
 }
 
 function catalogContent() {
@@ -184,11 +194,11 @@ function serviceContent(service) {
   const currentIndex = services.indexOf(service);
   const previous = services.at(currentIndex - 1);
   const next = services[(currentIndex + 1) % services.length];
-  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.name)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Enquanto o WhatsApp oficial não estiver configurado, o botão leva à página de contato e explica a indisponibilidade sem criar um link falso.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
+  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.name)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Use o botão de agendamento para abrir uma conversa no WhatsApp oficial da LavaMed, já com o serviço selecionado na mensagem.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
 }
 
 function contactContent() {
-  return `<section class="content-section dark"><div class="contact-panel"><form class="contact-form" data-contact-form><div class="field"><label for="nome">Seu nome</label><input id="nome" name="nome" autocomplete="name" required></div><div class="field"><label for="servico">Serviço de interesse</label><select id="servico" name="servico"><option value="uma avaliação">Quero uma avaliação</option>${services.map((service) => `<option value="${service.name}">${service.name} — ${servicePriceLabel(service)}</option>`).join("")}</select></div><div class="field"><label for="mensagem">Conte um pouco sobre o veículo</label><textarea id="mensagem" name="mensagem"></textarea></div><button class="submit-button" type="submit">Continuar agendamento ↗</button><p class="form-status" aria-live="polite"></p></form><aside class="contact-aside"><h2>A conversa começa aqui.</h2><p>A LavaMed está em Itajubá, no bairro Medicina. O WhatsApp, a rua, o número e os horários oficiais ainda não foram fornecidos; por isso, nenhum contato ou endereço foi presumido.</p><div data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></aside></div></section>`;
+  return `<section class="content-section dark"><div class="contact-panel"><form class="contact-form" data-contact-form><div class="field"><label for="nome">Seu nome</label><input id="nome" name="nome" autocomplete="name" required></div><div class="field"><label for="servico">Serviço de interesse</label><select id="servico" name="servico"><option value="uma avaliação">Quero uma avaliação</option>${services.map((service) => `<option value="${service.name}">${service.name} — ${servicePriceLabel(service)}</option>`).join("")}</select></div><div class="field"><label for="mensagem">Conte um pouco sobre o veículo</label><textarea id="mensagem" name="mensagem"></textarea></div><button class="submit-button" type="submit">Continuar no WhatsApp ↗</button><p class="form-status" aria-live="polite"></p></form><aside class="contact-aside"><h2>A conversa começa aqui.</h2><p>A LavaMed está em Itajubá, no bairro Medicina. WhatsApp, Instagram e localização no Maps já estão disponíveis; rua, número e horários ainda aguardam confirmação.</p><a class="cta-pill contact-direct" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Chamar no WhatsApp</span><i>↗</i></a><div data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></aside></div></section>`;
 }
 
 function comparisonContent() {
@@ -211,7 +221,7 @@ function faqContent() {
 }
 
 function privacyContent() {
-  return `<section class="content-section"><div class="content-grid"><div class="content-index">Versão / 24.10.2026</div><div class="content-copy"><h2>Informação essencial.</h2><p>Este site não utiliza contas de usuário e não armazena dados do formulário em banco de dados. Quando um número oficial de WhatsApp for configurado, os dados preenchidos serão usados para compor uma mensagem que o visitante poderá enviar pelo próprio WhatsApp.</p><p>O provedor de hospedagem pode processar registros técnicos essenciais, como endereço IP, data, navegador e rota acessada, para segurança e operação do serviço.</p><p>Links para serviços externos seguem as políticas desses serviços. A LavaMed deverá incluir um canal oficial para solicitações de privacidade assim que seus dados de contato forem confirmados.</p><p class="small">Este texto descreve a implementação técnica atual e deve ser revisado caso sejam adicionados analytics, pixels, formulários persistentes ou outras integrações.</p></div></div></section>`;
+  return `<section class="content-section"><div class="content-grid"><div class="content-index">Versão / 24.10.2026</div><div class="content-copy"><h2>Informação essencial.</h2><p>Este site não utiliza contas de usuário e não armazena os dados do formulário em banco de dados. Ao continuar, as informações preenchidas são usadas somente para compor uma mensagem que o visitante decide enviar pelo próprio WhatsApp.</p><p>O provedor de hospedagem pode processar registros técnicos essenciais, como endereço IP, data, navegador e rota acessada, para segurança e operação do serviço.</p><p>Links para WhatsApp, Instagram e Google Maps seguem as políticas desses serviços. Solicitações relacionadas ao atendimento podem ser enviadas pelo canal oficial de WhatsApp.</p><p class="small">Este texto descreve a implementação técnica atual e deve ser revisado caso sejam adicionados analytics, pixels, formulários persistentes ou outras integrações.</p></div></div></section>`;
 }
 
 const pages = [
@@ -228,7 +238,7 @@ const pages = [
     pathName: "/sobre/", title: "Sobre a LavaMed | Estética Automotiva em Itajubá", description: "Conheça a LavaMed, estética automotiva no bairro Medicina, em Itajubá.", eyebrow: "Sobre / Itajubá", heading: "CONFIANÇA QUE", accent: "SE PERCEBE.", deck: "Cuidado profissional, produtos adequados e atendimento humanizado no coração do bairro Medicina.", media: "/assets/images/lavamed-hero.jpg", variant: "vertical", content: `<section class="content-section"><div class="content-grid"><div class="content-index">Manifesto / 01</div><div class="content-copy"><h2>O veículo como investimento e paixão.</h2><p>A LavaMed é uma estética automotiva de Itajubá, localizada no bairro Medicina. Sua missão é cuidar de cada veículo com excelência, unindo técnica profissional, produtos adequados e atendimento humanizado.</p><p>Mais do que um meio de transporte, o carro também representa investimento, rotina e paixão. Por isso, a LavaMed oferece soluções de limpeza, proteção e embelezamento, do cuidado minucioso da cabine à conservação visual da pintura.</p><p>O objetivo é valorizar a apresentação do veículo e buscar um aspecto renovado dentro dos limites de cada material e condição — sem transformar linguagem estética em promessa de restauração.</p><p>Quem mora ou trabalha em Itajubá pode conhecer a LavaMed no bairro Medicina e solicitar uma avaliação para escolher o cuidado adequado.</p></div></div></section><section class="content-section dark"><div class="content-grid"><div class="content-index">Princípios / 02</div><div class="content-copy"><div class="process-list"><div class="process-item"><span>01</span><h3>Observação</h3><p>A condição real orienta a indicação.</p></div><div class="process-item"><span>02</span><h3>Precisão</h3><p>Cada produto e ferramenta tem uma função.</p></div><div class="process-item"><span>03</span><h3>Atendimento</h3><p>Contexto, clareza e cuidado humanizado.</p></div></div></div></div></section>`
   },
   {
-    pathName: "/contato/", title: "Contato e agendamento | LavaMed Itajubá", description: "Solicite uma avaliação na LavaMed, estética automotiva em Itajubá, bairro Medicina.", eyebrow: "Contato / bairro Medicina", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o veículo precisa. O canal oficial será publicado assim que for confirmado.", variant: "split", content: contactContent()
+    pathName: "/contato/", title: "Contato e agendamento | LavaMed Itajubá", description: "Solicite uma avaliação na LavaMed, estética automotiva em Itajubá, bairro Medicina.", eyebrow: "Contato / bairro Medicina", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o veículo precisa e continue o agendamento pelo WhatsApp oficial.", variant: "split", content: contactContent()
   },
   {
     pathName: "/faq/", title: "Perguntas frequentes | LavaMed", description: "Dúvidas sobre serviços, preços e avaliação da LavaMed em Itajubá.", eyebrow: "FAQ / informação", heading: "PERGUNTAS", accent: "FREQUENTES.", deck: "Respostas diretas para entender os serviços antes de solicitar uma avaliação.", variant: "quiet", content: faqContent()
@@ -282,6 +292,8 @@ let home = homeSource
   .replace("<!-- HOME_HEAD -->", homeHead)
   .replace('href="/assets/site.css"', `href="${styleHref}"`)
   .replace('src="/assets/site.js"', `src="${scriptSrc}"`)
+  .replaceAll("{{LOGO_PATH}}", logoPath)
+  .replaceAll("<!-- BRAND_CHANNELS -->", brandChannels())
   .replace("<!-- HOME_SERVICE_ROWS -->", homeRows)
   .replaceAll("{{HOME_SERVICE_SLUG}}", firstFeatured.slug)
   .replaceAll("{{HOME_SERVICE_NUMBER}}", firstFeatured.number)

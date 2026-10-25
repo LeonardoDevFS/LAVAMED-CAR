@@ -4,11 +4,11 @@ A arquitetura já aceita os materiais abaixo sem reprogramar as timelines. Enqua
 
 ## Identidade oficial
 
-- Logotipo oficial em SVG, com versão clara para fundo escuro.
-- Símbolo isolado, se existir.
-- Área de proteção e cores oficiais.
+O arquivo `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` foi fornecido e já está aplicado no cabeçalho, rodapé e favicon. Se futuras variações oficiais forem disponibilizadas, ainda serão úteis:
 
-Substituir `src/assets/logo-mark.svg`. O arquivo atual continua provisório porque o asset oficial não acompanhou o briefing.
+- versão horizontal e simplificada para tamanhos muito pequenos;
+- símbolo isolado, se existir;
+- manual de área de proteção e cores oficiais.
 
 ## Storytelling — quatro atos
 

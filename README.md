@@ -18,15 +18,14 @@ O servidor local abre em `http://127.0.0.1:4173`. A saída de produção fica em
 
 ## Configuração comercial
 
-Edite `src/config.js` para cadastrar apenas dados confirmados:
+Edite `src/config.js` para manter apenas dados confirmados. Já estão cadastrados:
 
-- WhatsApp com código do país e DDD;
-- rua/número e demais detalhes de endereço;
-- horário de funcionamento;
-- Instagram e Google Maps;
-- domínio canônico.
+- WhatsApp oficial com código do país e DDD;
+- Instagram oficial;
+- localização compartilhada no Google Maps;
+- cidade de Itajubá e bairro Medicina.
 
-A cidade de Itajubá e o bairro Medicina já estão confirmados. Enquanto os demais campos estiverem vazios, o site não publica informações presumidas. Os botões de agendamento levam à página de contato e o formulário informa que o canal oficial está em atualização.
+Ainda faltam rua/número, horário de funcionamento e domínio canônico. Enquanto esses campos estiverem vazios, o site não publica informações presumidas. Os botões de agendamento e o formulário abrem o WhatsApp oficial com uma mensagem contextualizada.
 
 Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informado ou `sob consulta`), inclusões e ressalvas também ficam em `src/config.js`. A mesma fonte alimenta catálogo, páginas individuais, formulário, dados estruturados e seleção editorial da home.
 
@@ -34,7 +33,7 @@ Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informa
 
 As imagens atuais são artes de campanha geradas para definir a direção visual. Elas não são apresentadas como trabalhos executados ou provas de resultado. Antes de publicar o portfólio e o comparador de antes/depois, inclua fotografias autorizadas, correspondentes e reais.
 
-O logotipo em `src/assets/logo-mark.svg` é uma assinatura tipográfica provisória. Substitua-o pelo arquivo oficial quando ele for fornecido, preservando o mesmo nome ou atualizando as referências.
+O logotipo oficial está em `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` e aparece no cabeçalho, no rodapé e como favicon. O arquivo legado `src/assets/logo-mark.svg` permanece apenas como histórico da assinatura provisória.
 
 ## Arquitetura
 

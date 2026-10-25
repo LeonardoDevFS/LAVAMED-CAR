@@ -18,6 +18,11 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("NÃO É SÓ");
   await expect(page.locator(".eyebrow")).toContainText("Itajubá");
   await expect(page.locator(".hero-car-layer")).toBeVisible();
+  await expect(page.locator(".site-header .brand img")).toHaveAttribute("src", "/assets/images/hero/LavaMed_logo_vetorial_HD.svg");
+  await expect(page.locator(".site-header .brand-channels a")).toHaveCount(3);
+  await expect(page.locator('.site-header .brand-channels a[aria-label*="WhatsApp"]')).toHaveAttribute("href", /wa\.me\/5535984586615/);
+  await expect(page.locator('.site-header .brand-channels a[aria-label*="Instagram"]')).toHaveAttribute("href", "https://www.instagram.com/lavamed.itajuba/");
+  await expect(page.locator('.site-header .brand-channels a[aria-label*="Maps"]')).toHaveAttribute("href", "https://share.google/Vm2BAGotXmrrtKJi1");
   await page.screenshot({ path: `${screenshotDirectory}/desktop.png`, fullPage: false });
 
   const menu = page.locator(".menu-toggle");
@@ -42,9 +47,18 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await page.goto("/servicos/lavagem-simples/");
   await expect(page.locator("h1")).toContainText("LAVAGEM SIMPLES");
   await expect(page.locator(".service-notes")).toContainText("Não inclui limpeza nem aspiração");
-  await expect(page.locator(".service-cta")).toHaveAttribute("href", "/contato/");
+  await expect(page.locator(".service-cta")).toHaveAttribute("href", /wa\.me\/5535984586615/);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
   await page.screenshot({ path: `${screenshotDirectory}/service-detail.png`, fullPage: false });
+
+  await page.goto("/contato/");
+  await page.evaluate(() => { window.open = (url) => { window.__whatsappUrl = url; }; });
+  await page.locator("#nome").fill("Teste LavaMed");
+  await page.locator("#servico").selectOption("Lavagem Simples");
+  await page.locator("#mensagem").fill("Veículo para avaliação.");
+  await page.locator("[data-contact-form]").evaluate((form) => form.requestSubmit());
+  await expect(page.locator(".form-status")).toHaveText("Abrindo o WhatsApp…");
+  expect(await page.evaluate(() => window.__whatsappUrl)).toContain("wa.me/5535984586615");
   expect(runtimeErrors).toEqual([]);
 });
 
@@ -168,6 +182,7 @@ test.describe("mobile and reduced motion", () => {
     await page.goto("/");
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.locator(".menu-toggle")).toBeVisible();
+    await expect(page.locator(".site-header .brand-channels")).toBeVisible();
     await expect(page.locator(".title-indent > span")).toBeInViewport();
     await page.screenshot({ path: `${screenshotDirectory}/mobile.png`, fullPage: false });
     await page.locator("[data-camera]").scrollIntoViewIfNeeded();
