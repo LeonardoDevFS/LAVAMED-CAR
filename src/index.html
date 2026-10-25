@@ -14,9 +14,12 @@
   <div class="scroll-progress" aria-hidden="true"><span></span></div>
 
   <header class="site-header" data-header>
-    <a class="brand" href="/" aria-label="LavaMed — início">
-      <img src="/assets/logo-mark.svg" width="172" height="44" alt="LavaMed">
-    </a>
+    <div class="brand-cluster">
+      <a class="brand" href="/" aria-label="LavaMed — início">
+        <img src="{{LOGO_PATH}}" width="112" height="99" alt="LavaMed Estética Automotiva">
+      </a>
+      <!-- BRAND_CHANNELS -->
+    </div>
     <div class="header-actions">
       <a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a>
       <button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel">
@@ -175,7 +178,7 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-top"><img src="/assets/logo-mark.svg" width="172" height="44" alt="LavaMed"><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div>
+    <div class="footer-top"><div class="footer-brand"><div class="brand-cluster"><a class="brand" href="/" aria-label="LavaMed — início"><img src="{{LOGO_PATH}}" width="112" height="99" alt="LavaMed Estética Automotiva"></a><!-- BRAND_CHANNELS --></div></div><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div>
     <div class="footer-grid">
       <nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav>
       <nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav>

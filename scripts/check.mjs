@@ -20,6 +20,10 @@ if (home.includes('/assets/site.js') || home.includes('/assets/site.css')) probl
 if (home.includes("{{") || home.includes("HOME_SERVICE_ROWS")) problems.push("Home contains unresolved build tokens");
 if (!home.includes("Itajubá") || !home.includes("bairro Medicina")) problems.push("Home is missing the confirmed local context");
 if (home.includes("lavamed.example")) problems.push("Home contains the retired .example domain");
+if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
+for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
+  if (!home.includes(channel)) problems.push(`Home is missing official channel: ${channel}`);
+}
 const assetNames = await readdir(path.join(root, "assets"));
 const scriptBundle = assetNames.find((name) => /^site-[\w-]+\.js$/.test(name));
 if (!scriptBundle) problems.push("Missing bundled site JavaScript");
@@ -30,6 +34,8 @@ for (const image of ["lavamed-hero.jpg","lavamed-detail.jpg"]) {
   const info = await stat(path.join(root, "assets/images", image));
   if (info.size < 100_000) problems.push(`Image unexpectedly small: ${image}`);
 }
+const logo = await stat(path.join(root, "assets", "images", "hero", "LavaMed_logo_vetorial_HD.svg"));
+if (logo.size < 10_000) problems.push("Official logo asset is unexpectedly small");
 for (const service of services) {
   const html = await readFile(path.join(root, "servicos", service.slug, "index.html"), "utf8");
   const expectedPrice = servicePriceLabel(service);
@@ -60,6 +66,7 @@ for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
   if (!html.includes("<title>")) problems.push(`Missing title: ${path.relative(root,file)}`);
   if (html.includes("lavamed.example")) problems.push(`Retired .example domain in ${path.relative(root,file)}`);
+  if (html.includes('src="/assets/logo-mark.svg"')) problems.push(`Provisional logo still rendered in ${path.relative(root,file)}`);
   if (html.includes("lavamed-hero.png") || html.includes("lavamed-detail.png")) problems.push(`Stale PNG reference: ${path.relative(root,file)}`);
   const references = [...html.matchAll(/(?:href|src)="(\/[^"]+)"/g)].map((match) => match[1].split(/[?#]/)[0]);
   for (const reference of references) {

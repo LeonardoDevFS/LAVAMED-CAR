@@ -24,6 +24,7 @@ document.querySelectorAll("[data-business-meta]").forEach((meta) => {
   const location = [business.city, business.state].filter(Boolean).join(", ");
   const neighborhood = business.neighborhood ? `Bairro ${business.neighborhood}` : "";
   const items = [location, neighborhood, business.address, business.openingHours].filter(Boolean).map((item) => `<span>${item}</span>`);
+  if (business.whatsapp) items.push(`<a href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp ${business.phoneDisplay || business.whatsapp} ↗</a>`);
   if (business.instagram) items.push(`<a href="${business.instagram}" target="_blank" rel="noopener">Instagram ↗</a>`);
   if (business.mapsUrl) items.push(`<a href="${business.mapsUrl}" target="_blank" rel="noopener">Como chegar ↗</a>`);
   meta.innerHTML = items.length ? items.join("") : "<span>Dados comerciais em atualização</span>";
