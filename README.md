@@ -62,7 +62,11 @@ Serviços sem fotografia exibem composições gráficas identificadas como place
 
 O `netlify.toml` já aponta para `dist/`, inclui os redirecionamentos 301 dos slugs antigos e mantém os cabeçalhos de cache. Na Netlify, use o comando `npm run build` e publique a pasta `dist`.
 
-Defina `SITE_URL` com o domínio definitivo. Na Netlify, a variável nativa `URL` também é reconhecida. Sem uma dessas opções, o build local omite canonical e gera um sitemap vazio em vez de publicar um endereço `.example`.
+Defina `SITE_URL` somente no contexto Production com a origem pública que estiver realmente ativa. O build não usa automaticamente a variável `URL` da Netlify. Sem `SITE_URL`, canonical e `og:url` são omitidos, as páginas recebem `noindex`, o sitemap não publica URLs e `robots.txt` bloqueia rastreamento.
+
+O planejamento completo para `lava-med-netlify.netlify.app`, a futura migração para `lavamed.com.br`, Search Console e Perfil da Empresa está em [docs/DOMINIOS-SEO-DEPLOY.md](docs/DOMINIOS-SEO-DEPLOY.md).
+
+Use `npm run test:domains` para validar automaticamente os cenários local, provisório e comercial.
 
 ## Capturas verificadas
 

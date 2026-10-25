@@ -11,17 +11,15 @@ import {
   storyActs,
   whatsappUrl
 } from "../src/config.js";
+import { domainStage, resolveActiveSiteUrl } from "../src/site-config.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const source = path.join(root, "src");
 const output = path.join(root, "dist");
-const requestedDomain = (process.env.SITE_URL || process.env.URL || business.domain || "").trim();
-const domain = requestedDomain ? requestedDomain.replace(/\/$/, "") : "";
+const domain = resolveActiveSiteUrl(process.env);
+const activeDomainStage = domainStage(domain);
+const googleSiteVerification = String(process.env.GOOGLE_SITE_VERIFICATION || "").trim();
 const logoPath = "/assets/images/hero/LavaMed_logo_vetorial_HD.svg";
-
-if (domain && !/^https?:\/\//.test(domain)) {
-  throw new Error("SITE_URL, URL or business.domain must be an absolute http(s) URL");
-}
 
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
@@ -61,22 +59,30 @@ await rm(path.join(output, ".vite"), { recursive: true, force: true });
 const escapeHtml = (value = "") => String(value).replace(/[&<>\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
 const absoluteUrl = (pathName) => domain ? `${domain}${pathName}` : "";
 
-function localBusinessSchema(pathName = "/") {
+function localBusinessSchema() {
   const schema = {
     "@context": "https://schema.org",
     "@type": "AutoWash",
     name: business.name,
     description: "Estética automotiva, lavagem e cuidados técnicos em Itajubá, no bairro Medicina.",
+    telephone: business.whatsapp,
+    priceRange: "R$ 40–R$ 350",
     areaServed: { "@type": "City", name: `${business.city}, ${business.state}` },
     address: {
       "@type": "PostalAddress",
       addressLocality: business.city,
       addressRegion: business.state,
       addressCountry: "BR"
-    }
+    },
+    sameAs: [business.instagram],
+    hasMap: business.mapsUrl
   };
-  if (domain) schema.url = absoluteUrl(pathName);
-  if (business.whatsapp) schema.telephone = business.whatsapp;
+  if (domain) {
+    schema["@id"] = `${domain}/#lavamed`;
+    schema.url = `${domain}/`;
+    schema.logo = absoluteUrl(logoPath);
+    schema.image = absoluteUrl("/assets/images/lavamed-hero.jpg");
+  }
   if (business.address) schema.address.streetAddress = business.address;
   return schema;
 }
@@ -88,28 +94,46 @@ function serviceSchema(service) {
     name: service.name,
     description: service.summary,
     areaServed: `${business.city}, ${business.state}`,
-    provider: { "@type": "AutoWash", name: business.name }
+    provider: domain ? { "@id": `${domain}/#lavamed` } : { "@type": "AutoWash", name: business.name }
   };
   if (service.price != null) {
     schema.offers = {
       "@type": "Offer",
       price: service.price,
       priceCurrency: "BRL",
-      description: servicePriceLabel(service)
+      description: servicePriceLabel(service),
+      ...(domain ? { url: absoluteUrl(`/servicos/${service.slug}/`) } : {})
     };
   }
   if (domain) schema.url = absoluteUrl(`/servicos/${service.slug}/`);
   return schema;
 }
 
-function headMetadata({ title, description, pathName, image = "/assets/images/lavamed-detail.jpg", schemas = [] }) {
-  const canonical = domain ? `<link rel="canonical" href="${absoluteUrl(pathName)}">` : "";
+function breadcrumbSchema(items) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.label,
+      item: absoluteUrl(item.href)
+    }))
+  };
+}
+
+function headMetadata({ title, description, pathName, image = "/assets/images/lavamed-detail.jpg", schemas = [], indexable = true }) {
+  const canonical = domain && indexable ? `<link rel="canonical" href="${absoluteUrl(pathName)}">` : "";
+  const ogUrl = domain && indexable ? `<meta property="og:url" content="${absoluteUrl(pathName)}">` : "";
   const ogImage = domain ? absoluteUrl(image) : image;
-  const structuredData = [localBusinessSchema(pathName), ...schemas]
+  const robots = domain && indexable ? "index,follow,max-image-preview:large" : indexable ? "noindex,nofollow" : "noindex,follow";
+  const verification = googleSiteVerification ? `<meta name="google-site-verification" content="${escapeHtml(googleSiteVerification)}">` : "";
+  const structuredData = [localBusinessSchema(), ...schemas]
     .map((schema) => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
     .join("");
-  return `<meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}">
-  <meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website"><meta property="og:image" content="${escapeHtml(ogImage)}">
+  return `<meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}"><meta name="robots" content="${robots}">${verification}
+  <meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="LavaMed Estética Automotiva"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website">${ogUrl}<meta property="og:image" content="${escapeHtml(ogImage)}"><meta property="og:image:alt" content="LavaMed Estética Automotiva em Itajubá">
+  <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(ogImage)}">
   ${canonical}<link rel="icon" href="${logoPath}" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
   <title>${escapeHtml(title)}</title>${structuredData}`;
 }
@@ -121,19 +145,22 @@ function heroMedia(media, placeholderSlug = "") {
   return `<div class="page-hero-media page-hero-media--placeholder" aria-label="Fotografia do serviço ainda não fornecida" role="img"><div class="service-placeholder is-${escapeHtml(placeholderSlug)}"><div class="placeholder-rings"><i></i><i></i><i></i></div><span>FOTO</span><small>Imagem real aguardando acervo</small></div></div>`;
 }
 
-function shell({ title, description, pathName, eyebrow, heading, accent = "", deck, media = "/assets/images/lavamed-detail.jpg", placeholderSlug = "", content, bodyClass = "", variant = "offset", schemas = [] }) {
+function shell({ title, description, pathName, eyebrow, heading, accent = "", deck, media = "/assets/images/lavamed-detail.jpg", placeholderSlug = "", content, bodyClass = "", variant = "offset", schemas = [], breadcrumbs = [], indexable = true }) {
   const fullHeading = accent ? `${heading}<br><em>${accent}</em>` : heading;
+  const breadcrumbItems = breadcrumbs.length ? [{ href: "/", label: "Início" }, ...breadcrumbs] : [];
+  const pageSchemas = domain && breadcrumbItems.length ? [...schemas, breadcrumbSchema(breadcrumbItems)] : schemas;
+  const breadcrumbMarkup = breadcrumbItems.length ? `<nav class="breadcrumbs" aria-label="Navegação estrutural"><ol>${breadcrumbItems.map((item, index) => `<li>${index === breadcrumbItems.length - 1 ? `<span aria-current="page">${escapeHtml(item.label)}</span>` : `<a href="${item.href}">${escapeHtml(item.label)}</a>`}</li>`).join("")}</ol></nav>` : "";
   return `<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  ${headMetadata({ title, description, pathName, image: media || "/assets/images/lavamed-detail.jpg", schemas })}
+  ${headMetadata({ title, description, pathName, image: media || "/assets/images/lavamed-detail.jpg", schemas: pageSchemas, indexable })}
 </head>
 <body class="internal ${bodyClass}">
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a><div class="noise" aria-hidden="true"></div><div class="transition" aria-hidden="true"><span></span><span></span><span></span></div><div class="cursor" aria-hidden="true"><i></i></div><div class="scroll-progress" aria-hidden="true"><span></span></div>
   ${header()}${menu(pathName)}
   <main class="internal-main" id="conteudo">
-    <section class="page-hero page-hero--${variant}">${heroMedia(media, placeholderSlug)}<span class="page-hero-code" aria-hidden="true">LVM / ${variant.toUpperCase()}</span><p class="page-kicker">${eyebrow}</p><h1 class="page-title">${fullHeading}</h1><p class="page-deck">${deck}</p></section>
+    <section class="page-hero page-hero--${variant}">${heroMedia(media, placeholderSlug)}<span class="page-hero-code" aria-hidden="true">LVM / ${variant.toUpperCase()}</span>${breadcrumbMarkup}<p class="page-kicker">${eyebrow}</p><h1 class="page-title">${fullHeading}</h1><p class="page-deck">${deck}</p></section>
     ${content}
   </main>
   ${footer()}
@@ -208,16 +235,29 @@ function comparisonContent() {
   return `<section class="content-section dark"><div class="content-grid"><div class="content-index">Resultados / 01—${String(comparisonPairs.length).padStart(2,"0")}</div><div class="content-copy"><h2>Pares reais e correspondentes.</h2><p>Arraste a linha ou use as setas do teclado para comparar cada trabalho.</p></div></div>${comparisonPairs.map((pair) => `<article class="result-pair"><h2>${escapeHtml(pair.title)}</h2><div class="compare" data-compare style="--position:50%"><img class="compare-base" src="${escapeHtml(pair.after)}" alt="${escapeHtml(pair.altAfter)}"><div class="compare-overlay"><img src="${escapeHtml(pair.before)}" alt="${escapeHtml(pair.altBefore)}"></div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(pair.title)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div></article>`).join("")}</section>`;
 }
 
+const faqQuestions = [
+  ["Como escolher o serviço?","A condição do veículo, o material e o objetivo definem a indicação. O catálogo permite comparar os pacotes, e uma avaliação confirma o escopo."],
+  ["Os preços são fixos?","A Lavagem Simples de Moto está anunciada por R$ 40 conforme informado. Os demais preços numéricos são valores a partir de; serviços adicionais e verniz de motor dependem de orçamento."],
+  ["Quanto tempo leva?","O prazo varia conforme o serviço e o estado do veículo. A LavaMed confirma a estimativa depois da avaliação."],
+  ["O polimento remove todo risco?","Não. A possibilidade de correção depende da profundidade da marca e do estado do verniz. Nenhum resultado universal é prometido."],
+  ["É preciso agendar?","Use o WhatsApp oficial para solicitar uma avaliação e confirmar a disponibilidade antes de levar o veículo."],
+  ["Onde fica a LavaMed?","Em Itajubá, no bairro Medicina. A rua e o número ainda não foram informados e não são inventados no site."]
+];
+
+function faqSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqQuestions.map(([question, answer]) => ({
+      "@type": "Question",
+      name: question,
+      acceptedAnswer: { "@type": "Answer", text: answer }
+    }))
+  };
+}
+
 function faqContent() {
-  const questions = [
-    ["Como escolher o serviço?","A condição do veículo, o material e o objetivo definem a indicação. O catálogo permite comparar os pacotes, e uma avaliação confirma o escopo."],
-    ["Os preços são fixos?","A Lavagem Simples de Moto está anunciada por R$ 40 conforme informado. Os demais preços numéricos são valores a partir de; serviços adicionais e verniz de motor dependem de orçamento."],
-    ["Quanto tempo leva?","O prazo varia conforme o serviço e o estado do veículo. A LavaMed confirma a estimativa depois da avaliação."],
-    ["O polimento remove todo risco?","Não. A possibilidade de correção depende da profundidade da marca e do estado do verniz. Nenhum resultado universal é prometido."],
-    ["É preciso agendar?","O canal e o fluxo oficial ainda precisam ser confirmados. Use a página de contato para deixar o contexto do veículo."],
-    ["Onde fica a LavaMed?","Em Itajubá, no bairro Medicina. A rua e o número ainda não foram informados e não são inventados no site."]
-  ];
-  return `<section class="content-section"><div class="content-grid"><div class="content-index">Dúvidas / 01—06</div><div class="content-copy"><div class="faq-list">${questions.map(([question,answer], index) => `<div class="faq-item"><button type="button" aria-expanded="false"><span>${String(index+1).padStart(2,"0")}</span><strong>${question}</strong><i>+</i></button><div class="faq-answer"><p>${answer}</p></div></div>`).join("")}</div></div></div></section>`;
+  return `<section class="content-section"><div class="content-grid"><div class="content-index">Dúvidas / 01—06</div><div class="content-copy"><div class="faq-list">${faqQuestions.map(([question,answer], index) => `<div class="faq-item"><button type="button" aria-expanded="false"><span>${String(index+1).padStart(2,"0")}</span><strong>${question}</strong><i>+</i></button><div class="faq-answer"><p>${answer}</p></div></div>`).join("")}</div></div></div></section>`;
 }
 
 function privacyContent() {
@@ -226,25 +266,25 @@ function privacyContent() {
 
 const pages = [
   {
-    pathName: "/servicos/", title: "Serviços e preços | LavaMed Itajubá", description: "Lavagem de carro, higienização, polimento, cuidados técnicos e serviços para motos da LavaMed em Itajubá, bairro Medicina.", eyebrow: "11 serviços / preços visíveis", heading: "CUIDADO EM", accent: "CAMADAS.", deck: "De R$ 40 aos cuidados personalizados: compare escopos e encontre o processo certo para o seu veículo.", variant: "split", content: catalogContent()
+    pathName: "/servicos/", title: "Lava Rápido e Estética Automotiva em Itajubá | LavaMed", description: "Lavagem de carro, higienização automotiva, polimento e serviços para motos na LavaMed, no bairro Medicina em Itajubá.", eyebrow: "11 serviços / preços visíveis", heading: "CUIDADO EM", accent: "CAMADAS.", deck: "De R$ 40 aos cuidados personalizados: compare escopos e encontre o processo certo para o seu veículo.", variant: "split", breadcrumbs: [{ href: "/servicos/", label: "Serviços" }], content: catalogContent()
   },
   {
-    pathName: "/portfolio/", title: "Portfólio | LavaMed Estética Automotiva", description: "Portfólio e direção visual da LavaMed em Itajubá.", eyebrow: "Portfólio / reflexos", heading: "CADA REFLEXO", accent: "CONTA.", deck: "Uma galeria para documentar processos, superfícies e resultados reais com consistência visual.", media: "/assets/images/lavamed-hero.jpg", variant: "wide", content: `<section class="content-section dark"><div class="content-grid"><div class="content-index">Acervo / em preparação</div><div class="content-copy"><h2>Trabalhos reais, sem atalhos.</h2><p>O portfólio será preenchido somente com fotografias confirmadas de serviços executados pela LavaMed. As imagens atuais definem a direção de arte e não são apresentadas como trabalhos de clientes.</p><div class="empty-state"><strong>Acervo real em atualização.</strong><p>Cadastre fotografias autorizadas em <code>src/assets/images</code> com serviço, veículo e contexto. Os placeholders permanecem até esses materiais chegarem.</p></div></div></div></section>`
+    pathName: "/portfolio/", title: "Portfólio | LavaMed Estética Automotiva", description: "Portfólio e direção visual da LavaMed em Itajubá.", eyebrow: "Portfólio / reflexos", heading: "CADA REFLEXO", accent: "CONTA.", deck: "Uma galeria para documentar processos, superfícies e resultados reais com consistência visual.", media: "/assets/images/lavamed-hero.jpg", variant: "wide", breadcrumbs: [{ href: "/portfolio/", label: "Portfólio" }], content: `<section class="content-section dark"><div class="content-grid"><div class="content-index">Acervo / em preparação</div><div class="content-copy"><h2>Trabalhos reais, sem atalhos.</h2><p>O portfólio será preenchido somente com fotografias confirmadas de serviços executados pela LavaMed. As imagens atuais definem a direção de arte e não são apresentadas como trabalhos de clientes.</p><div class="empty-state"><strong>Acervo real em atualização.</strong><p>Cadastre fotografias autorizadas em <code>src/assets/images</code> com serviço, veículo e contexto. Os placeholders permanecem até esses materiais chegarem.</p></div></div></div></section>`
   },
   {
-    pathName: "/antes-e-depois/", title: "Antes e Depois | LavaMed", description: "Comparações de antes e depois da LavaMed com pares fotográficos reais e correspondentes.", eyebrow: "Comparação / transparência", heading: "ANTES. DEPOIS.", accent: "MESMO ÂNGULO.", deck: "Resultados só fazem sentido quando a comparação é honesta: mesmo veículo, enquadramento equivalente e contexto confirmado.", variant: "aperture", content: comparisonContent()
+    pathName: "/antes-e-depois/", title: "Antes e Depois | LavaMed", description: "Comparações de antes e depois da LavaMed com pares fotográficos reais e correspondentes.", eyebrow: "Comparação / transparência", heading: "ANTES. DEPOIS.", accent: "MESMO ÂNGULO.", deck: "Resultados só fazem sentido quando a comparação é honesta: mesmo veículo, enquadramento equivalente e contexto confirmado.", variant: "aperture", breadcrumbs: [{ href: "/antes-e-depois/", label: "Antes e depois" }], content: comparisonContent()
   },
   {
-    pathName: "/sobre/", title: "Sobre a LavaMed | Estética Automotiva em Itajubá", description: "Conheça a LavaMed, estética automotiva no bairro Medicina, em Itajubá.", eyebrow: "Sobre / Itajubá", heading: "CONFIANÇA QUE", accent: "SE PERCEBE.", deck: "Cuidado profissional, produtos adequados e atendimento humanizado no coração do bairro Medicina.", media: "/assets/images/lavamed-hero.jpg", variant: "vertical", content: `<section class="content-section"><div class="content-grid"><div class="content-index">Manifesto / 01</div><div class="content-copy"><h2>O veículo como investimento e paixão.</h2><p>A LavaMed é uma estética automotiva de Itajubá, localizada no bairro Medicina. Sua missão é cuidar de cada veículo com excelência, unindo técnica profissional, produtos adequados e atendimento humanizado.</p><p>Mais do que um meio de transporte, o carro também representa investimento, rotina e paixão. Por isso, a LavaMed oferece soluções de limpeza, proteção e embelezamento, do cuidado minucioso da cabine à conservação visual da pintura.</p><p>O objetivo é valorizar a apresentação do veículo e buscar um aspecto renovado dentro dos limites de cada material e condição — sem transformar linguagem estética em promessa de restauração.</p><p>Quem mora ou trabalha em Itajubá pode conhecer a LavaMed no bairro Medicina e solicitar uma avaliação para escolher o cuidado adequado.</p></div></div></section><section class="content-section dark"><div class="content-grid"><div class="content-index">Princípios / 02</div><div class="content-copy"><div class="process-list"><div class="process-item"><span>01</span><h3>Observação</h3><p>A condição real orienta a indicação.</p></div><div class="process-item"><span>02</span><h3>Precisão</h3><p>Cada produto e ferramenta tem uma função.</p></div><div class="process-item"><span>03</span><h3>Atendimento</h3><p>Contexto, clareza e cuidado humanizado.</p></div></div></div></div></section>`
+    pathName: "/sobre/", title: "Sobre a LavaMed | Estética Automotiva em Itajubá", description: "Conheça a LavaMed, estética automotiva no bairro Medicina, em Itajubá.", eyebrow: "Sobre / Itajubá", heading: "CONFIANÇA QUE", accent: "SE PERCEBE.", deck: "Cuidado profissional, produtos adequados e atendimento humanizado no coração do bairro Medicina.", media: "/assets/images/lavamed-hero.jpg", variant: "vertical", breadcrumbs: [{ href: "/sobre/", label: "Sobre" }], content: `<section class="content-section"><div class="content-grid"><div class="content-index">Manifesto / 01</div><div class="content-copy"><h2>O veículo como investimento e paixão.</h2><p>A LavaMed é uma estética automotiva de Itajubá, localizada no bairro Medicina. Sua missão é cuidar de cada veículo com excelência, unindo técnica profissional, produtos adequados e atendimento humanizado.</p><p>Mais do que um meio de transporte, o carro também representa investimento, rotina e paixão. Por isso, a LavaMed oferece soluções de limpeza, proteção e embelezamento, do cuidado minucioso da cabine à conservação visual da pintura.</p><p>O objetivo é valorizar a apresentação do veículo e buscar um aspecto renovado dentro dos limites de cada material e condição — sem transformar linguagem estética em promessa de restauração.</p><p>Quem mora ou trabalha em Itajubá pode conhecer a LavaMed no bairro Medicina e solicitar uma avaliação para escolher o cuidado adequado.</p></div></div></section><section class="content-section dark"><div class="content-grid"><div class="content-index">Princípios / 02</div><div class="content-copy"><div class="process-list"><div class="process-item"><span>01</span><h3>Observação</h3><p>A condição real orienta a indicação.</p></div><div class="process-item"><span>02</span><h3>Precisão</h3><p>Cada produto e ferramenta tem uma função.</p></div><div class="process-item"><span>03</span><h3>Atendimento</h3><p>Contexto, clareza e cuidado humanizado.</p></div></div></div></div></section>`
   },
   {
-    pathName: "/contato/", title: "Contato e agendamento | LavaMed Itajubá", description: "Solicite uma avaliação na LavaMed, estética automotiva em Itajubá, bairro Medicina.", eyebrow: "Contato / bairro Medicina", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o veículo precisa e continue o agendamento pelo WhatsApp oficial.", variant: "split", content: contactContent()
+    pathName: "/contato/", title: "Contato e agendamento | LavaMed Itajubá", description: "Solicite uma avaliação na LavaMed, estética automotiva em Itajubá, bairro Medicina.", eyebrow: "Contato / bairro Medicina", heading: "COMECE PELO", accent: "DETALHE.", deck: "Conte o que o veículo precisa e continue o agendamento pelo WhatsApp oficial.", variant: "split", breadcrumbs: [{ href: "/contato/", label: "Contato" }], content: contactContent()
   },
   {
-    pathName: "/faq/", title: "Perguntas frequentes | LavaMed", description: "Dúvidas sobre serviços, preços e avaliação da LavaMed em Itajubá.", eyebrow: "FAQ / informação", heading: "PERGUNTAS", accent: "FREQUENTES.", deck: "Respostas diretas para entender os serviços antes de solicitar uma avaliação.", variant: "quiet", content: faqContent()
+    pathName: "/faq/", title: "Perguntas frequentes | LavaMed", description: "Dúvidas sobre serviços, preços e avaliação da LavaMed em Itajubá.", eyebrow: "FAQ / informação", heading: "PERGUNTAS", accent: "FREQUENTES.", deck: "Respostas diretas para entender os serviços antes de solicitar uma avaliação.", variant: "quiet", breadcrumbs: [{ href: "/faq/", label: "Perguntas frequentes" }], schemas: [faqSchema()], content: faqContent()
   },
   {
-    pathName: "/politica-de-privacidade/", title: "Política de Privacidade | LavaMed", description: "Política de privacidade do site LavaMed.", eyebrow: "Legal / privacidade", heading: "PRIVACIDADE", accent: "COM CLAREZA.", deck: "Como este site trata as informações enviadas pelo visitante.", variant: "vertical", content: privacyContent()
+    pathName: "/politica-de-privacidade/", title: "Política de Privacidade | LavaMed", description: "Política de privacidade do site LavaMed.", eyebrow: "Legal / privacidade", heading: "PRIVACIDADE", accent: "COM CLAREZA.", deck: "Como este site trata as informações enviadas pelo visitante.", variant: "vertical", breadcrumbs: [{ href: "/politica-de-privacidade/", label: "Privacidade" }], content: privacyContent()
   }
 ];
 
@@ -252,7 +292,7 @@ for (const service of services) {
   const variants = ["split", "aperture", "wide", "vertical", "offset", "quiet"];
   pages.push({
     pathName: `/servicos/${service.slug}/`,
-    title: `${service.name} em Itajubá | LavaMed`,
+    title: `${service.seoName || service.name} em Itajubá | LavaMed`,
     description: `${service.summary} ${servicePriceLabel(service)} na LavaMed, bairro Medicina, Itajubá.`,
     eyebrow: `${service.number} / ${service.label}`,
     heading: service.name.toUpperCase(),
@@ -262,6 +302,7 @@ for (const service of services) {
     variant: variants[(Number(service.number) - 1) % variants.length],
     bodyClass: "service-page",
     schemas: [serviceSchema(service)],
+    breadcrumbs: [{ href: "/servicos/", label: "Serviços" }, { href: `/servicos/${service.slug}/`, label: service.name }],
     content: serviceContent(service)
   });
 }
@@ -275,15 +316,15 @@ for (const page of pages) {
 const routes = ["/", ...pages.map((page) => page.pathName)];
 const sitemapEntries = domain ? routes.map((route) => `<url><loc>${absoluteUrl(route)}</loc></url>`).join("") : "";
 await writeFile(path.join(output, "sitemap.xml"), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${sitemapEntries}</urlset>`, "utf8");
-await writeFile(path.join(output, "robots.txt"), `User-agent: *\nAllow: /${domain ? `\nSitemap: ${domain}/sitemap.xml` : ""}\n`, "utf8");
-await writeFile(path.join(output, "404.html"), shell({ title: "Página não encontrada | LavaMed", description: "A página solicitada não foi encontrada.", pathName: "/404.html", eyebrow: "Erro / 404", heading: "FORA DA", accent: "ROTA.", deck: "Este endereço não existe ou mudou.", content: `<section class="content-section dark"><div class="content-copy"><h2>Volte ao início da experiência.</h2><a class="cta-pill" href="/"><span>Ir para o início</span><i>↗</i></a></div></section>` }), "utf8");
+await writeFile(path.join(output, "robots.txt"), domain ? `User-agent: *\nAllow: /\nSitemap: ${domain}/sitemap.xml\n` : "User-agent: *\nDisallow: /\n", "utf8");
+await writeFile(path.join(output, "404.html"), shell({ title: "Página não encontrada | LavaMed", description: "A página solicitada não foi encontrada.", pathName: "/404.html", eyebrow: "Erro / 404", heading: "FORA DA", accent: "ROTA.", deck: "Este endereço não existe ou mudou.", indexable: false, content: `<section class="content-section dark"><div class="content-copy"><h2>Volte ao início da experiência.</h2><a class="cta-pill" href="/"><span>Ir para o início</span><i>↗</i></a></div></section>` }), "utf8");
 
 const featuredServices = services.filter((service) => service.featured);
 const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homeHead = headMetadata({
-  title: "LavaMed | Estética automotiva em Itajubá",
-  description: "Lavagem, higienização e estética automotiva em Itajubá, no bairro Medicina. Conheça os serviços e preços da LavaMed.",
+  title: "Estética Automotiva em Itajubá | LavaMed",
+  description: "Lava rápido, lavagem de carro, higienização e estética automotiva em Itajubá, no bairro Medicina. Conheça os serviços e preços da LavaMed.",
   pathName: "/",
   image: "/assets/images/lavamed-hero.jpg"
 });
@@ -304,4 +345,4 @@ storyActs.forEach((act, index) => {
 });
 await writeFile(path.join(output, "index.html"), home, "utf8");
 
-console.log(`Built ${routes.length} routes${domain ? ` for ${domain}` : " without canonical URLs (set SITE_URL for production)"} with ${path.basename(scriptSrc)} and ${path.basename(styleHref)}`);
+console.log(`Built ${routes.length} routes${domain ? ` for ${domain} (${activeDomainStage})` : " in local noindex mode (set SITE_URL for production)"} with ${path.basename(scriptSrc)} and ${path.basename(styleHref)}`);

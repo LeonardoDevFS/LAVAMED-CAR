@@ -49,6 +49,8 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator(".service-notes")).toContainText("Não inclui limpeza nem aspiração");
   await expect(page.locator(".service-cta")).toHaveAttribute("href", /wa\.me\/5535984586615/);
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,nofollow");
+  await expect(page.locator(".breadcrumbs li")).toHaveCount(3);
   await page.screenshot({ path: `${screenshotDirectory}/service-detail.png`, fullPage: false });
 
   await page.goto("/contato/");

@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+# SITE_URL é intencionalmente configurada no painel da Netlify apenas para o
+# contexto Production. Deploy Previews sem SITE_URL permanecem noindex.
+[build.environment]
+  NODE_VERSION = "22.23.4"
+
 [[headers]]
   for = "/assets/*.js"
   [headers.values]

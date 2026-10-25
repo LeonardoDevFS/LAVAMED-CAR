@@ -1,8 +1,10 @@
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { servicePriceLabel, services } from "../src/config.js";
+import { resolveActiveSiteUrl } from "../src/site-config.js";
 
 const root = path.resolve("dist");
+const activeSiteUrl = resolveActiveSiteUrl(process.env);
 const serviceRoutes = services.map((service) => `servicos/${service.slug}/index.html`);
 const routes = ["index.html","servicos/index.html",...serviceRoutes,"portfolio/index.html","antes-e-depois/index.html","sobre/index.html","contato/index.html","faq/index.html","politica-de-privacidade/index.html","sitemap.xml","robots.txt","404.html"];
 const problems = [];
@@ -21,6 +23,8 @@ if (home.includes("{{") || home.includes("HOME_SERVICE_ROWS")) problems.push("Ho
 if (!home.includes("Itajubá") || !home.includes("bairro Medicina")) problems.push("Home is missing the confirmed local context");
 if (home.includes("lavamed.example")) problems.push("Home contains the retired .example domain");
 if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
+if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
+if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
 for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
   if (!home.includes(channel)) problems.push(`Home is missing official channel: ${channel}`);
 }
@@ -49,6 +53,12 @@ if (!catalog.includes("Não inclui limpeza ou aspiração interna")) problems.pu
 if (catalog.includes("A partir de R$ 40 o par") || !catalog.includes("A partir de R$ 80 o par")) problems.push("Headlight pricing unit is incorrect");
 const sitemap = await readFile(path.join(root, "sitemap.xml"), "utf8");
 if (sitemap.includes(".example")) problems.push("Sitemap contains a .example domain");
+const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+if (activeSiteUrl && (sitemapLocations.length !== 19 || sitemapLocations.some((location) => !location.startsWith(`${activeSiteUrl}/`)))) problems.push("Sitemap does not match active SITE_URL");
+if (!activeSiteUrl && sitemapLocations.length) problems.push("Local sitemap must not publish URLs");
+const robots = await readFile(path.join(root, "robots.txt"), "utf8");
+if (activeSiteUrl && !robots.includes(`Sitemap: ${activeSiteUrl}/sitemap.xml`)) problems.push("robots.txt does not match active SITE_URL");
+if (!activeSiteUrl && robots !== "User-agent: *\nDisallow: /\n") problems.push("Local robots.txt must block indexing");
 const netlify = await readFile(path.resolve("netlify.toml"), "utf8");
 for (const legacy of ["lavagem-tecnica", "higienizacao-interna", "polimento-automotivo", "vitrificacao", "detalhamento", "revitalizacao"]) {
   if (!netlify.includes(`/servicos/${legacy}/`)) problems.push(`Missing Netlify redirect for legacy slug: ${legacy}`);
@@ -62,9 +72,20 @@ async function collect(directory) {
   }
 }
 await collect(root);
+const titles = new Set();
+const descriptions = new Set();
 for (const file of htmlFiles) {
   const html = await readFile(file, "utf8");
+  const title = html.match(/<title>([^<]+)<\/title>/)?.[1] || "";
+  const description = html.match(/<meta name="description" content="([^"]+)">/)?.[1] || "";
   if (!html.includes("<title>")) problems.push(`Missing title: ${path.relative(root,file)}`);
+  if (!description) problems.push(`Missing description: ${path.relative(root,file)}`);
+  if (titles.has(title)) problems.push(`Duplicate title: ${title}`); else titles.add(title);
+  if (descriptions.has(description)) problems.push(`Duplicate description: ${description}`); else descriptions.add(description);
+  if ((html.match(/<h1(?:\s|>)/g) || []).length !== 1) problems.push(`Expected exactly one h1: ${path.relative(root,file)}`);
+  for (const match of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+    try { JSON.parse(match[1]); } catch { problems.push(`Invalid JSON-LD: ${path.relative(root,file)}`); }
+  }
   if (html.includes("lavamed.example")) problems.push(`Retired .example domain in ${path.relative(root,file)}`);
   if (html.includes('src="/assets/logo-mark.svg"')) problems.push(`Provisional logo still rendered in ${path.relative(root,file)}`);
   if (html.includes("lavamed-hero.png") || html.includes("lavamed-detail.png")) problems.push(`Stale PNG reference: ${path.relative(root,file)}`);
