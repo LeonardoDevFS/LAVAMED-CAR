@@ -200,8 +200,8 @@ test("catalog publishes all prices, service routes and responsible copy", async 
   await expect(page.locator(".portfolio-card")).toHaveCount(6);
   await expect(page.locator(".archive-note")).toContainText("procedimento que ela não confirme");
   await page.goto("/antes-e-depois/");
-  await expect(page.locator(".result-pair")).toHaveCount(2);
-  await expect(page.locator(".result-pair").first()).toContainText("Detalhe do trilho do banco");
+  await expect(page.locator(".result-pair")).toHaveCount(3);
+  await expect(page.locator(".result-pair").first()).toContainText("Cabine desmontada");
 });
 
 test("keeps the home within the local Core Web Vitals budget", async ({ page }) => {

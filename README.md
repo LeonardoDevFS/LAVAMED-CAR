@@ -34,7 +34,7 @@ Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informa
 
 O acervo recebido foi classificado, preservado em `media-originals/` e publicado por meio de derivados WebP/AVIF responsivos. O inventário completo, com hash, resolução, confiança da classificação e destino, está em [docs/MEDIA-INVENTORY.md](docs/MEDIA-INVENTORY.md). O fluxo de atualização e o sound design estão documentados em [docs/MEDIA-AND-SOUND.md](docs/MEDIA-AND-SOUND.md).
 
-O portfólio usa seis mídias fornecidas pela LavaMed. Fotografias de carro ou moto limpos são descritas somente como “exterior finalizado” quando o procedimento específico não pode ser confirmado visualmente. A página de antes/depois publica apenas os pares compatíveis do trilho do banco e do farol. As duas antigas artes de campanha continuam disponíveis apenas como composições conceituais claramente identificadas.
+O portfólio usa seis mídias fornecidas pela LavaMed. Fotografias de carro ou moto limpos são descritas somente como “exterior finalizado” quando o procedimento específico não pode ser confirmado visualmente. A página de antes/depois publica apenas três pares compatíveis: cabine desmontada, trilho do banco e farol. As duas antigas artes de campanha continuam disponíveis apenas como composições conceituais claramente identificadas.
 
 O logotipo oficial está em `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` e aparece no cabeçalho, no rodapé e como favicon. O arquivo legado `src/assets/logo-mark.svg` permanece apenas como histórico da assinatura provisória.
 

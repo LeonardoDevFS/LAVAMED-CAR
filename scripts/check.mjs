@@ -70,7 +70,7 @@ if (catalog.includes("A partir de R$ 40 o par") || !catalog.includes("A partir d
 const portfolio = await readFile(path.join(root, "portfolio", "index.html"), "utf8");
 if ((portfolio.match(/class="portfolio-card/g) || []).length !== 6) problems.push("Portfolio does not contain six classified items");
 const comparisons = await readFile(path.join(root, "antes-e-depois", "index.html"), "utf8");
-if ((comparisons.match(/class="result-pair"/g) || []).length !== 2) problems.push("Before/after page does not contain the two confirmed pairs");
+if ((comparisons.match(/class="result-pair"/g) || []).length !== 3) problems.push("Before/after page does not contain the three confirmed pairs");
 const sitemap = await readFile(path.join(root, "sitemap.xml"), "utf8");
 if (sitemap.includes(".example")) problems.push("Sitemap contains a .example domain");
 const sitemapLocations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);

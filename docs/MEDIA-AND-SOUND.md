@@ -27,10 +27,10 @@ Nunca edite `src/media-manifest.js` manualmente. Para incluir material novo, pre
 | Área | Mídia |
 |---|---|
 | Hero e cena final | Honda Civic G10, exterior finalizado |
-| Storytelling | cabine desmontada, farol, motor e Civic finalizado |
+| Storytelling | cabine desmontada antes da higienização, farol, motor e Civic finalizado |
 | Serviços | exterior, interiores, motor, farol, moto e duas composições contextuais |
 | Portfólio | Civic, HB20, Compass, interior do Civic, motor do Onix e Yamaha FZ15 |
-| Antes/depois | trilho do banco e farol |
+| Antes/depois | cabine desmontada, trilho do banco e farol |
 | Open Graph | recorte social do Civic em JPEG |
 
 ## Segurança visual

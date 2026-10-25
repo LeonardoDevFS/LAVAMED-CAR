@@ -119,7 +119,7 @@ export const services = [
     ],
     benefits: ["Limpeza interna intensiva", "Tratamento de áreas inferiores e frestas", "Escopo definido após avaliação técnica"],
     exclusions: ["A remoção dos bancos depende das condições de segurança e das particularidades do veículo.", "O serviço não promete eliminação absoluta de microrganismos, manchas ou odores."],
-    image: mediaById("cabine-desmontada"),
+    image: mediaById("cabine-desmontada-depois"),
     featured: true
   },
   {
@@ -294,7 +294,7 @@ export const campaignMedia = {
 
 /** Cada ato usa uma mídia classificada no inventário. */
 export const storyActs = [
-  { key: "diagnostico", image: mediaById("cabine-desmontada"), fallback: false },
+  { key: "diagnostico", image: mediaById("cabine-desmontada-antes"), fallback: false },
   { key: "precisao", image: mediaById("farol-comparativo-pronto"), fallback: false },
   { key: "controle", image: mediaById("onix-joy-motor-finalizado"), fallback: false },
   { key: "presenca", image: mediaById("honda-civic-g10-tres-quartos"), fallback: false }
@@ -305,6 +305,12 @@ export const storyActs = [
  * Formato: { title, before, after, altBefore, altAfter }.
  */
 export const comparisonPairs = [
+  {
+    title: "Cabine desmontada",
+    service: "Higienização e estética avançada",
+    before: mediaById("cabine-desmontada-antes"),
+    after: mediaById("cabine-desmontada-depois")
+  },
   {
     title: "Detalhe do trilho do banco",
     service: "Higienização e estética avançada",

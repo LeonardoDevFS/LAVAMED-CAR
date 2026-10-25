@@ -19,6 +19,7 @@ Os 11 serviços possuem mídia associada. Quando uma fotografia mostra somente o
 
 O portfólio publica seis itens fornecidos pela LavaMed. O comparador usa apenas:
 
+- cabine desmontada antes e depois da etapa de higienização;
 - detalhe do trilho do banco, antes e depois;
 - farol do mesmo veículo, antes e depois.
 
