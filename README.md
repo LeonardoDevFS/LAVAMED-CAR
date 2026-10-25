@@ -8,6 +8,7 @@ Requer Node.js 22 ou mais recente.
 
 ```bash
 npm install
+npm run media:process
 npm run build
 npm run check
 npm run dev
@@ -31,7 +32,9 @@ Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informa
 
 ## Conteúdo real
 
-As imagens atuais são artes de campanha geradas para definir a direção visual. Elas não são apresentadas como trabalhos executados ou provas de resultado. Antes de publicar o portfólio e o comparador de antes/depois, inclua fotografias autorizadas, correspondentes e reais.
+O acervo recebido foi classificado, preservado em `media-originals/` e publicado por meio de derivados WebP/AVIF responsivos. O inventário completo, com hash, resolução, confiança da classificação e destino, está em [docs/MEDIA-INVENTORY.md](docs/MEDIA-INVENTORY.md). O fluxo de atualização e o sound design estão documentados em [docs/MEDIA-AND-SOUND.md](docs/MEDIA-AND-SOUND.md).
+
+O portfólio usa seis mídias fornecidas pela LavaMed. Fotografias de carro ou moto limpos são descritas somente como “exterior finalizado” quando o procedimento específico não pode ser confirmado visualmente. A página de antes/depois publica apenas três pares compatíveis: cabine desmontada, trilho do banco e farol. As duas antigas artes de campanha continuam disponíveis apenas como composições conceituais claramente identificadas.
 
 O logotipo oficial está em `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg` e aparece no cabeçalho, no rodapé e como favicon. O arquivo legado `src/assets/logo-mark.svg` permanece apenas como histórico da assinatura provisória.
 
@@ -41,6 +44,10 @@ O logotipo oficial está em `src/assets/images/hero/LavaMed_logo_vetorial_HD.svg
 - `src/assets/site.css`: direção visual e layouts responsivos;
 - `src/assets/site.js`: menu, scroll storytelling, comparação, galeria, cursor e microinterações;
 - `src/config.js`: dados comerciais e catálogo de serviços;
+- `src/media-manifest.js`: manifesto publicável gerado a partir do catálogo de mídia;
+- `media/catalog.json`: classificação e regras de processamento do acervo;
+- `media-originals/`: arquivos-fonte preservados e excluídos do build;
+- `scripts/process-media.mjs`: geração de WebP, AVIF, thumbnails, imagem social e inventário;
 - `scripts/build.mjs`: bundling Vite, rotas estáticas, metadados, sitemap e robots;
 - `scripts/check.mjs`: validação estrutural do build;
 - `tests/e2e`: testes reais de navegador com Playwright;
@@ -50,19 +57,23 @@ As rotas geradas incluem home, catálogo e 11 páginas de serviços, portfólio,
 
 ## Acessibilidade e movimento
 
-O menu retém foco e fecha com `Esc`; o comparador funciona com ponteiro, toque e setas; há link de salto, foco visível e conteúdo semântico. `prefers-reduced-motion` remove a narrativa presa ao scroll e as animações contínuas.
+O menu retém foco e fecha com `Esc`; o comparador funciona com ponteiro, toque e setas; há link de salto, foco visível e conteúdo semântico. `prefers-reduced-motion` remove a narrativa presa ao scroll e as animações contínuas. O som começa desligado e só cria um `AudioContext` depois do clique explícito do visitante.
 
 ## Motion design
 
 O hero utiliza uma composição 2.5D com fundo, carro recortado, camada especular, luz e profundidade. O storytelling possui quatro atos sincronizados ao scroll por ScrollTrigger, com pinning no desktop e versão sticky mais leve no mobile. A terceira cena combina filtro SVG de deslocamento, máscara orgânica e canvas de cáusticas.
 
-Serviços sem fotografia exibem composições gráficas identificadas como placeholders. Para adicionar imagens específicas, preencha o campo `image` de cada serviço em `src/config.js`. Os quatro atos da narrativa usam `storyActs`, e pares reais de antes/depois são cadastrados em `comparisonPairs`.
+Os quatro atos da narrativa usam mídias independentes classificadas no manifesto. As páginas de serviço exibem a origem visual com rótulos de procedência; composições conceituais não são apresentadas como atendimentos reais. O sound design é sintetizado com Web Audio API, sem música ou arquivo de terceiros: impacto discreto no acionamento, whoosh, transição líquida, mudança de cena, clique e revelação do comparador.
 
 ## Publicação
 
 O `netlify.toml` já aponta para `dist/`, inclui os redirecionamentos 301 dos slugs antigos e mantém os cabeçalhos de cache. Na Netlify, use o comando `npm run build` e publique a pasta `dist`.
 
-Defina `SITE_URL` com o domínio definitivo. Na Netlify, a variável nativa `URL` também é reconhecida. Sem uma dessas opções, o build local omite canonical e gera um sitemap vazio em vez de publicar um endereço `.example`.
+Defina `SITE_URL` somente no contexto Production com a origem pública que estiver realmente ativa. O build não usa automaticamente a variável `URL` da Netlify. Sem `SITE_URL`, canonical e `og:url` são omitidos, as páginas recebem `noindex`, o sitemap não publica URLs e `robots.txt` bloqueia rastreamento.
+
+O planejamento completo para `lava-med-netlify.netlify.app`, a futura migração para `lavamed.com.br`, Search Console e Perfil da Empresa está em [docs/DOMINIOS-SEO-DEPLOY.md](docs/DOMINIOS-SEO-DEPLOY.md).
+
+Use `npm run test:domains` para validar automaticamente os cenários local, provisório e comercial.
 
 ## Capturas verificadas
 
@@ -70,4 +81,6 @@ Defina `SITE_URL` com o domínio definitivo. Na Netlify, a variável nativa `URL
 - [Home mobile 390 × 844](docs/screenshots/home-mobile.png)
 - [Catálogo desktop](docs/screenshots/catalog-desktop.png)
 - [Catálogo mobile](docs/screenshots/catalog-mobile.png)
-- [Detalhe de serviço com placeholder](docs/screenshots/service-detail.png)
+- [Detalhe de serviço com mídia real](docs/screenshots/service-detail.png)
+- [Portfólio desktop](docs/screenshots/portfolio-desktop.png)
+- [Comparador antes/depois](docs/screenshots/comparison-desktop.png)

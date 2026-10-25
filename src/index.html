@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <!-- HOME_HEAD -->
-  <link rel="preload" href="/assets/images/lavamed-hero.jpg" as="image" fetchpriority="high">
+  <!-- HOME_PRELOAD -->
 </head>
 <body class="home">
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
@@ -21,6 +21,7 @@
       <!-- BRAND_CHANNELS -->
     </div>
     <div class="header-actions">
+      <button class="sound-toggle magnetic" type="button" data-sound-toggle aria-pressed="false" aria-label="Ativar experiência sonora"><span>Som</span><i aria-hidden="true"><b></b><b></b><b></b></i><small data-sound-state>OFF</small></button>
       <a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a>
       <button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel">
         <span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
@@ -45,9 +46,9 @@
     <section class="hero" data-hero aria-labelledby="hero-title">
       <canvas class="water-canvas" data-liquid-canvas="droplets" aria-hidden="true"></canvas>
       <div class="hero-media" aria-hidden="true">
-        <img class="hero-backdrop" src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" alt="" fetchpriority="high">
-        <div class="hero-car-layer"><img src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" alt=""></div>
-        <div class="hero-specular"><img src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" alt=""></div>
+        <!-- HOME_HERO_BACKDROP -->
+        <div class="hero-car-layer"><!-- HOME_HERO_CAR --></div>
+        <div class="hero-specular"><!-- HOME_HERO_SPECULAR --></div>
         <div class="hero-depth-grid"></div>
         <div class="hero-beam"></div>
         <div class="hero-lens"></div>
@@ -88,10 +89,10 @@
           </filter>
         </svg>
         <div class="camera-acts" aria-hidden="true">
-          <figure class="camera-act camera-act--reveal" data-camera-act="0"><img src="{{STORY_ACT_1}}" width="1536" height="1024" alt=""></figure>
-          <figure class="camera-act camera-act--detail" data-camera-act="1"><img src="{{STORY_ACT_2}}" width="1536" height="1024" alt=""></figure>
-          <figure class="camera-act camera-act--water" data-camera-act="2"><img src="{{STORY_ACT_3}}" width="1536" height="1024" alt=""></figure>
-          <figure class="camera-act camera-act--finish" data-camera-act="3"><img src="{{STORY_ACT_4}}" width="1536" height="1024" alt=""></figure>
+          <figure class="camera-act camera-act--reveal" data-camera-act="0"><!-- STORY_ACT_1 --></figure>
+          <figure class="camera-act camera-act--detail" data-camera-act="1"><!-- STORY_ACT_2 --></figure>
+          <figure class="camera-act camera-act--water" data-camera-act="2"><!-- STORY_ACT_3 --></figure>
+          <figure class="camera-act camera-act--finish" data-camera-act="3"><!-- STORY_ACT_4 --></figure>
         </div>
         <canvas class="liquid-canvas" data-liquid-canvas="caustics" aria-hidden="true"></canvas>
         <div class="camera-aperture" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -119,12 +120,12 @@
       </div>
       <div class="services-layout">
         <div class="services-visual" data-service-visual aria-live="polite">
-          <img data-service-image width="1536" height="1024" alt="" hidden>
-          <div class="service-placeholder is-{{HOME_SERVICE_SLUG}}" data-service-placeholder aria-hidden="true">
+          <img data-service-image src="{{HOME_SERVICE_IMAGE}}" srcset="{{HOME_SERVICE_SRCSET}}" sizes="{{HOME_SERVICE_SIZES}}" width="{{HOME_SERVICE_WIDTH}}" height="{{HOME_SERVICE_HEIGHT}}" alt="{{HOME_SERVICE_ALT}}">
+          <div class="service-placeholder is-{{HOME_SERVICE_SLUG}}" data-service-placeholder aria-hidden="true" hidden>
             <div class="placeholder-rings"><i></i><i></i><i></i></div><span>LVM / 01</span>
           </div>
           <span class="visual-number">{{HOME_SERVICE_NUMBER}}</span>
-          <div class="visual-caption"><b data-service-caption>{{HOME_SERVICE_NAME}}</b><span data-service-price>{{HOME_SERVICE_PRICE}}</span><span>Imagem real aguardando acervo</span></div>
+          <div class="visual-caption"><b data-service-caption>{{HOME_SERVICE_NAME}}</b><span data-service-price>{{HOME_SERVICE_PRICE}}</span><span data-service-media-label>{{HOME_SERVICE_MEDIA_LABEL}}</span></div>
         </div>
         <div class="service-list" role="list">
           <!-- HOME_SERVICE_ROWS -->
@@ -139,9 +140,9 @@
         <h2 id="liquid-title">A ÁGUA PASSA.<br><em>O BRILHO FICA.</em></h2>
         <p>Deslize a linha para atravessar duas artes de campanha: da silhueta à matéria. Esta transição não representa antes/depois nem resultado de cliente.</p>
       </div>
-      <div class="compare" data-compare data-before="/assets/images/lavamed-detail.jpg" data-after="/assets/images/lavamed-hero.jpg" style="--position: 56%">
-        <img class="compare-base" src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" alt="Arte de campanha com silhueta automotiva completa">
-        <div class="compare-overlay"><img src="/assets/images/lavamed-detail.jpg" width="1536" height="1024" alt="Arte de campanha com detalhe da matéria e gotas de água"></div>
+      <div class="compare" data-compare style="--position: 56%">
+        <!-- CAMPAIGN_SILHOUETTE -->
+        <div class="compare-overlay"><!-- CAMPAIGN_DETAIL --></div>
         <div class="compare-refraction" aria-hidden="true"></div>
         <span class="compare-label before">Matéria</span><span class="compare-label after">Silhueta</span>
         <button class="compare-handle" type="button" role="slider" aria-label="Explorar as duas artes de campanha" aria-valuemin="0" aria-valuemax="100" aria-valuenow="56"><i>↔</i></button>
@@ -156,18 +157,13 @@
       </div>
       <p class="sr-only" id="gallery-instructions">Use as setas esquerda e direita para percorrer a galeria. Também é possível arrastar com mouse ou toque.</p>
       <div class="gallery-viewport" data-gallery tabindex="0" role="region" aria-label="Galeria de direção visual" aria-describedby="gallery-instructions">
-        <div class="gallery-track">
-          <a class="gallery-item gallery-wide" href="/portfolio/" aria-label="Ver portfólio — estudo de reflexo 01"><img src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" loading="lazy" alt="Estudo visual automotivo em estúdio escuro"><span><b>01</b> Reflexo / presença</span></a>
-          <a class="gallery-item gallery-tall" href="/portfolio/" aria-label="Ver portfólio — estudo de matéria 02"><img src="/assets/images/lavamed-detail.jpg" width="1536" height="1024" loading="lazy" alt="Detalhe de pintura automotiva com gotas de água"><span><b>02</b> Matéria / precisão</span></a>
-          <div class="gallery-placeholder" aria-label="Espaço reservado para trabalho real"><span>03</span><strong>ACERVO<br>EM CONSTRUÇÃO</strong><i>Fotografia autorizada</i></div>
-          <div class="gallery-statement"><span>O detalhe</span><strong>MUDA<br>TUDO.</strong><i>04 / 04</i></div>
-        </div>
+        <div class="gallery-track"><!-- HOME_PORTFOLIO_ITEMS --><div class="gallery-statement"><span>O detalhe</span><strong>MUDA<br>TUDO.</strong><i>07 / 07</i></div></div>
       </div>
-      <p class="portfolio-disclaimer">Imagens de direção visual. A galeria de trabalhos reais será publicada com o acervo confirmado da LavaMed.</p>
+      <p class="portfolio-disclaimer">Mídias fornecidas pela LavaMed. “Exterior finalizado” descreve apenas o que a fotografia confirma, sem atribuir um procedimento específico.</p>
     </section>
 
     <section class="final-scene" aria-labelledby="final-title">
-      <div class="final-media" aria-hidden="true"><img src="/assets/images/lavamed-hero.jpg" width="1536" height="1024" loading="lazy" alt=""></div>
+      <div class="final-media" aria-hidden="true"><!-- HOME_FINAL_MEDIA --></div>
       <div class="final-content">
         <p>Pronto para mudar a percepção do seu carro?</p>
         <h2 id="final-title"><span>SEU CARRO MERECE</span><br><em>ESSE CUIDADO.</em></h2>

@@ -23,12 +23,28 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator('.site-header .brand-channels a[aria-label*="WhatsApp"]')).toHaveAttribute("href", /wa\.me\/5535984586615/);
   await expect(page.locator('.site-header .brand-channels a[aria-label*="Instagram"]')).toHaveAttribute("href", "https://www.instagram.com/lavamed.itajuba/");
   await expect(page.locator('.site-header .brand-channels a[aria-label*="Maps"]')).toHaveAttribute("href", "https://share.google/Vm2BAGotXmrrtKJi1");
+  await expect(page.locator('picture source[type="image/avif"]')).not.toHaveCount(0);
+  await expect(page.locator(".gallery-item")).toHaveCount(6);
+  const sound = page.locator("[data-sound-toggle]");
+  await expect(sound).toHaveAttribute("aria-pressed", "false");
+  await sound.click();
+  await expect(sound).toHaveAttribute("aria-pressed", "true");
+  await expect(sound.locator("[data-sound-state]")).toHaveText("ON");
+  expect(await page.evaluate(() => localStorage.getItem("lavamed-sound"))).toBe("enabled");
+  await page.reload();
+  await expect(sound).toHaveAttribute("aria-pressed", "false");
+  await expect(sound.locator("[data-sound-state]")).toHaveText("READY");
+  await sound.click();
+  await expect(sound).toHaveAttribute("aria-pressed", "true");
+  await sound.click();
+  await expect(sound).toHaveAttribute("aria-pressed", "false");
   await page.screenshot({ path: `${screenshotDirectory}/desktop.png`, fullPage: false });
 
   const menu = page.locator(".menu-toggle");
   await menu.click();
   await expect(menu).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator("#menu-panel")).toHaveAttribute("aria-hidden", "false");
+  await page.waitForTimeout(350);
   await expect(page.locator("#menu-panel a").first()).toBeFocused();
   await page.keyboard.press("Shift+Tab");
   await expect(page.locator("#menu-panel a").last()).toBeFocused();
@@ -48,7 +64,11 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("LAVAGEM SIMPLES");
   await expect(page.locator(".service-notes")).toContainText("Não inclui limpeza nem aspiração");
   await expect(page.locator(".service-cta")).toHaveAttribute("href", /wa\.me\/5535984586615/);
+  await expect(page.locator(".page-hero-media img")).toBeVisible();
+  await expect(page.locator(".media-provenance")).toContainText("Acervo LavaMed");
   await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex,nofollow");
+  await expect(page.locator(".breadcrumbs li")).toHaveCount(3);
   await page.screenshot({ path: `${screenshotDirectory}/service-detail.png`, fullPage: false });
 
   await page.goto("/contato/");
@@ -123,8 +143,10 @@ test("service transitions, comparison and gallery input modes work", async ({ pa
   await expect(page.locator("[data-service-caption]")).toHaveText("Lavagem Completa");
   await expect(page.locator("[data-service-price]")).toHaveText("A partir de R$ 80");
   await expect(page.locator("[data-service-placeholder]")).toHaveClass(/is-lavagem-completa/);
-  await expect(page.locator("[data-service-placeholder]")).toBeVisible();
-  await expect(page.locator("[data-service-image]")).toBeHidden();
+  await expect(page.locator("[data-service-placeholder]")).toBeHidden();
+  await expect(page.locator("[data-service-image]")).toBeVisible();
+  await expect(page.locator("[data-service-image]")).toHaveAttribute("src", /jeep-compass-interior-finalizado/);
+  await expect(page.locator("[data-service-media-label]")).toContainText("Acervo LavaMed");
   await page.screenshot({ path: `${screenshotDirectory}/services.png`, fullPage: false });
 
   const gallery = page.locator("[data-gallery]");
@@ -173,6 +195,37 @@ test("catalog publishes all prices, service routes and responsible copy", async 
   await expect(page.locator(".service-notes")).toContainText("dependem do estado da lente");
   await page.goto("/servicos/adicionais/");
   await expect(page.locator(".scope-list article")).toHaveCount(10);
+
+  await page.goto("/portfolio/");
+  await expect(page.locator(".portfolio-card")).toHaveCount(6);
+  await expect(page.locator(".archive-note")).toContainText("procedimento que ela não confirme");
+  await page.goto("/antes-e-depois/");
+  await expect(page.locator(".result-pair")).toHaveCount(3);
+  await expect(page.locator(".result-pair").first()).toContainText("Cabine desmontada");
+});
+
+test("keeps the home within the local Core Web Vitals budget", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.__lavamedVitals = { lcp: 0, cls: 0 };
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) window.__lavamedVitals.lcp = entry.startTime;
+    }).observe({ type: "largest-contentful-paint", buffered: true });
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) if (!entry.hadRecentInput) window.__lavamedVitals.cls += entry.value;
+    }).observe({ type: "layout-shift", buffered: true });
+  });
+
+  await page.goto("/");
+  await page.waitForTimeout(2500);
+  const performance = await page.evaluate(() => ({
+    ...window.__lavamedVitals,
+    transferSize: window.performance.getEntriesByType("resource").reduce((total, entry) => total + (entry.transferSize || 0), 0),
+    heroSource: document.querySelector(".hero-backdrop")?.currentSrc || ""
+  }));
+  expect(performance.lcp).toBeLessThan(2500);
+  expect(performance.cls).toBeLessThan(.1);
+  expect(performance.transferSize).toBeLessThan(1_500_000);
+  expect(performance.heroSource).toMatch(/\.(avif|webp)$/);
 });
 
 test.describe("mobile and reduced motion", () => {
