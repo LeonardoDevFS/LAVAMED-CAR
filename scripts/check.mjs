@@ -56,8 +56,18 @@ else {
 const sourceCss = await readFile(path.resolve("src/assets/site.css"), "utf8");
 if (sourceCss.includes(".camera-copy:first-of-type")) problems.push("Reduced-motion camera selector regression detected");
 if (sourceCss.includes(".compare>img") || !sourceCss.includes(".compare img")) problems.push("Comparison picture images are not receiving the complete frame styles");
+for (const unsafeTypography of ["/ .8 var(--display)", "/.8 var(--display)", "line-height:.82", "line-height: .82"]) {
+  if (sourceCss.includes(unsafeTypography)) problems.push(`Unsafe display-font line-height detected: ${unsafeTypography}`);
+}
+if (!sourceCss.includes(".title-mask { display: block; overflow:hidden")) problems.push("Hero title masks are missing glyph-safe overflow padding");
+for (const logoWidth of ["width:135px", "width:105px", "width:90px"]) {
+  if (!sourceCss.includes(logoWidth)) problems.push(`Responsive header logo size missing: ${logoWidth}`);
+}
 const sourceJs = await readFile(path.resolve("src/assets/site.js"), "utf8");
 if (sourceJs.includes("event.clientX - 19") || sourceJs.includes("event.clientY - 19")) problems.push("Custom pointer still contains the obsolete double offset");
+if (sourceJs.includes('gsap.set(titleLines, { yPercent: 115, clipPath')) problems.push("Hero still clips glyphs directly during its reveal");
+if (!sourceJs.includes('(min-width: 901px)') || !sourceJs.includes('(max-width: 900px)')) problems.push("GSAP and CSS tablet breakpoints are not aligned");
+if (!sourceJs.includes("document.fonts?.ready")) problems.push("ScrollTrigger is not refreshed after local fonts load");
 for (const media of Object.values(mediaCatalog)) {
   const derivatives = [
     media.src,

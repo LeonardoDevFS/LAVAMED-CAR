@@ -49,23 +49,28 @@ function initHeroMotion() {
   const provenance = hero.querySelector(".hero-provenance");
 
   const context = gsap.context(() => {
-    gsap.set(titleLines, { yPercent: 115, clipPath: "inset(0 0 100% 0)" });
+    gsap.set(titleLines, { yPercent: 108, autoAlpha: 0 });
     gsap.set([eyebrow, bottom, provenance], { autoAlpha: 0, y: 24 });
     gsap.set(car, { xPercent: 10, scale: 1.085, rotateY: -4, clipPath: "polygon(20% 31%, 66% 20%, 100% 24%, 100% 91%, 7% 91%)", transformPerspective: 1200 });
     gsap.set(specular, { xPercent: -12, opacity: 0 });
     gsap.set(backdrop, { scale: 1.145, filter: "brightness(.24) saturate(.72) blur(2px)" });
 
-    gsap.timeline({ defaults: { ease: "expo.out" } })
+    const intro = gsap.timeline({ paused: true, defaults: { ease: "expo.out" } })
       .to(backdrop, { scale: 1.07, filter: "brightness(.47) saturate(.84) blur(.8px)", duration: 1.55 }, 0)
       .to(car, { xPercent: 0, scale: 1, rotateY: 0, clipPath: "polygon(5% 27%, 62% 17%, 100% 21%, 100% 94%, 3% 94%)", duration: 1.72 }, .06)
       .to(carImage, { filter: "brightness(.9) saturate(1.02) contrast(1.04)", duration: 1.45 }, .08)
       .to(beam, { xPercent: 660, opacity: .78, duration: 1.34, ease: "power2.inOut" }, .2)
       .to(specular, { xPercent: 8, opacity: .5, duration: 1.2, ease: "power2.inOut" }, .34)
-      .to(titleLines, { yPercent: 0, clipPath: "inset(0)", duration: .86, stagger: .09 }, .42)
+      .to(titleLines, { yPercent: 0, autoAlpha: 1, duration: .86, stagger: .09, onComplete: () => gsap.set(titleLines, { clearProps: "transform,opacity,visibility" }) }, .42)
       .to(eyebrow, { autoAlpha: 1, y: 0, duration: .58 }, .61)
       .to(bottom, { autoAlpha: 1, y: 0, duration: .68 }, .76)
       .to(provenance, { autoAlpha: 1, y: 0, duration: .55 }, .9)
       .to(lens, { scale: 1.14, opacity: .5, duration: 1.1 }, .3);
+
+    (document.fonts?.ready || Promise.resolve()).then(() => {
+      ScrollTrigger.refresh();
+      intro.play(0);
+    });
 
     gsap.timeline({
       scrollTrigger: { trigger: hero, start: "top top", end: "bottom top", scrub: 1.15, invalidateOnRefresh: true }
@@ -122,7 +127,7 @@ function initCameraStory() {
   }
 
   const media = gsap.matchMedia();
-  media.add({ desktop: "(min-width: 769px)", mobile: "(max-width: 768px)" }, ({ conditions }) => {
+  media.add({ desktop: "(min-width: 901px)", mobile: "(max-width: 900px)" }, ({ conditions }) => {
     let activeScene = -1;
     const context = gsap.context(() => {
       gsap.set(acts, { autoAlpha: 0 });
@@ -525,6 +530,7 @@ initPointerEffects();
 document.querySelectorAll("[data-liquid-canvas]").forEach(initLiquidCanvas);
 
 addEventListener("load", () => ScrollTrigger.refresh(), { once: true });
+document.fonts?.ready.then(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
 let refreshTimer;
 addEventListener("resize", () => {
   clearTimeout(refreshTimer);

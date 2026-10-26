@@ -1,0 +1,684 @@
+[
+  {
+    "width": 1920,
+    "height": 1080,
+    "group": "desktop",
+    "viewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "documentWidth": 1920,
+    "pageHeight": 18443,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 145.58,
+        "glyphHeight": 145,
+        "verticalSlack": 0.58,
+        "lineHeight": "134.4px",
+        "letterSpacing": "-12px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 145.58,
+        "glyphHeight": 111,
+        "verticalSlack": 34.58,
+        "lineHeight": "134.4px",
+        "letterSpacing": "-12px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 113.55,
+        "glyphHeight": 113,
+        "verticalSlack": 0.55,
+        "lineHeight": "104.832px",
+        "letterSpacing": "-10.608px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 96,
+      "height": 84
+    },
+    "booking": {
+      "width": 172,
+      "height": 44
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1672.avif",
+    "errors": []
+  },
+  {
+    "width": 1440,
+    "height": 900,
+    "group": "desktop",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "documentWidth": 1440,
+    "pageHeight": 16849,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 121.83,
+        "glyphHeight": 120,
+        "verticalSlack": 1.83,
+        "lineHeight": "112.493px",
+        "letterSpacing": "-10.044px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 121.83,
+        "glyphHeight": 92,
+        "verticalSlack": 29.83,
+        "lineHeight": "112.493px",
+        "letterSpacing": "-10.044px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 95.02,
+        "glyphHeight": 94,
+        "verticalSlack": 1.02,
+        "lineHeight": "87.7444px",
+        "letterSpacing": "-8.8789px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 96,
+      "height": 84
+    },
+    "booking": {
+      "width": 172,
+      "height": 44
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1440.avif",
+    "errors": []
+  },
+  {
+    "width": 1366,
+    "height": 768,
+    "group": "desktop",
+    "viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "documentWidth": 1366,
+    "pageHeight": 15584,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 115.58,
+        "glyphHeight": 115,
+        "verticalSlack": 0.58,
+        "lineHeight": "106.712px",
+        "letterSpacing": "-9.52785px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 115.58,
+        "glyphHeight": 88,
+        "verticalSlack": 27.58,
+        "lineHeight": "106.712px",
+        "letterSpacing": "-9.52785px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 90.14,
+        "glyphHeight": 89,
+        "verticalSlack": 1.14,
+        "lineHeight": "83.2353px",
+        "letterSpacing": "-8.42262px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 96,
+      "height": 84
+    },
+    "booking": {
+      "width": 172,
+      "height": 44
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1440.avif",
+    "errors": []
+  },
+  {
+    "width": 1280,
+    "height": 720,
+    "group": "desktop",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "documentWidth": 1280,
+    "pageHeight": 14766,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 108.3,
+        "glyphHeight": 106,
+        "verticalSlack": 2.3,
+        "lineHeight": "99.9936px",
+        "letterSpacing": "-8.928px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 108.3,
+        "glyphHeight": 82,
+        "verticalSlack": 26.3,
+        "lineHeight": "99.9936px",
+        "letterSpacing": "-8.928px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 84.45,
+        "glyphHeight": 83,
+        "verticalSlack": 1.45,
+        "lineHeight": "77.995px",
+        "letterSpacing": "-7.89235px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 96,
+      "height": 84
+    },
+    "booking": {
+      "width": 172,
+      "height": 44
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1440.avif",
+    "errors": []
+  },
+  {
+    "width": 820,
+    "height": 1180,
+    "group": "tablet",
+    "viewport": {
+      "width": 820,
+      "height": 1180
+    },
+    "documentWidth": 820,
+    "pageHeight": 16580,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 81.88,
+        "glyphHeight": 83,
+        "verticalSlack": -1.12,
+        "lineHeight": "75.44px",
+        "letterSpacing": "-6.9px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 81.88,
+        "glyphHeight": 64,
+        "verticalSlack": 17.88,
+        "lineHeight": "75.44px",
+        "letterSpacing": "-6.9px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 63.84,
+        "glyphHeight": 65,
+        "verticalSlack": -1.16,
+        "lineHeight": "58.8432px",
+        "letterSpacing": "-6.0996px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 72,
+      "height": 64
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1440.avif",
+    "errors": []
+  },
+  {
+    "width": 768,
+    "height": 1024,
+    "group": "tablet",
+    "viewport": {
+      "width": 768,
+      "height": 1024
+    },
+    "documentWidth": 768,
+    "pageHeight": 15756,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 81.88,
+        "glyphHeight": 83,
+        "verticalSlack": -1.12,
+        "lineHeight": "75.44px",
+        "letterSpacing": "-6.9px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 81.88,
+        "glyphHeight": 64,
+        "verticalSlack": 17.88,
+        "lineHeight": "75.44px",
+        "letterSpacing": "-6.9px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 63.84,
+        "glyphHeight": 65,
+        "verticalSlack": -1.16,
+        "lineHeight": "58.8432px",
+        "letterSpacing": "-6.0996px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 72,
+      "height": 64
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  },
+  {
+    "width": 430,
+    "height": 932,
+    "group": "mobile",
+    "viewport": {
+      "width": 430,
+      "height": 932
+    },
+    "documentWidth": 430,
+    "pageHeight": 14277,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 50.52,
+        "glyphHeight": 52,
+        "verticalSlack": -1.48,
+        "lineHeight": "46.5432px",
+        "letterSpacing": "-4.257px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 50.52,
+        "glyphHeight": 39,
+        "verticalSlack": 11.52,
+        "lineHeight": "46.5432px",
+        "letterSpacing": "-4.257px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 38.64,
+        "glyphHeight": 39,
+        "verticalSlack": -0.36,
+        "lineHeight": "35.6126px",
+        "letterSpacing": "-3.69155px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 66,
+      "height": 58
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  },
+  {
+    "width": 390,
+    "height": 844,
+    "group": "mobile",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "documentWidth": 390,
+    "pageHeight": 13492,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 45.8,
+        "glyphHeight": 47,
+        "verticalSlack": -1.2,
+        "lineHeight": "42.2136px",
+        "letterSpacing": "-3.861px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 45.8,
+        "glyphHeight": 36,
+        "verticalSlack": 9.8,
+        "lineHeight": "42.2136px",
+        "letterSpacing": "-3.861px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 35.05,
+        "glyphHeight": 34,
+        "verticalSlack": 1.05,
+        "lineHeight": "32.2998px",
+        "letterSpacing": "-3.34815px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 66,
+      "height": 58
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  },
+  {
+    "width": 375,
+    "height": 812,
+    "group": "mobile",
+    "viewport": {
+      "width": 375,
+      "height": 812
+    },
+    "documentWidth": 375,
+    "pageHeight": 13223,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 44.02,
+        "glyphHeight": 45,
+        "verticalSlack": -0.98,
+        "lineHeight": "40.59px",
+        "letterSpacing": "-3.7125px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 44.02,
+        "glyphHeight": 34,
+        "verticalSlack": 10.02,
+        "lineHeight": "40.59px",
+        "letterSpacing": "-3.7125px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 33.67,
+        "glyphHeight": 34,
+        "verticalSlack": -0.33,
+        "lineHeight": "31.0575px",
+        "letterSpacing": "-3.21937px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 66,
+      "height": 58
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  },
+  {
+    "width": 360,
+    "height": 800,
+    "group": "mobile",
+    "viewport": {
+      "width": 360,
+      "height": 800
+    },
+    "documentWidth": 360,
+    "pageHeight": 13148,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 42.27,
+        "glyphHeight": 44,
+        "verticalSlack": -1.73,
+        "lineHeight": "38.9664px",
+        "letterSpacing": "-3.564px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 42.27,
+        "glyphHeight": 33,
+        "verticalSlack": 9.27,
+        "lineHeight": "38.9664px",
+        "letterSpacing": "-3.564px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 32.34,
+        "glyphHeight": 33,
+        "verticalSlack": -0.66,
+        "lineHeight": "29.8152px",
+        "letterSpacing": "-3.0906px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 66,
+      "height": 58
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  },
+  {
+    "width": 320,
+    "height": 568,
+    "group": "mobile",
+    "viewport": {
+      "width": 320,
+      "height": 568
+    },
+    "documentWidth": 320,
+    "pageHeight": 11812,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 37.56,
+        "glyphHeight": 38,
+        "verticalSlack": -0.44,
+        "lineHeight": "34.6368px",
+        "letterSpacing": "-3.168px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 37.56,
+        "glyphHeight": 29,
+        "verticalSlack": 8.56,
+        "lineHeight": "34.6368px",
+        "letterSpacing": "-3.168px",
+        "clipPath": "inset(0px)"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 28.73,
+        "glyphHeight": 29,
+        "verticalSlack": -0.27,
+        "lineHeight": "26.5024px",
+        "letterSpacing": "-2.7472px",
+        "clipPath": "inset(0px)"
+      }
+    ],
+    "logo": {
+      "width": 66,
+      "height": 58
+    },
+    "booking": {
+      "width": 156,
+      "height": 43
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-768.avif",
+    "errors": []
+  }
+]
