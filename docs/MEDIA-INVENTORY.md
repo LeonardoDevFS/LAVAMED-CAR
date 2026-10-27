@@ -1,15 +1,15 @@
 # Inventário de mídias da LavaMed
 
-Gerado em 25/10/2026 por `npm run media:process`. Os originais ficam fora de `src/` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.
+Gerado em 26/10/2026 por `npm run media:process`. Os originais ficam fora de `src/` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.
 
 ## Resumo
 
 - 22 fotografias raster encontradas.
 - 1 arquivo vetorial encontrado.
-- 0 vídeos encontrados.
+- 1 vídeo real encontrado e processado.
 - 2 duplicatas binárias preservadas, mas não replicadas no build.
-- Derivados publicados em WebP e AVIF; thumbnails em WebP.
-- Os arquivos com veículos externos já chegaram com a placa coberta pela marca LavaMed; os derivados preservam essa proteção.
+- Fotografias publicadas em WebP/AVIF; vídeo publicado em MP4 H.264 e preview adicional em WebM VP9; thumbnails em WebP.
+- Os arquivos fotográficos com veículos externos já chegaram com a placa coberta pela marca LavaMed; a aparição parcial da placa no vídeo recebeu máscara preventiva nos derivados.
 
 ## Inventário detalhado
 
@@ -37,6 +37,7 @@ Gerado em 25/10/2026 por `npm run media:process`. Os originais ficam fora de `sr
 | media-originals/2026-10-25/motos/Yamaha Fazer FZ15 ABS (150cc) pós limpeza.png | yamaha-fazer-fz15-finalizada | Moto finalizada; modalidade de lavagem não confirmada | alta para estado final; baixa para a modalidade | 1086 × 1448 | 2.69 MB | fotografia | depois | excelente; vertical e iluminação de campanha | otimização, remoção de metadados e derivados responsivos | serviços para motos e portfólio | sem placa legível | /assets/images/motos/portfolio/yamaha-fazer-fz15-finalizada-1086.webp | `221bd38f4ee9…` |
 | media-originals/legacy-conceptual/lavamed-detail.jpg | conceitual-detalhe-agua | Composição conceitual — detalhe de pintura e água | alta | 1672 × 941 | 427.4 KB | fotografia | indeterminada | boa; horizontal | otimização e derivados responsivos | transição líquida e apoio visual; nunca como trabalho real | sem placa visível | /assets/images/generated/conceitual-detalhe-agua-1672.webp | `cec52f723adc…` |
 | media-originals/legacy-conceptual/lavamed-hero.jpg | conceitual-coupe-escuro | Composição conceitual — cupê em estúdio escuro | alta | 1672 × 941 | 258.1 KB | fotografia | indeterminada | boa; horizontal | otimização e derivados responsivos | apoio de campanha; nunca como trabalho real | sem placa visível | /assets/images/generated/conceitual-coupe-escuro-1672.webp | `d7d7f73026e2…` |
+| media-originals/2026-10-26/videos/Video do UP em antes e depois.mp4 | volkswagen-up-antes-depois | Volkswagen Up — registro real de antes e depois; procedimento específico não confirmado | alta para a comparação; baixa para o procedimento executado | 720 × 1280 | 5.61 MB | vídeo | antes e depois | boa; vídeo vertical 720 × 1280, luz solar variável e movimento de câmera manual | máscara preventiva na aparição parcial da placa, correção de cor moderada, nitidez discreta, remoção integral do áudio e derivados H.264/VP9 para web | preview cinematográfico na home e reprodução completa sob demanda | placa traseira aparece parcialmente na borda inferior entre aproximadamente 2,1 s e 3,5 s; região mascarada nos derivados | /assets/images/videos/volkswagen-up-antes-depois-preview.mp4 | `580527e838a7…` |
 | src/assets/images/hero/LavaMed_logo_vetorial_HD.svg | LavaMed_logo_vetorial_HD.svg | Identidade visual oficial | alta | 628 × 552 | 63.0 KB | vetor | indeterminada | vetorial | nenhuma | cabeçalho, rodapé e metadados | não aplicável | /assets/images/hero/LavaMed_logo_vetorial_HD.svg | `3807d4ca4b40…` |
 
 ## Critérios de verdade visual
@@ -44,4 +45,5 @@ Gerado em 25/10/2026 por `npm run media:process`. Os originais ficam fora de `sr
 - “Exterior finalizado” descreve somente o que a fotografia comprova; não implica polimento, vitrificação ou outro tratamento específico.
 - Os pares do trilho do banco e do farol têm o mesmo veículo e enquadramento compatível e podem ser usados em comparadores.
 - Os dois assets em `generated/` são composições conceituais e nunca são apresentados como atendimento real.
-- Não há material de vídeo ou áudio licenciado no acervo atual. O som do site é sintetizado no navegador e permanece opcional.
+- O vídeo do Volkswagen Up comprova um antes/depois do mesmo veículo, mas não permite afirmar qual pacote ou procedimento específico foi executado.
+- O áudio presente no original foi removido integralmente dos derivados públicos; a experiência permanece silenciosa.

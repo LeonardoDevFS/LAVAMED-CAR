@@ -170,8 +170,19 @@ test("approved editorial sections and internal hero remain visually stable", asy
   await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
   await expect(page.locator("#manifesto")).toHaveScreenshot("manifesto-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
   await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+  await page.locator("[data-video-open]").click();
+  await page.locator("[data-process-full]").evaluate((video) => { video.pause(); video.currentTime = 0; });
+  await expect(page.locator("[data-video-dialog]")).toHaveScreenshot("video-dialog-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+  await page.locator("[data-video-close]").click();
   await expect(page.locator(".site-footer")).toHaveScreenshot("footer-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
 
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await waitForTypography(page);
+  await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
+  await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-390.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/servicos/higienizacao-avancada/");
   await waitForTypography(page);
   await page.addStyleTag({ content: ".skip-link,.noise,.cursor,.scroll-progress{display:none!important}" });

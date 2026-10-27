@@ -307,7 +307,10 @@ export const storyActs = [
   { key: "resultado", image: mediaById("honda-civic-g10-tres-quartos"), illustrative: false }
 ];
 
-/** Fotografias reais usadas como fallback editorial até existirem vídeos autorizados. */
+/** Vídeo real do Volkswagen Up, publicado sem áudio e com privacidade tratada. */
+export const processVideo = mediaById("volkswagen-up-antes-depois");
+
+/** Fotografias reais preservadas como fallback editorial sem JavaScript ou vídeo. */
 export const processMedia = [
   {
     number: "01",

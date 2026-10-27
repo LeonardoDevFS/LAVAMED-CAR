@@ -7,7 +7,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 const body = document.body;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const finePointer = matchMedia("(pointer: fine)").matches;
+const finePointer = matchMedia("(pointer: fine) and (hover: hover)").matches;
 const header = document.querySelector("[data-header]");
 const progress = document.querySelector(".scroll-progress span");
 
@@ -87,17 +87,91 @@ function initHeroMotion() {
 
 function initProcessCinema() {
   const section = document.querySelector("[data-process-cinema]");
-  if (!section || reducedMotion) return;
-  const frames = [...section.querySelectorAll(".process-frame")];
-  const context = gsap.context(() => {
-    frames.forEach((frame, index) => {
-      const image = frame.querySelector("img");
-      gsap.fromTo(frame,
-        { clipPath: index === 0 ? "inset(0 0 100% 0)" : "inset(0 100% 0 0)", y: 45 },
-        { clipPath: "inset(0%)", y: 0, duration: 1.05, ease: "expo.out", scrollTrigger: { trigger: frame, start: "top 88%", toggleActions: "play none none reverse" } }
-      );
-      gsap.fromTo(image, { scale: 1.1, yPercent: -2 }, { scale: 1.01, yPercent: 4, ease: "none", scrollTrigger: { trigger: frame, start: "top bottom", end: "bottom top", scrub: .8 } });
+  if (!section) return;
+  const slot = section.querySelector("[data-process-video-slot]");
+  const preview = section.querySelector("[data-process-preview]");
+  const openButton = section.querySelector("[data-video-open]");
+  const dialog = document.querySelector("[data-video-dialog]");
+  const fullVideo = dialog?.querySelector("[data-process-full]");
+  const closeButton = dialog?.querySelector("[data-video-close]");
+  let opener = null;
+
+  const loadVideo = (video) => {
+    if (!video || video.dataset.loaded === "true") return;
+    video.querySelectorAll("source[data-src]").forEach((source) => {
+      source.src = source.dataset.src;
+      source.removeAttribute("data-src");
     });
+    if (video.dataset.src) {
+      video.src = video.dataset.src;
+      video.removeAttribute("data-src");
+    }
+    video.dataset.loaded = "true";
+    video.load();
+  };
+
+  const pauseFullVideo = () => {
+    fullVideo?.pause();
+    if (fullVideo) fullVideo.currentTime = 0;
+  };
+  const resetDialog = () => {
+    pauseFullVideo();
+    opener?.focus({ preventScroll: true });
+    opener = null;
+  };
+
+  openButton?.addEventListener("click", async () => {
+    if (!dialog || !fullVideo) return;
+    opener = openButton;
+    loadVideo(fullVideo);
+    fullVideo.muted = true;
+    fullVideo.volume = 0;
+    if (typeof dialog.showModal === "function") dialog.showModal();
+    else dialog.setAttribute("open", "");
+    requestAnimationFrame(() => closeButton?.focus({ preventScroll: true }));
+    try { await fullVideo.play(); } catch {}
+  });
+  closeButton?.addEventListener("click", () => { pauseFullVideo(); dialog?.close(); });
+  dialog?.addEventListener("click", (event) => { if (event.target === dialog) { pauseFullVideo(); dialog.close(); } });
+  dialog?.addEventListener("cancel", pauseFullVideo);
+  dialog?.addEventListener("close", resetDialog);
+  fullVideo?.addEventListener("volumechange", () => {
+    if (!fullVideo.muted || fullVideo.volume !== 0) { fullVideo.muted = true; fullVideo.volume = 0; }
+  });
+
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const saveData = Boolean(connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || ""));
+  if (preview && !reducedMotion && !saveData && "IntersectionObserver" in window) {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting && entry.intersectionRatio >= .36) {
+          loadVideo(preview);
+          preview.muted = true;
+          preview.play().then(() => { if (slot) slot.dataset.videoState = "playing"; }).catch(() => { if (slot) slot.dataset.videoState = "poster"; });
+        } else {
+          preview.pause();
+          if (slot?.dataset.videoState === "playing") slot.dataset.videoState = "paused";
+        }
+      }
+    }, { rootMargin: "160px 0px", threshold: [0, .36, .75] });
+    observer.observe(preview);
+  } else if (slot) {
+    slot.dataset.videoState = reducedMotion ? "reduced-motion" : saveData ? "save-data" : "poster";
+  }
+  const markVideoFallback = () => { if (slot) slot.dataset.videoState = "fallback"; };
+  preview?.addEventListener("error", markVideoFallback);
+  preview?.querySelectorAll("source").forEach((source) => source.addEventListener("error", markVideoFallback));
+
+  if (reducedMotion) return;
+  const composition = section.querySelector(".process-video-composition");
+  const copy = section.querySelector(".process-video-copy");
+  const stage = section.querySelector(".process-video-stage");
+  const light = section.querySelector(".process-video-light");
+  const context = gsap.context(() => {
+    gsap.fromTo(composition, { clipPath: "inset(0 0 100% 0)", y: 55 }, { clipPath: "inset(0%)", y: 0, duration: 1.12, ease: "expo.out", scrollTrigger: { trigger: composition, start: "top 86%", toggleActions: "play none none reverse" } });
+    gsap.fromTo(copy, { autoAlpha: 0, x: -38 }, { autoAlpha: 1, x: 0, duration: .8, ease: "power3.out", scrollTrigger: { trigger: composition, start: "top 72%", toggleActions: "play none none reverse" } });
+    gsap.fromTo(stage, { scale: 1.055 }, { scale: 1, ease: "none", scrollTrigger: { trigger: composition, start: "top bottom", end: "bottom top", scrub: .75 } });
+    gsap.to(light, { xPercent: 245, duration: 1.35, ease: "power2.inOut", scrollTrigger: { trigger: composition, start: "top 70%", toggleActions: "play none none reset" } });
   }, section);
   return () => context.revert();
 }
@@ -321,6 +395,7 @@ function initGallery() {
     gallery.addEventListener("scroll", () => {
       if (!galleryTicking) { requestAnimationFrame(updateGallery); galleryTicking = true; }
     }, { passive: true });
+    gallery.addEventListener("dragstart", (event) => event.preventDefault());
     gallery.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
       down = true; moved = false; startX = event.clientX; startScroll = gallery.scrollLeft;
@@ -489,20 +564,50 @@ function initCommonInteractions() {
 function initPointerEffects() {
   if (!finePointer || reducedMotion) return;
   const cursor = document.querySelector(".cursor");
-  if (!cursor) return;
+  const root = document.documentElement;
+  const supported = Boolean(cursor && window.PointerEvent && CSS.supports("transform", "translate3d(0,0,0)") && typeof gsap.quickSetter === "function");
+  if (!supported) return;
+  root.classList.remove("has-custom-cursor");
   gsap.set(cursor, { xPercent: -50, yPercent: -50, force3D: true });
-  const moveCursorX = gsap.quickTo(cursor, "x", { duration: .1, ease: "power2.out" });
-  const moveCursorY = gsap.quickTo(cursor, "y", { duration: .1, ease: "power2.out" });
+  const setCursorX = gsap.quickSetter(cursor, "x", "px");
+  const setCursorY = gsap.quickSetter(cursor, "y", "px");
+  const interactiveSelector = "a,button,[role='button'],summary,label,select";
+  const textSelector = "input,textarea,[contenteditable='true']";
+  let currentState = "";
+
+  const setState = (target) => {
+    const element = target instanceof Element ? target : null;
+    const state = element?.closest(textSelector) ? "text" : element?.closest("[data-compare]") ? "compare" : element?.closest("[data-gallery]") ? "drag" : element?.closest(interactiveSelector) ? "link" : "";
+    if (state === currentState) return;
+    currentState = state;
+    cursor.classList.toggle("is-link", state === "link");
+    cursor.classList.toggle("is-drag", state === "drag");
+    cursor.classList.toggle("is-compare", state === "compare");
+    cursor.classList.toggle("is-text", state === "text");
+    cursor.dataset.state = state || "default";
+  };
+  const hideCursor = () => {
+    cursor.classList.remove("is-visible", "is-pressed", "is-link", "is-drag", "is-compare", "is-text");
+    currentState = "";
+  };
   addEventListener("pointermove", (event) => {
-    cursor.style.opacity = "1";
-    moveCursorX(event.clientX);
-    moveCursorY(event.clientY);
+    if (event.pointerType && event.pointerType !== "mouse") {
+      hideCursor();
+      root.classList.remove("has-custom-cursor");
+      return;
+    }
+    setCursorX(event.clientX);
+    setCursorY(event.clientY);
+    setState(event.target);
+    root.classList.add("has-custom-cursor");
+    cursor.classList.toggle("is-visible", currentState !== "text");
   }, { passive: true });
-  document.documentElement.addEventListener("pointerleave", () => { cursor.style.opacity = "0"; });
-  addEventListener("blur", () => { cursor.style.opacity = "0"; });
-  document.querySelectorAll("a,button,[data-compare]").forEach((node) => {
-    node.addEventListener("pointerenter", () => cursor?.classList.add("is-link")); node.addEventListener("pointerleave", () => cursor?.classList.remove("is-link"));
-  });
+  addEventListener("pointerdown", (event) => { if (!event.pointerType || event.pointerType === "mouse") cursor.classList.add("is-pressed"); }, { passive: true });
+  addEventListener("pointerup", () => cursor.classList.remove("is-pressed"), { passive: true });
+  addEventListener("pointercancel", hideCursor, { passive: true });
+  addEventListener("mouseout", (event) => { if (!event.relatedTarget) hideCursor(); });
+  addEventListener("blur", hideCursor);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) hideCursor(); });
   document.querySelectorAll(".magnetic").forEach((node) => {
     const x = gsap.quickTo(node,"x",{duration:.45,ease:"power3"}); const y = gsap.quickTo(node,"y",{duration:.45,ease:"power3"});
     node.addEventListener("pointermove", (event) => { const rect=node.getBoundingClientRect(); x((event.clientX-rect.left-rect.width/2)*.16); y((event.clientY-rect.top-rect.height/2)*.16); });

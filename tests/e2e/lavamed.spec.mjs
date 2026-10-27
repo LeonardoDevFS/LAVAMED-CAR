@@ -29,8 +29,9 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator("[data-sound-toggle]")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("lavamed-sound"))).toBeNull();
   await expect(page.locator(".hero-backdrop")).toHaveAttribute("src", /conceitual-coupe-escuro/);
-  await expect(page.locator(".process-frame")).toHaveCount(3);
-  await expect(page.locator("video")).toHaveCount(0);
+  await expect(page.locator("[data-process-preview]")).toHaveCount(1);
+  await expect(page.locator("video")).toHaveCount(2);
+  await expect(page.locator("[data-process-preview]")).toHaveAttribute("preload", "none");
   await page.screenshot({ path: `${screenshotDirectory}/desktop.png`, fullPage: false });
 
   const menu = page.locator(".menu-toggle");
@@ -334,7 +335,8 @@ test.describe("mobile and reduced motion", () => {
     await expect(page.locator('[data-scene="0"]')).toBeVisible();
     await expect(page.locator('[data-scene="1"]')).toBeHidden();
     await page.locator("[data-process-cinema]").scrollIntoViewIfNeeded();
-    await expect(page.locator(".process-frame").first()).toBeVisible();
+    await expect(page.locator("[data-process-preview]")).toBeVisible();
+    await expect(page.locator("[data-process-video-slot]")).toHaveAttribute("data-video-state", "reduced-motion");
     await page.screenshot({ path: `${screenshotDirectory}/mobile-process.png`, fullPage: false });
     await page.locator(".results-feature--headlight").scrollIntoViewIfNeeded();
     await expect(page.getByRole("slider", { name: /Polimento de farol/ })).toBeVisible();

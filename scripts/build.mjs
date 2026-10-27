@@ -8,7 +8,7 @@ import {
   comparisonPairs,
   homeMedia,
   portfolioItems,
-  processMedia,
+  processVideo,
   serviceGroups,
   servicePriceLabel,
   services,
@@ -435,7 +435,34 @@ const featuredServices = services.filter((service) => service.featured);
 const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homePortfolio = portfolioItems.map((item) => `<a class="gallery-item gallery-${item.shape}" href="/portfolio/" aria-label="Ver no portfólio — ${escapeHtml(item.title)}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: item.shape === "tall" ? "(max-width: 760px) 65vw, 34vw" : "(max-width: 760px) 84vw, 70vw" })}<span><b>${item.number}</b>${escapeHtml(item.note)} / ${escapeHtml(item.title)}</span></a>`).join("");
-const homeProcessFrames = processMedia.map((item, index) => `<figure class="process-frame process-frame--${index + 1}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: index === 0 ? "(max-width: 760px) 88vw, 52vw" : "(max-width: 760px) 72vw, 28vw" })}<figcaption><span>${item.number}</span><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.note)}</small></div></figcaption></figure>`).join("");
+const homeProcessVideo = `<div class="process-video-composition" data-process-video-slot data-video-state="poster">
+  <aside class="process-video-copy" aria-label="Identificação do registro">
+    <span>Filme 01 / acervo real</span>
+    <strong>VOLKS<br>WAGEN<br><em>UP.</em></strong>
+    <p>Comparação real do mesmo veículo. O material mostra o antes e o depois, sem atribuir um procedimento que o vídeo não comprova.</p>
+  </aside>
+  <figure class="process-video-stage">
+    <video class="process-video-preview" data-process-preview muted playsinline loop preload="none" poster="${escapeHtml(processVideo.poster)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Preview silencioso do Volkswagen Up antes e depois">
+      <source data-src="${escapeHtml(processVideo.webm)}" type="video/webm">
+      <source data-src="${escapeHtml(processVideo.mp4)}" type="video/mp4">
+      Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(processVideo.fullSrc)}">Abra o vídeo completo</a>.
+    </video>
+    <div class="process-video-light" aria-hidden="true"></div>
+    <figcaption><span>Volkswagen Up</span><strong>ANTES E DEPOIS</strong><small>00:08 / preview silencioso</small></figcaption>
+    <button class="process-video-play" type="button" data-video-open aria-controls="process-video-dialog" aria-haspopup="dialog">
+      <span>Assistir ao resultado completo</span><i aria-hidden="true">▶</i>
+    </button>
+  </figure>
+  <div class="process-video-index" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
+  <noscript><a class="process-video-noscript" href="${escapeHtml(processVideo.fullSrc)}">Assistir ao vídeo completo do Volkswagen Up</a></noscript>
+</div>`;
+const homeVideoDialog = `<dialog class="video-dialog" id="process-video-dialog" data-video-dialog aria-labelledby="process-video-dialog-title">
+  <div class="video-dialog-shell">
+    <header><div><span>Acervo real / filme completo</span><h2 id="process-video-dialog-title">VOLKSWAGEN UP — ANTES E DEPOIS</h2></div><button type="button" data-video-close aria-label="Fechar vídeo"><i></i><i></i></button></header>
+    <video data-process-full controls muted playsinline preload="none" poster="${escapeHtml(processVideo.poster)}" data-src="${escapeHtml(processVideo.fullSrc)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Vídeo completo e silencioso do Volkswagen Up antes e depois"></video>
+    <footer><span>00:27 / 720 × 1280</span><p>Registro real. Procedimento específico não confirmado pelo material.</p></footer>
+  </div>
+</dialog>`;
 const compareMarkup = (pair, label) => `<div class="compare" data-compare style="--position:50%">${pictureMarkup(pair.after, { className: "compare-base", alt: pair.after.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}<div class="compare-overlay">${pictureMarkup(pair.before, { alt: pair.before.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}</div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div>`;
 const headlightPair = comparisonPairs.find((pair) => pair.title === "Polimento de farol");
 const cabinPair = comparisonPairs.find((pair) => pair.title === "Cabine desmontada");
@@ -460,7 +487,8 @@ let home = homeSource
   .replace("<!-- HOME_HERO_SPECULAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", sizes: "100vw" }))
   .replace("<!-- HOME_SERVICE_ROWS -->", homeRows)
   .replace("<!-- HOME_PORTFOLIO_ITEMS -->", homePortfolio)
-  .replace("<!-- HOME_PROCESS_FRAMES -->", homeProcessFrames)
+  .replace("<!-- HOME_PROCESS_VIDEO -->", homeProcessVideo)
+  .replace("<!-- HOME_VIDEO_DIALOG -->", homeVideoDialog)
   .replace("<!-- HOME_RESULT_HEADLIGHT -->", compareMarkup(headlightPair, "Polimento de farol"))
   .replace("<!-- HOME_RESULT_CABIN -->", compareMarkup(cabinPair, "Higienização interna"))
   .replace("<!-- HOME_FINAL_MEDIA -->", pictureMarkup(homeMedia, { alt: "", sizes: "100vw" }))
