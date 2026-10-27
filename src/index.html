@@ -21,7 +21,6 @@
       <!-- BRAND_CHANNELS -->
     </div>
     <div class="header-actions">
-      <button class="sound-toggle magnetic" type="button" data-sound-toggle aria-pressed="false" aria-label="Ativar experiência sonora"><span>Som</span><i aria-hidden="true"><b></b><b></b><b></b></i><small data-sound-state>OFF</small></button>
       <a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a>
       <button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel">
         <span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
@@ -63,9 +62,13 @@
         </h1>
         <div class="hero-bottom">
           <p>Limpeza, proteção e embelezamento.<br>Cuidado profissional em Itajubá.</p>
-          <a class="round-link magnetic" href="#manifesto" aria-label="Explorar a experiência"><span>Explorar</span><i aria-hidden="true">↓</i></a>
+          <div class="hero-actions">
+            <a class="hero-booking magnetic" href="/contato/" data-booking>Agendar pelo WhatsApp <i aria-hidden="true">↗</i></a>
+            <a class="round-link magnetic" href="#manifesto" aria-label="Explorar a experiência"><span>Explorar</span><i aria-hidden="true">↓</i></a>
+          </div>
         </div>
       </div>
+      <p class="hero-provenance">Imagem conceitual de campanha — não representa atendimento real.</p>
       <div class="hero-index" aria-hidden="true"><span>01</span><i></i><span>06</span></div>
     </section>
 
@@ -99,23 +102,37 @@
         <div class="scan-line" aria-hidden="true"></div>
         <div class="camera-counter"><span data-camera-count>01</span><i><b data-camera-progress></b></i><span>04</span></div>
         <div class="camera-copy" data-scene="0">
-          <p>01 / Diagnóstico</p><h3>LER A<br>SUPERFÍCIE.</h3><span>Antes do processo, vem a observação: material, condição e objetivo.</span>
+          <p>01 / O veículo · campanha conceitual</p><h3>DOMINAR A<br>ESCURIDÃO.</h3><span>Uma silhueta publicitária abre a narrativa. O carro preto é conceito de campanha, não registro de atendimento.</span>
         </div>
         <div class="camera-copy" data-scene="1">
-          <p>02 / Precisão</p><h3>TRATAR O<br>DETALHE.</h3><span>Produtos, ferramentas e técnica adequados a cada área do veículo.</span>
+          <p>02 / Os detalhes · acervo real</p><h3>LER CADA<br>REFLEXO.</h3><span>Faróis, pintura, rodas e acabamentos pedem observação antes de qualquer processo.</span>
         </div>
         <div class="camera-copy" data-scene="2">
-          <p>03 / Controle</p><h3>GUIAR<br>A LUZ.</h3><span>Reflexos orientam a leitura do acabamento durante todo o processo.</span>
+          <p>03 / A transformação · acervo real</p><h3>PRECISÃO EM<br>CAMADAS.</h3><span>A cabine desmontada documenta o cuidado real sem simular resultado ou alterar o veículo.</span>
         </div>
         <div class="camera-copy" data-scene="3">
-          <p>04 / Presença</p><h3>DEVOLVER<br>PROFUNDIDADE.</h3><span>O conjunto muda quando cada superfície recupera definição.</span>
+          <p>04 / O resultado · acervo real</p><h3>PRESENÇA<br>REVELADA.</h3><span>Veículos finalizados encerram o percurso com contexto, luz e a condição realmente fotografada.</span>
         </div>
       </div>
     </section>
 
+    <section class="process-cinema" aria-labelledby="process-title" data-process-cinema>
+      <header class="process-heading">
+        <div class="chapter-label"><span>02</span><p>Processo real / registro em vídeo</p></div>
+        <div>
+          <h2 id="process-title">CADA DETALHE<br><em>CONTA.</em></h2>
+          <p>Veja de perto o cuidado dedicado a cada etapa do trabalho, em um registro real preservado sem alterar o veículo.</p>
+        </div>
+      </header>
+      <!-- HOME_PROCESS_VIDEO -->
+      <div class="process-status"><span>Acervo real</span><strong>Volkswagen Up / antes e depois / experiência silenciosa</strong><i aria-hidden="true"></i></div>
+    </section>
+
+    <!-- HOME_VIDEO_DIALOG -->
+
     <section class="services-editorial" aria-labelledby="services-title">
       <div class="services-heading">
-        <div class="chapter-label"><span>02</span><p>Serviços</p></div>
+        <div class="chapter-label"><span>03</span><p>Serviços prioritários</p></div>
         <h2 id="services-title">O CUIDADO ESTÁ<br><em>NOS DETALHES.</em></h2>
       </div>
       <div class="services-layout">
@@ -125,7 +142,7 @@
             <div class="placeholder-rings"><i></i><i></i><i></i></div><span>LVM / 01</span>
           </div>
           <span class="visual-number">{{HOME_SERVICE_NUMBER}}</span>
-          <div class="visual-caption"><b data-service-caption>{{HOME_SERVICE_NAME}}</b><span data-service-price>{{HOME_SERVICE_PRICE}}</span><span data-service-media-label>{{HOME_SERVICE_MEDIA_LABEL}}</span></div>
+          <div class="visual-caption"><b data-service-caption>{{HOME_SERVICE_NAME}}</b><span data-service-price>{{HOME_SERVICE_PRICE}}</span><span data-service-media-label>{{HOME_SERVICE_MEDIA_LABEL}}</span><a href="/contato/" data-service-quote data-booking data-service="{{HOME_SERVICE_SLUG}}">Orçar no WhatsApp <i aria-hidden="true">↗</i></a></div>
         </div>
         <div class="service-list" role="list">
           <!-- HOME_SERVICE_ROWS -->
@@ -134,53 +151,46 @@
       <a class="text-link" href="/servicos/">Conheça todos os processos <span>↗</span></a>
     </section>
 
-    <section class="liquid-section" aria-labelledby="liquid-title">
-      <div class="liquid-intro">
-        <div class="chapter-label"><span>03</span><p>Reflexo em movimento</p></div>
-        <h2 id="liquid-title">A ÁGUA PASSA.<br><em>O BRILHO FICA.</em></h2>
-        <p>Deslize a linha para atravessar duas artes de campanha: da silhueta à matéria. Esta transição não representa antes/depois nem resultado de cliente.</p>
+    <section class="results-showcase" aria-labelledby="results-title">
+      <header class="results-heading">
+        <div class="chapter-label"><span>04</span><p>Antes / depois confirmado</p></div>
+        <div><h2 id="results-title">A DIFERENÇA<br><em>ESTÁ NO DETALHE.</em></h2><p>Arraste, toque ou use as setas do teclado. Apenas pares reais e correspondentes entram nesta comparação.</p></div>
+      </header>
+      <div class="results-feature results-feature--headlight">
+        <div class="results-copy"><span>01 / Polimento de farol</span><h3>LUZ COM<br>CLAREZA.</h3><p>Mesmo farol, enquadramento equivalente e procedência confirmada.</p><a class="cta-pill" href="/contato/" data-booking data-service="polimento-farol"><span>Solicitar avaliação</span><i>↗</i></a></div>
+        <!-- HOME_RESULT_HEADLIGHT -->
       </div>
-      <div class="compare" data-compare style="--position: 56%">
-        <!-- CAMPAIGN_SILHOUETTE -->
-        <div class="compare-overlay"><!-- CAMPAIGN_DETAIL --></div>
-        <div class="compare-refraction" aria-hidden="true"></div>
-        <span class="compare-label before">Matéria</span><span class="compare-label after">Silhueta</span>
-        <button class="compare-handle" type="button" role="slider" aria-label="Explorar as duas artes de campanha" aria-valuemin="0" aria-valuemax="100" aria-valuenow="56"><i>↔</i></button>
+      <div class="results-feature results-feature--cabin">
+        <div class="results-copy"><span>02 / Higienização interna</span><h3>CUIDADO<br>VISÍVEL.</h3><p>Cabine desmontada registrada antes e depois da etapa de higienização.</p><a class="cta-pill" href="/contato/" data-booking data-service="higienizacao-avancada"><span>Solicitar avaliação</span><i>↗</i></a></div>
+        <!-- HOME_RESULT_CABIN -->
       </div>
-      <div class="liquid-marquee" aria-hidden="true"><span>ÁGUA / LUZ / MATÉRIA / PRECISÃO / ÁGUA / LUZ / MATÉRIA / PRECISÃO /</span></div>
+      <a class="text-link results-link" href="/antes-e-depois/">Ver as três comparações confirmadas <span>↗</span></a>
     </section>
 
     <section class="portfolio" aria-labelledby="portfolio-title">
       <div class="portfolio-head">
-        <div class="chapter-label"><span>04</span><p>Portfólio</p></div>
+        <div class="chapter-label"><span>05</span><p>Portfólio / arraste para explorar</p></div>
         <h2 id="portfolio-title">CADA REFLEXO<br><em>CONTA UMA HISTÓRIA.</em></h2>
       </div>
       <p class="sr-only" id="gallery-instructions">Use as setas esquerda e direita para percorrer a galeria. Também é possível arrastar com mouse ou toque.</p>
       <div class="gallery-viewport" data-gallery tabindex="0" role="region" aria-label="Galeria de direção visual" aria-describedby="gallery-instructions">
-        <div class="gallery-track"><!-- HOME_PORTFOLIO_ITEMS --><div class="gallery-statement"><span>O detalhe</span><strong>MUDA<br>TUDO.</strong><i>07 / 07</i></div></div>
+        <div class="gallery-track"><!-- HOME_PORTFOLIO_ITEMS --><div class="gallery-statement"><span>O detalhe</span><strong>MUDA<br>TUDO.</strong><i>08 / 08</i></div></div>
       </div>
+      <div class="gallery-progress" aria-hidden="true"><span data-gallery-meter></span><i data-gallery-count>01 / 07</i></div>
       <p class="portfolio-disclaimer">Mídias fornecidas pela LavaMed. “Exterior finalizado” descreve apenas o que a fotografia confirma, sem atribuir um procedimento específico.</p>
     </section>
 
     <section class="final-scene" aria-labelledby="final-title">
       <div class="final-media" aria-hidden="true"><!-- HOME_FINAL_MEDIA --></div>
       <div class="final-content">
-        <p>Pronto para mudar a percepção do seu carro?</p>
+        <p>Campanha conceitual / assinatura LavaMed</p>
         <h2 id="final-title"><span>SEU CARRO MERECE</span><br><em>ESSE CUIDADO.</em></h2>
-        <a class="cta-pill magnetic" href="/contato/" data-booking><span>Agendar uma avaliação</span><i>↗</i></a>
+        <a class="cta-pill magnetic" href="/contato/" data-booking><span>Agendar pelo WhatsApp</span><i>↗</i></a>
         <div class="final-signature">LAVAMED<span>®</span></div>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="footer-top"><div class="footer-brand"><div class="brand-cluster"><a class="brand" href="/" aria-label="LavaMed — início"><img src="{{LOGO_PATH}}" width="112" height="99" alt="LavaMed Estética Automotiva"></a><!-- BRAND_CHANNELS --></div></div><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div>
-    <div class="footer-grid">
-      <nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav>
-      <nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav>
-      <div class="footer-contact" data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div>
-    </div>
-    <div class="footer-bottom"><span>© <span data-year></span> LavaMed</span><span>Itajubá / Minas Gerais</span><a href="#conteudo">Voltar ao topo ↑</a></div>
-  </footer>
+  <!-- SITE_FOOTER -->
 </body>
 </html>

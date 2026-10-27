@@ -370,6 +370,31 @@
     "illustrative": true
   },
   {
+    "id": "volkswagen-up-antes-depois",
+    "source": "media-originals/2026-10-26/videos/Video do UP em antes e depois.mp4",
+    "publicationDir": "videos",
+    "publicationBase": "volkswagen-up-antes-depois",
+    "classification": "Volkswagen Up — registro real de antes e depois; procedimento específico não confirmado",
+    "confidence": "alta para a comparação; baixa para o procedimento executado",
+    "stage": "antes e depois",
+    "quality": "boa; vídeo vertical 720 × 1280, luz solar variável e movimento de câmera manual",
+    "edit": "máscara preventiva na aparição parcial da placa, correção de cor moderada, nitidez discreta, remoção integral do áudio e derivados H.264/VP9 para web",
+    "usage": "preview cinematográfico na home e reprodução completa sob demanda",
+    "alt": "Volkswagen Up antes e depois dos cuidados realizados pela LavaMed",
+    "plateStatus": "placa traseira aparece parcialmente na borda inferior entre aproximadamente 2,1 s e 3,5 s; região mascarada nos derivados",
+    "pipeline": "video",
+    "posterTime": 11.5,
+    "previewSegments": [
+      { "start": 0.3, "end": 2.3, "label": "exterior antes" },
+      { "start": 6.2, "end": 8.2, "label": "interior antes" },
+      { "start": 10.8, "end": 12.8, "label": "exterior depois" },
+      { "start": 18.0, "end": 20.0, "label": "interior depois" }
+    ],
+    "privacyMasks": [
+      { "start": 2.1, "end": 3.5, "x": 0, "y": 1215, "width": 210, "height": 65, "reason": "placa traseira parcialmente visível na borda inferior" }
+    ]
+  },
+  {
     "id": "logo-oficial",
     "source": "src/assets/images/hero/LavaMed_logo_vetorial_HD.svg",
     "publication": "/assets/images/hero/LavaMed_logo_vetorial_HD.svg",

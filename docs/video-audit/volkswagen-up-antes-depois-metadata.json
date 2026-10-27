@@ -1,0 +1,97 @@
+{
+  "source": {
+    "path": "media-originals/2026-10-26/videos/Video do UP em antes e depois.mp4",
+    "sha256": "580527e838a7b6df04158369753169bdd7498a2d4f46996cd213c07f4fefb2c1",
+    "duration": 27.768209,
+    "size": 5881793,
+    "bitrate": 1694540,
+    "streams": [
+      {
+        "codecType": "video",
+        "codec": "h264",
+        "profile": "High",
+        "width": 720,
+        "height": 1280,
+        "fps": "30/1",
+        "duration": 27.633333,
+        "bitrate": 1622316
+      },
+      {
+        "codecType": "audio",
+        "codec": "aac",
+        "profile": "HE-AAC",
+        "fps": "0/0",
+        "duration": 27.768209,
+        "bitrate": 73209
+      }
+    ]
+  },
+  "privacyMasks": [
+    {
+      "start": 2.1,
+      "end": 3.5,
+      "x": 0,
+      "y": 1215,
+      "width": 210,
+      "height": 65,
+      "reason": "placa traseira parcialmente visível na borda inferior"
+    }
+  ],
+  "previewSegments": [
+    {
+      "start": 0.3,
+      "end": 2.3,
+      "label": "exterior antes"
+    },
+    {
+      "start": 6.2,
+      "end": 8.2,
+      "label": "interior antes"
+    },
+    {
+      "start": 10.8,
+      "end": 12.8,
+      "label": "exterior depois"
+    },
+    {
+      "start": 18,
+      "end": 20,
+      "label": "interior depois"
+    }
+  ],
+  "derivatives": [
+    {
+      "file": "src/assets/images/videos/volkswagen-up-antes-depois-completo.mp4",
+      "duration": 27.633333,
+      "size": 8307107,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up-antes-depois-preview.mp4",
+      "duration": 8,
+      "size": 2889515,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up-antes-depois-preview.webm",
+      "duration": 8,
+      "size": 1865146,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "vp9"
+        }
+      ]
+    }
+  ]
+}

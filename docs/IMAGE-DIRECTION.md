@@ -11,3 +11,5 @@ As duas imagens foram produzidas com a ferramenta integrada de geração de imag
 **Prompt final:** macrofotografia automotiva de campanha com paralama, aro e painel lateral de cupê grafite sem marca; gotas finas, reflexo ciano curvo e mínimo reflexo amarelo; enquadramento diagonal e abstrato; estúdio preto, materiais realistas e contraste editorial; sem texto, logo, pessoas, espuma ou equipamento de lavagem.
 
 Os arquivos JPEG legados foram retirados da pasta publicada e preservados em `media-originals/legacy-conceptual/`. O pipeline gera versões WebP e AVIF em `src/assets/images/generated/`. No site, ambas recebem identificação interna e visual como composição conceitual e nunca como registro de atendimento.
+
+O cupê preto de `lavamed-hero.jpg` voltou a protagonizar o hero e o encerramento da landing page. A fotografia não foi redesenhada: enquadramento, carroceria, rodas e iluminação do arquivo original foram preservados. Profundidade, revelação especular e movimento são aplicados apenas pela composição HTML/CSS/GSAP.

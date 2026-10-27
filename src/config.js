@@ -17,6 +17,12 @@ export const business = {
   mapsUrl: "https://share.google/Vm2BAGotXmrrtKJi1"
 };
 
+export const siteCredits = Object.freeze({
+  developer: "Leonardo Jonathan do Carmo",
+  phone: "+5535988267259",
+  phoneDisplay: "(35) 98826-7259"
+});
+
 export const serviceGroups = [
   { key: "carros", number: "01", name: "Lavagens de carros", note: "Manutenção, cuidado completo e estética premium." },
   { key: "tecnicos", number: "02", name: "Cuidados técnicos", note: "Tratamentos focados em motor, faróis e pintura." },
@@ -145,7 +151,7 @@ export const services = [
     benefits: ["Remoção de resíduos visíveis", "Acabamento visual renovado", "Manutenção posterior potencialmente mais simples nas superfícies tratadas"],
     exclusions: ["O valor da modalidade com verniz ainda não foi informado.", "A aplicação do verniz depende da compatibilidade com materiais e condições de uso."],
     image: mediaById("onix-joy-motor-finalizado"),
-    featured: false
+    featured: true
   },
   {
     slug: "polimento-farol",
@@ -168,7 +174,7 @@ export const services = [
     benefits: ["Melhora potencial da transparência", "Efeito hidrofóbico conforme produto e aplicação", "Maior facilidade relativa de limpeza"],
     exclusions: ["Resultados, proteção UV e durabilidade dependem do estado da lente, do produto utilizado e da manutenção.", "Craquelamento interno ou danos profundos podem exigir outra solução; a segurança da iluminação vem primeiro."],
     image: mediaById("farol-depois"),
-    featured: false
+    featured: true
   },
   {
     slug: "descontaminacao-pintura",
@@ -210,7 +216,7 @@ export const services = [
     benefits: ["Resgate visual de brilho e cor", "Suavização possível de marcas leves", "Apresentação estética para revenda", "Processo mais objetivo que uma correção profunda"],
     exclusions: ["Não há garantia de remoção de todos os riscos nem de valorização financeira do veículo."],
     image: mediaById("honda-civic-g10-tres-quartos"),
-    featured: false
+    featured: true
   },
   {
     slug: "lavagem-moto-simples",
@@ -253,7 +259,7 @@ export const services = [
     benefits: ["Atenção a áreas de difícil acesso", "Acabamento de pintura e plásticos", "Processo orientado pela compatibilidade dos materiais"],
     exclusions: ["Proteção e duração variam conforme os produtos, o uso e a manutenção da moto."],
     image: mediaById("yamaha-fz15-finalizada"),
-    featured: false
+    featured: true
   },
   {
     slug: "adicionais",
@@ -285,7 +291,8 @@ export const services = [
   }
 ];
 
-export const homeMedia = mediaById("honda-civic-g10-frente");
+/** Arte conceitual da campanha original. Não representa um atendimento real. */
+export const homeMedia = mediaById("conceitual-coupe-escuro");
 
 export const campaignMedia = {
   detail: mediaById("conceitual-detalhe-agua"),
@@ -294,10 +301,35 @@ export const campaignMedia = {
 
 /** Cada ato usa uma mídia classificada no inventário. */
 export const storyActs = [
-  { key: "diagnostico", image: mediaById("cabine-desmontada-antes"), fallback: false },
-  { key: "precisao", image: mediaById("farol-comparativo-pronto"), fallback: false },
-  { key: "controle", image: mediaById("onix-joy-motor-finalizado"), fallback: false },
-  { key: "presenca", image: mediaById("honda-civic-g10-tres-quartos"), fallback: false }
+  { key: "veiculo", image: mediaById("conceitual-coupe-escuro"), illustrative: true },
+  { key: "detalhes", image: mediaById("farol-comparativo-pronto"), illustrative: false },
+  { key: "transformacao", image: mediaById("cabine-desmontada"), illustrative: false },
+  { key: "resultado", image: mediaById("honda-civic-g10-tres-quartos"), illustrative: false }
+];
+
+/** Vídeo real do Volkswagen Up, publicado sem áudio e com privacidade tratada. */
+export const processVideo = mediaById("volkswagen-up-antes-depois");
+
+/** Fotografias reais preservadas como fallback editorial sem JavaScript ou vídeo. */
+export const processMedia = [
+  {
+    number: "01",
+    title: "Cabine em processo",
+    note: "Desmontagem documentada durante a higienização.",
+    media: mediaById("cabine-desmontada")
+  },
+  {
+    number: "02",
+    title: "Tratamento interno",
+    note: "Piso interno documentado durante o processo.",
+    media: mediaById("piso-interno-tratado")
+  },
+  {
+    number: "03",
+    title: "Precisão no detalhe",
+    note: "Farol real do acervo LavaMed em comparação confirmada.",
+    media: mediaById("farol-comparativo-pronto")
+  }
 ];
 
 /**
@@ -329,9 +361,10 @@ export const portfolioItems = [
   { number: "01", title: "Honda Civic G10", note: "Exterior finalizado", media: mediaById("honda-civic-g10-frente"), shape: "wide" },
   { number: "02", title: "Hyundai HB20", note: "Exterior finalizado", media: mediaById("hyundai-hb20-finalizado"), shape: "tall" },
   { number: "03", title: "Jeep Compass", note: "Exterior finalizado", media: mediaById("jeep-compass-finalizado"), shape: "wide" },
-  { number: "04", title: "Interior Honda Civic", note: "Interior finalizado", media: mediaById("honda-civic-interior-finalizado"), shape: "tall" },
-  { number: "05", title: "Motor Onix Joy", note: "Cofre finalizado", media: mediaById("onix-joy-motor-finalizado"), shape: "close" },
-  { number: "06", title: "Yamaha Fazer FZ15", note: "Moto finalizada", media: mediaById("yamaha-fz15-finalizada"), shape: "tall" }
+  { number: "04", title: "Volkswagen Taos", note: "Exterior finalizado", media: mediaById("volkswagen-taos-finalizado"), shape: "tall" },
+  { number: "05", title: "Interior Honda Civic", note: "Interior finalizado", media: mediaById("honda-civic-interior-finalizado"), shape: "tall" },
+  { number: "06", title: "Motor Onix Joy", note: "Cofre finalizado", media: mediaById("onix-joy-motor-finalizado"), shape: "close" },
+  { number: "07", title: "Yamaha Fazer FZ15", note: "Moto finalizada", media: mediaById("yamaha-fz15-finalizada"), shape: "tall" }
 ];
 
 export function servicePriceLabel(service) {
@@ -349,8 +382,12 @@ export function servicePriceLabel(service) {
 export function whatsappUrl(service = "") {
   if (!business.whatsapp) return "/contato/";
   const clean = business.whatsapp.replace(/\D/g, "");
-  const text = service
-    ? `Olá, LavaMed! Gostaria de agendar uma avaliação para ${service}.`
+  const serviceName = typeof service === "string" ? service : service?.name || "";
+  const priceContext = typeof service === "object" && service?.price != null
+    ? ` Consultei o valor inicial de ${servicePriceLabel(service)}, sujeito à avaliação do veículo.`
+    : "";
+  const text = serviceName
+    ? `Olá, LavaMed! Tenho interesse em uma avaliação para ${serviceName}.${priceContext}`
     : "Olá, LavaMed! Gostaria de agendar uma avaliação.";
   return `https://wa.me/${clean}?text=${encodeURIComponent(text)}`;
 }

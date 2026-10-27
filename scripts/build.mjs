@@ -8,9 +8,11 @@ import {
   comparisonPairs,
   homeMedia,
   portfolioItems,
+  processVideo,
   serviceGroups,
   servicePriceLabel,
   services,
+  siteCredits,
   storyActs,
   whatsappUrl
 } from "../src/config.js";
@@ -58,6 +60,10 @@ const bundle = manifest["src/assets/site.js"] || manifest["assets/site.js"];
 if (!bundle?.file || !bundle.css?.[0]) throw new Error("Vite manifest did not contain the LavaMed entry bundle");
 const scriptSrc = `/${bundle.file}`;
 const styleHref = `/${bundle.css[0]}`;
+const fontPreloads = (bundle.assets || [])
+  .filter((asset) => asset.endsWith(".woff2"))
+  .map((asset) => `<link rel="preload" href="/${asset}" as="font" type="font/woff2" crossorigin>`)
+  .join("");
 await rm(path.join(output, ".vite"), { recursive: true, force: true });
 
 const escapeHtml = (value = "") => String(value).replace(/[&<>\"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[character]);
@@ -69,7 +75,7 @@ function localBusinessSchema() {
     "@type": "AutoWash",
     name: business.name,
     description: "Estética automotiva, lavagem e cuidados técnicos em Itajubá, no bairro Medicina.",
-    telephone: business.whatsapp,
+    telephone: `+${business.whatsapp}`,
     priceRange: "R$ 40–R$ 350",
     areaServed: { "@type": "City", name: `${business.city}, ${business.state}` },
     address: {
@@ -77,6 +83,13 @@ function localBusinessSchema() {
       addressLocality: business.city,
       addressRegion: business.state,
       addressCountry: "BR"
+    },
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: `+${business.whatsapp}`,
+      contactType: "customer service",
+      areaServed: "BR",
+      availableLanguage: "Portuguese"
     },
     sameAs: [business.instagram],
     hasMap: business.mapsUrl
@@ -89,6 +102,38 @@ function localBusinessSchema() {
   }
   if (business.address) schema.address.streetAddress = business.address;
   return schema;
+}
+
+function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${domain}/#website`,
+    url: `${domain}/`,
+    name: business.name,
+    alternateName: "LavaMed",
+    inLanguage: "pt-BR",
+    publisher: { "@id": `${domain}/#lavamed` }
+  };
+}
+
+function webPageSchema({ title, description, pathName, image }) {
+  const pageUrl = absoluteUrl(pathName);
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: title,
+    description,
+    inLanguage: "pt-BR",
+    isPartOf: { "@id": `${domain}/#website` },
+    about: { "@id": `${domain}/#lavamed` },
+    primaryImageOfPage: {
+      "@type": "ImageObject",
+      url: absoluteUrl(typeof image === "string" ? image : image.src)
+    }
+  };
 }
 
 function serviceSchema(service) {
@@ -129,18 +174,20 @@ function breadcrumbSchema(items) {
 
 function headMetadata({ title, description, pathName, image = socialImagePath, schemas = [], indexable = true }) {
   const canonical = domain && indexable ? `<link rel="canonical" href="${absoluteUrl(pathName)}">` : "";
+  const languageAlternate = domain && indexable ? `<link rel="alternate" hreflang="pt-BR" href="${absoluteUrl(pathName)}">` : "";
   const ogUrl = domain && indexable ? `<meta property="og:url" content="${absoluteUrl(pathName)}">` : "";
   const imagePath = typeof image === "string" ? image : image.src;
   const ogImage = domain ? absoluteUrl(imagePath) : imagePath;
   const robots = domain && indexable ? "index,follow,max-image-preview:large" : indexable ? "noindex,nofollow" : "noindex,follow";
   const verification = googleSiteVerification ? `<meta name="google-site-verification" content="${escapeHtml(googleSiteVerification)}">` : "";
-  const structuredData = [localBusinessSchema(), ...schemas]
+  const pageIdentitySchemas = domain && indexable ? [websiteSchema(), webPageSchema({ title, description, pathName, image })] : [];
+  const structuredData = [localBusinessSchema(), ...pageIdentitySchemas, ...schemas]
     .map((schema) => `<script type="application/ld+json">${JSON.stringify(schema)}</script>`)
     .join("");
   return `<meta name="theme-color" content="#050b12"><meta name="description" content="${escapeHtml(description)}"><meta name="robots" content="${robots}">${verification}
-  <meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="LavaMed Estética Automotiva"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website">${ogUrl}<meta property="og:image" content="${escapeHtml(ogImage)}"><meta property="og:image:alt" content="LavaMed Estética Automotiva em Itajubá">
+  <meta property="og:locale" content="pt_BR"><meta property="og:site_name" content="LavaMed Estética Automotiva"><meta property="og:title" content="${escapeHtml(title)}"><meta property="og:description" content="${escapeHtml(description)}"><meta property="og:type" content="website">${ogUrl}<meta property="og:image" content="${escapeHtml(ogImage)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:alt" content="LavaMed Estética Automotiva em Itajubá">
   <meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${escapeHtml(title)}"><meta name="twitter:description" content="${escapeHtml(description)}"><meta name="twitter:image" content="${escapeHtml(ogImage)}">
-  ${canonical}<link rel="icon" href="${logoPath}" type="image/svg+xml"><link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
+  ${canonical}${languageAlternate}<link rel="icon" href="${logoPath}" type="image/svg+xml">${fontPreloads}<link rel="stylesheet" href="${styleHref}"><script type="module" src="${scriptSrc}"></script>
   <title>${escapeHtml(title)}</title>${structuredData}`;
 }
 
@@ -205,11 +252,7 @@ function shell({ title, description, pathName, eyebrow, heading, accent = "", de
 }
 
 function header() {
-  return `<header class="site-header" data-header>${brandBlock()}<div class="header-actions">${soundControl()}<a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
-}
-
-function soundControl() {
-  return `<button class="sound-toggle magnetic" type="button" data-sound-toggle aria-pressed="false" aria-label="Ativar experiência sonora"><span>Som</span><i aria-hidden="true"><b></b><b></b><b></b></i><small data-sound-state>OFF</small></button>`;
+  return `<header class="site-header" data-header>${brandBlock()}<div class="header-actions"><a class="header-cta magnetic" href="/contato/" data-booking>Agendar <span aria-hidden="true">↗</span></a><button class="menu-toggle magnetic" type="button" aria-expanded="false" aria-controls="menu-panel"><span class="menu-label">Menu</span><span class="menu-icon" aria-hidden="true"><i></i><i></i></span></button></div></header>`;
 }
 
 function brandChannels() {
@@ -225,8 +268,31 @@ function menu(pathName) {
   return `<div class="menu-panel" id="menu-panel" aria-hidden="true"><div class="menu-glow" aria-hidden="true"></div><nav aria-label="Navegação principal">${links.map(([href,label], index) => `<a href="${href}"${pathName === href ? ' aria-current="page"' : ""}><sup>${String(index + 1).padStart(2,"0")}</sup><span>${label}</span></a>`).join("")}</nav><div class="menu-meta"><span>Itajubá / bairro Medicina</span><span>Precisão em movimento</span></div></div>`;
 }
 
+function footerServiceLinks() {
+  const prioritySlugs = [
+    "lavagem-detalhada",
+    "higienizacao-avancada",
+    "polimento-comercial",
+    "polimento-farol",
+    "lavagem-moto-detalhada",
+    "lavagem-motor"
+  ];
+  return prioritySlugs.map((slug) => {
+    const service = services.find((item) => item.slug === slug);
+    return `<a href="/servicos/${service.slug}/">${escapeHtml(service.name)}</a>`;
+  }).join("");
+}
+
 function footer() {
-  return `<footer class="site-footer"><div class="footer-top"><div class="footer-brand">${brandBlock()}</div><p>Estética automotiva em Itajubá<br>com método e precisão.</p></div><div class="footer-grid"><nav aria-label="Links do rodapé"><a href="/servicos/">Serviços</a><a href="/portfolio/">Portfólio</a><a href="/sobre/">Sobre</a><a href="/faq/">Perguntas frequentes</a></nav><nav aria-label="Informações legais"><a href="/contato/">Contato</a><a href="/politica-de-privacidade/">Privacidade</a></nav><div class="footer-contact" data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></div><div class="footer-bottom"><span>© <span data-year></span> LavaMed</span><span>Itajubá / Minas Gerais</span><a href="#conteudo">Voltar ao topo ↑</a></div></footer>`;
+  return `<footer class="site-footer">
+    <div class="footer-top"><div class="footer-brand">${brandBlock()}</div><div class="footer-intro"><span>Estética automotiva em Itajubá / bairro Medicina</span><p>Seu carro merece<br><em>esse cuidado.</em></p><a class="footer-booking" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener" data-booking>Agendar pelo WhatsApp <i aria-hidden="true">↗</i></a></div></div>
+    <div class="footer-grid">
+      <section class="footer-column"><p class="footer-heading">Explorar</p><nav aria-label="Navegação do rodapé"><a href="/servicos/">Todos os serviços</a><a href="/portfolio/">Portfólio</a><a href="/antes-e-depois/">Antes e depois</a><a href="/sobre/">Sobre a LavaMed</a><a href="/faq/">Perguntas frequentes</a></nav></section>
+      <section class="footer-column footer-services"><p class="footer-heading">Serviços em Itajubá</p><nav aria-label="Serviços em destaque">${footerServiceLinks()}</nav></section>
+      <section class="footer-column footer-contact"><p class="footer-heading">Contato e localização</p><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">WhatsApp da LavaMed<br><strong>${escapeHtml(business.phoneDisplay)}</strong></a><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">Bairro Medicina<br><strong>Itajubá, Minas Gerais</strong></a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener">Instagram<br><strong>@lavamed.itajuba</strong></a><a href="/contato/">Formulário de contato</a></section>
+    </div>
+    <div class="footer-bottom"><div class="footer-legal"><p>© <span data-year></span> LavaMed Estética Automotiva. Todos os direitos reservados.</p><p class="footer-credit">Desenvolvimento: <strong>${escapeHtml(siteCredits.developer)}</strong> · <a href="tel:${escapeHtml(siteCredits.phone)}" aria-label="Telefone de Leonardo Jonathan do Carmo: ${escapeHtml(siteCredits.phoneDisplay)}">${escapeHtml(siteCredits.phoneDisplay)}</a></p></div><a class="footer-to-top" href="#conteudo">Voltar ao topo <span aria-hidden="true">↑</span></a></div>
+  </footer>`;
 }
 
 function catalogContent() {
@@ -262,7 +328,7 @@ function serviceContent(service) {
   const currentIndex = services.indexOf(service);
   const previous = services.at(currentIndex - 1);
   const next = services[(currentIndex + 1) % services.length];
-  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.name)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Use o botão de agendamento para abrir uma conversa no WhatsApp oficial da LavaMed, já com o serviço selecionado na mensagem.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
+  return `<section class="service-overview content-section"><div class="service-price-band"><span>${group.name} / ${service.label}</span><strong>${servicePriceLabel(service)}</strong></div><div class="content-grid"><div class="content-index">Escopo / ${service.number}</div><div class="content-copy"><h2>O que está incluído.</h2><p class="service-lead">${service.detail}</p>${numberedList(service.features)}${warnings}<a class="cta-pill service-cta" href="/contato/" data-booking data-service="${escapeHtml(service.slug)}"><span>${service.priceQualifier === "consult" ? "Solicitar orçamento" : "Agendar uma avaliação"}</span><i>↗</i></a></div></div></section>${modalities}<section class="service-benefits"><div><span>Por que considerar</span><h2>RESULTADO COM<br><em>CONTEXTO.</em></h2></div><ol>${service.benefits.map((benefit) => `<li>${benefit}</li>`).join("")}</ol></section><section class="service-faq content-section"><div class="content-grid"><div class="content-index">Informação / antes</div><div class="content-copy"><h2>Perguntas para uma boa escolha.</h2><div class="faq-list"><div class="faq-item"><button type="button" aria-expanded="false"><span>01</span><strong>O valor está confirmado?</strong><i>+</i></button><div class="faq-answer"><p>${service.priceQualifier === "fixed" ? `${servicePriceLabel(service)} é o valor informado atualmente; confirme se há variação conforme o porte.` : `${servicePriceLabel(service)}. O valor final depende da avaliação, do porte e da condição do veículo.`}</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>02</span><strong>Quanto tempo leva?</strong><i>+</i></button><div class="faq-answer"><p>O prazo é confirmado após avaliar o veículo e o escopo necessário. Horários ainda não foram informados pela LavaMed.</p></div></div><div class="faq-item"><button type="button" aria-expanded="false"><span>03</span><strong>Como agendar?</strong><i>+</i></button><div class="faq-answer"><p>Use o botão de agendamento para abrir uma conversa no WhatsApp oficial da LavaMed, já com o serviço selecionado na mensagem.</p></div></div></div></div></div></section><nav class="service-pagination" aria-label="Outros serviços"><a href="/servicos/${previous.slug}/"><small>Anterior</small><span>← ${previous.name}</span></a><a href="/servicos/">Todos os serviços</a><a href="/servicos/${next.slug}/"><small>Próximo</small><span>${next.name} →</span></a></nav>`;
 }
 
 function contactContent() {
@@ -369,6 +435,37 @@ const featuredServices = services.filter((service) => service.featured);
 const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homePortfolio = portfolioItems.map((item) => `<a class="gallery-item gallery-${item.shape}" href="/portfolio/" aria-label="Ver no portfólio — ${escapeHtml(item.title)}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: item.shape === "tall" ? "(max-width: 760px) 65vw, 34vw" : "(max-width: 760px) 84vw, 70vw" })}<span><b>${item.number}</b>${escapeHtml(item.note)} / ${escapeHtml(item.title)}</span></a>`).join("");
+const homeProcessVideo = `<div class="process-video-composition" data-process-video-slot data-video-state="poster">
+  <aside class="process-video-copy" aria-label="Identificação do registro">
+    <span>Filme 01 / acervo real</span>
+    <strong>VOLKS<br>WAGEN<br><em>UP.</em></strong>
+    <p>Comparação real do mesmo veículo. O material mostra o antes e o depois, sem atribuir um procedimento que o vídeo não comprova.</p>
+  </aside>
+  <figure class="process-video-stage">
+    <video class="process-video-preview" data-process-preview muted playsinline loop preload="none" poster="${escapeHtml(processVideo.poster)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Preview silencioso do Volkswagen Up antes e depois">
+      <source data-src="${escapeHtml(processVideo.webm)}" type="video/webm">
+      <source data-src="${escapeHtml(processVideo.mp4)}" type="video/mp4">
+      Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(processVideo.fullSrc)}">Abra o vídeo completo</a>.
+    </video>
+    <div class="process-video-light" aria-hidden="true"></div>
+    <figcaption><span>Volkswagen Up</span><strong>ANTES E DEPOIS</strong><small>00:08 / preview silencioso</small></figcaption>
+    <button class="process-video-play" type="button" data-video-open aria-controls="process-video-dialog" aria-haspopup="dialog">
+      <span>Assistir ao resultado completo</span><i aria-hidden="true">▶</i>
+    </button>
+  </figure>
+  <div class="process-video-index" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
+  <noscript><a class="process-video-noscript" href="${escapeHtml(processVideo.fullSrc)}">Assistir ao vídeo completo do Volkswagen Up</a></noscript>
+</div>`;
+const homeVideoDialog = `<dialog class="video-dialog" id="process-video-dialog" data-video-dialog aria-labelledby="process-video-dialog-title">
+  <div class="video-dialog-shell">
+    <header><div><span>Acervo real / filme completo</span><h2 id="process-video-dialog-title">VOLKSWAGEN UP — ANTES E DEPOIS</h2></div><button type="button" data-video-close aria-label="Fechar vídeo"><i></i><i></i></button></header>
+    <video data-process-full controls muted playsinline preload="none" poster="${escapeHtml(processVideo.poster)}" data-src="${escapeHtml(processVideo.fullSrc)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Vídeo completo e silencioso do Volkswagen Up antes e depois"></video>
+    <footer><span>00:27 / 720 × 1280</span><p>Registro real. Procedimento específico não confirmado pelo material.</p></footer>
+  </div>
+</dialog>`;
+const compareMarkup = (pair, label) => `<div class="compare" data-compare style="--position:50%">${pictureMarkup(pair.after, { className: "compare-base", alt: pair.after.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}<div class="compare-overlay">${pictureMarkup(pair.before, { alt: pair.before.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}</div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div>`;
+const headlightPair = comparisonPairs.find((pair) => pair.title === "Polimento de farol");
+const cabinPair = comparisonPairs.find((pair) => pair.title === "Cabine desmontada");
 const homePreloadUrl = homeMedia.avifSrcSet.split(",")[0].trim().split(" ")[0] || homeMedia.src;
 const homeHead = headMetadata({
   title: "Estética Automotiva em Itajubá | LavaMed",
@@ -384,13 +481,16 @@ let home = homeSource
   .replace('src="/assets/site.js"', `src="${scriptSrc}"`)
   .replaceAll("{{LOGO_PATH}}", logoPath)
   .replaceAll("<!-- BRAND_CHANNELS -->", brandChannels())
+  .replace("<!-- SITE_FOOTER -->", footer())
   .replace("<!-- HOME_HERO_BACKDROP -->", pictureMarkup(homeMedia, { className: "hero-backdrop", alt: "", loading: "eager", fetchpriority: "high", sizes: "100vw" }))
   .replace("<!-- HOME_HERO_CAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", fetchpriority: "high", sizes: "100vw" }))
   .replace("<!-- HOME_HERO_SPECULAR -->", pictureMarkup(homeMedia, { alt: "", loading: "eager", sizes: "100vw" }))
   .replace("<!-- HOME_SERVICE_ROWS -->", homeRows)
   .replace("<!-- HOME_PORTFOLIO_ITEMS -->", homePortfolio)
-  .replace("<!-- CAMPAIGN_SILHOUETTE -->", imageMarkup(campaignMedia.silhouette, { className: "compare-base", alt: campaignMedia.silhouette.alt, sizes: "(max-width: 760px) 100vw, 90vw" }))
-  .replace("<!-- CAMPAIGN_DETAIL -->", imageMarkup(campaignMedia.detail, { alt: campaignMedia.detail.alt, sizes: "(max-width: 760px) 100vw, 90vw" }))
+  .replace("<!-- HOME_PROCESS_VIDEO -->", homeProcessVideo)
+  .replace("<!-- HOME_VIDEO_DIALOG -->", homeVideoDialog)
+  .replace("<!-- HOME_RESULT_HEADLIGHT -->", compareMarkup(headlightPair, "Polimento de farol"))
+  .replace("<!-- HOME_RESULT_CABIN -->", compareMarkup(cabinPair, "Higienização interna"))
   .replace("<!-- HOME_FINAL_MEDIA -->", pictureMarkup(homeMedia, { alt: "", sizes: "100vw" }))
   .replaceAll("{{HOME_SERVICE_SLUG}}", firstFeatured.slug)
   .replaceAll("{{HOME_SERVICE_NUMBER}}", firstFeatured.number)
