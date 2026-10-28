@@ -94,7 +94,23 @@ function initProcessCinema() {
   const dialog = document.querySelector("[data-video-dialog]");
   const fullVideo = dialog?.querySelector("[data-process-full]");
   const closeButton = dialog?.querySelector("[data-video-close]");
+  const progressTrack = section.querySelector(".process-video-progress");
+  const progressBar = section.querySelector("[data-process-progress]");
+  const progressTime = section.querySelector("[data-process-time]");
   let opener = null;
+
+  const formatTime = (seconds) => {
+    const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
+    return `${String(Math.floor(safeSeconds / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
+  };
+  const updatePreviewProgress = () => {
+    if (!preview) return;
+    const duration = Number.isFinite(preview.duration) && preview.duration > 0 ? preview.duration : 8;
+    const percentage = Math.min(100, Math.max(0, (preview.currentTime / duration) * 100));
+    if (progressBar) progressBar.style.transform = `scaleX(${percentage / 100})`;
+    if (progressTime) progressTime.textContent = formatTime(preview.currentTime);
+    progressTrack?.setAttribute("aria-valuenow", String(Math.round(percentage)));
+  };
 
   const loadVideo = (video) => {
     if (!video || video.dataset.loaded === "true") return;
@@ -161,17 +177,44 @@ function initProcessCinema() {
   const markVideoFallback = () => { if (slot) slot.dataset.videoState = "fallback"; };
   preview?.addEventListener("error", markVideoFallback);
   preview?.querySelectorAll("source").forEach((source) => source.addEventListener("error", markVideoFallback));
+  preview?.addEventListener("durationchange", updatePreviewProgress);
+  preview?.addEventListener("timeupdate", updatePreviewProgress);
+  preview?.addEventListener("seeked", updatePreviewProgress);
 
-  if (reducedMotion) return;
+  if (reducedMotion) {
+    section.dataset.motionState = "static";
+    return;
+  }
   const composition = section.querySelector(".process-video-composition");
   const copy = section.querySelector(".process-video-copy");
   const stage = section.querySelector(".process-video-stage");
+  const frame = section.querySelector(".process-video-frame");
   const light = section.querySelector(".process-video-light");
+  const eyebrow = section.querySelector(".process-video-eyebrow");
+  const titleLines = [...section.querySelectorAll(".process-video-title-mask > span")];
+  const secondary = [...section.querySelectorAll(".process-video-tagline,.process-video-description,.process-video-facts,.process-video-play,.process-video-provenance")];
   const context = gsap.context(() => {
-    gsap.fromTo(composition, { clipPath: "inset(0 0 100% 0)", y: 55 }, { clipPath: "inset(0%)", y: 0, duration: 1.12, ease: "expo.out", scrollTrigger: { trigger: composition, start: "top 86%", toggleActions: "play none none reverse" } });
-    gsap.fromTo(copy, { autoAlpha: 0, x: -38 }, { autoAlpha: 1, x: 0, duration: .8, ease: "power3.out", scrollTrigger: { trigger: composition, start: "top 72%", toggleActions: "play none none reverse" } });
-    gsap.fromTo(stage, { scale: 1.055 }, { scale: 1, ease: "none", scrollTrigger: { trigger: composition, start: "top bottom", end: "bottom top", scrub: .75 } });
-    gsap.to(light, { xPercent: 245, duration: 1.35, ease: "power2.inOut", scrollTrigger: { trigger: composition, start: "top 70%", toggleActions: "play none none reset" } });
+    const stageClip = getComputedStyle(stage).clipPath;
+    const timeline = gsap.timeline({
+      defaults: { ease: "power3.out" },
+      scrollTrigger: {
+        trigger: composition,
+        start: "top 84%",
+        toggleActions: "play none none reverse",
+        onEnter: () => { section.dataset.motionState = "revealed"; },
+        onEnterBack: () => { section.dataset.motionState = "revealed"; },
+        onLeaveBack: () => { section.dataset.motionState = "reset"; }
+      }
+    });
+    timeline
+      .fromTo(copy, { autoAlpha: 0 }, { autoAlpha: 1, duration: .25 }, 0)
+      .fromTo(eyebrow, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: .55 }, .05)
+      .fromTo(titleLines, { yPercent: 118 }, { yPercent: 0, duration: .9, stagger: .1, ease: "expo.out" }, .12)
+      .fromTo(stage, { clipPath: "polygon(0 0,0 0,0 100%,0 100%)", y: 42 }, { clipPath: stageClip, y: 0, duration: 1.05, ease: "expo.out" }, .22)
+      .fromTo(frame, { autoAlpha: 0, y: 28, scale: .975 }, { autoAlpha: 1, y: 0, scale: 1, duration: .82 }, .52)
+      .fromTo(secondary, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .58, stagger: .07 }, .48)
+      .fromTo(progressTrack, { autoAlpha: 0 }, { autoAlpha: 1, duration: .45 }, .82)
+      .fromTo(light, { xPercent: -120 }, { xPercent: 245, duration: 1.35, ease: "power2.inOut" }, .72);
   }, section);
   return () => context.revert();
 }

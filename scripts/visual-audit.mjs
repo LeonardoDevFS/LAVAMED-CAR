@@ -7,6 +7,7 @@ const baseUrl = process.env.AUDIT_BASE_URL || "http://127.0.0.1:4173";
 const output = path.resolve("docs", "screenshots", "visual-audit", label);
 const viewports = [
   { width: 1920, height: 1080, group: "desktop" },
+  { width: 1600, height: 900, group: "desktop" },
   { width: 1440, height: 900, group: "desktop" },
   { width: 1366, height: 768, group: "desktop" },
   { width: 1280, height: 720, group: "desktop" },

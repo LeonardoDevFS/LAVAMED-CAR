@@ -134,6 +134,7 @@ test("video preview is lazy, silent, stable and pauses outside the viewport", as
   await slot.scrollIntoViewIfNeeded();
   await expect(slot).toHaveAttribute("data-video-state", "playing", { timeout: 12_000 });
   await expect.poll(() => preview.evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
+  await expect.poll(() => page.locator(".process-video-progress").getAttribute("aria-valuenow").then(Number)).toBeGreaterThan(0);
   const after = await preview.evaluate((video) => ({ width: video.offsetWidth, height: video.offsetHeight }));
   expect(Math.abs(before.width - after.width)).toBeLessThanOrEqual(1);
   expect(Math.abs(before.height - after.height)).toBeLessThanOrEqual(1);
