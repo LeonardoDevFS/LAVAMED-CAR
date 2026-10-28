@@ -297,6 +297,21 @@ test("approved editorial sections and internal hero remain visually stable", asy
   await expect(page).toHaveScreenshot("service-hero-1440.png", { animations: "disabled", fullPage: false, maxDiffPixelRatio: .008 });
 });
 
+test("contact form remains legible and cinematic on desktop and mobile", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/contato/");
+    await waitForTypography(page);
+    await page.locator("#nome").fill("Leonardo");
+    await page.locator("#servico").selectOption("Lavagem Detalhada");
+    await page.locator("#mensagem").fill("Volkswagen Up para avaliação.");
+    await page.waitForTimeout(700);
+    await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress{display:none!important}" });
+    await expect(page.locator(".contact-experience")).toHaveScreenshot(`contact-form-${viewport.width}.png`, { animations: "disabled", maxDiffPixelRatio: .008 });
+  }
+});
+
 test.describe("touch comparison", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 

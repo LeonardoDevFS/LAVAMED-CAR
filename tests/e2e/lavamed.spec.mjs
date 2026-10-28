@@ -78,6 +78,50 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   expect(runtimeErrors).toEqual([]);
 });
 
+test("contact form follows the LavaMed theme and reacts to every field", async ({ page }) => {
+  const runtimeErrors = [];
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
+  await page.goto("/contato/");
+  const form = page.locator("[data-contact-form]");
+  const name = page.locator("#nome");
+  const service = page.locator("#servico");
+  const message = page.locator("#mensagem");
+
+  const nativeColors = await service.locator("option").first().evaluate((option) => ({
+    background: getComputedStyle(option).backgroundColor,
+    color: getComputedStyle(option).color,
+    scheme: getComputedStyle(option.parentElement).colorScheme
+  }));
+  expect(nativeColors.background).not.toBe("rgb(255, 255, 255)");
+  expect(nativeColors.color).not.toBe(nativeColors.background);
+  expect(nativeColors.scheme).toContain("dark");
+
+  await form.evaluate((node) => node.requestSubmit());
+  await expect(name.locator("xpath=ancestor::*[@data-contact-field]")).toHaveClass(/is-invalid/);
+  await expect(page.locator("[data-form-status]")).toContainText("Revise o campo destacado");
+
+  await name.fill("Leonardo");
+  await expect(name.locator("xpath=ancestor::*[@data-contact-field]")).toHaveClass(/is-filled/);
+  await service.selectOption("Lavagem Detalhada");
+  await expect(page.locator("[data-contact-service]")).toHaveText("Lavagem Detalhada");
+  await expect(page.locator("[data-contact-price]")).toContainText(servicePriceLabel(services.find((item) => item.name === "Lavagem Detalhada")));
+  await message.fill("Volkswagen Up para uma avaliação cuidadosa.");
+  await expect(page.locator("[data-message-count]")).toHaveText("43 / 280");
+  await expect(page.locator("[data-contact-progress]")).toHaveCSS("transform", /matrix/);
+
+  await page.evaluate(() => { window.open = (url) => { window.__contactWhatsappUrl = url; }; });
+  await form.evaluate((node) => node.requestSubmit());
+  await expect(page.locator("[data-form-status]")).toHaveAttribute("data-state", "success");
+  await expect(page.locator("[data-form-status]")).toHaveText("Abrindo o WhatsApp…");
+  expect(decodeURIComponent(await page.evaluate(() => window.__contactWhatsappUrl))).toContain("o serviço Lavagem Detalhada");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const geometry = await page.evaluate(() => ({ documentWidth: document.documentElement.scrollWidth, viewportWidth: innerWidth }));
+  expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewportWidth);
+  expect(runtimeErrors).toEqual([]);
+});
+
 test("hero title stays inside the viewport on target desktop sizes", async ({ page }) => {
   for (const viewport of [
     { width: 1366, height: 768 },

@@ -756,15 +756,120 @@ function initCommonInteractions() {
     });
   });
 
+  initContactForm();
+}
+
+function initContactForm() {
   const form = document.querySelector("[data-contact-form]");
-  form?.addEventListener("submit", (event) => {
-    event.preventDefault(); const data = new FormData(form); const status = form.querySelector(".form-status");
-    if (!business.whatsapp) { status.textContent = "O canal de agendamento será publicado assim que o contato oficial for confirmado."; return; }
-    const name = String(data.get("nome") || "").trim(); const service = String(data.get("servico") || "uma avaliação"); const message = String(data.get("mensagem") || "").trim();
+  if (!form) return;
+  const fields = [...form.querySelectorAll("[data-contact-field]")];
+  const controls = fields.map((field) => field.querySelector("input,select,textarea")).filter(Boolean);
+  const nameInput = form.elements.nome;
+  const serviceSelect = form.elements.servico;
+  const messageInput = form.elements.mensagem;
+  const summary = form.querySelector("[data-contact-selection]");
+  const summaryService = form.querySelector("[data-contact-service]");
+  const summaryPrice = form.querySelector("[data-contact-price]");
+  const messageCount = form.querySelector("[data-message-count]");
+  const progressMeter = form.querySelector("[data-contact-progress]");
+  const submitButton = form.querySelector(".submit-button");
+  const submitLabel = form.querySelector("[data-submit-label]");
+  const status = form.querySelector("[data-form-status]");
+  let furthestStep = 0;
+
+  const updateProgress = (step) => {
+    furthestStep = Math.max(furthestStep, step);
+    form.dataset.activeStep = String(step + 1);
+    if (progressMeter) progressMeter.style.transform = `scaleX(${.12 + furthestStep * .44})`;
+  };
+  const updateField = (control, validate = false) => {
+    const field = control.closest("[data-contact-field]");
+    if (!field) return;
+    const value = String(control.value || "").trim();
+    field.classList.toggle("is-filled", Boolean(value));
+    if (validate && control.required) {
+      const invalid = !control.validity.valid;
+      field.classList.toggle("is-invalid", invalid);
+      control.setAttribute("aria-invalid", String(invalid));
+    } else if (control.validity.valid) {
+      field.classList.remove("is-invalid");
+      control.removeAttribute("aria-invalid");
+    }
+  };
+  const updateMessageCount = () => {
+    if (!messageCount || !messageInput) return;
+    messageCount.textContent = `${messageInput.value.length} / ${messageInput.maxLength || 280}`;
+  };
+  const updateSelection = ({ animate = true } = {}) => {
+    if (!serviceSelect) return;
+    const value = String(serviceSelect.value || "uma avaliação");
+    const selectedService = services.find((item) => item.name === value);
+    if (summaryService) summaryService.textContent = selectedService?.name || "Quero uma avaliação";
+    if (summaryPrice) summaryPrice.textContent = selectedService ? `${servicePriceLabel(selectedService)} · valor final sujeito à avaliação.` : "Escopo e valor confirmados após conhecer o veículo.";
+    if (animate && summary) {
+      summary.classList.remove("is-updated");
+      requestAnimationFrame(() => summary.classList.add("is-updated"));
+      setTimeout(() => summary.classList.remove("is-updated"), 650);
+    }
+    updateField(serviceSelect);
+  };
+
+  controls.forEach((control, index) => {
+    updateField(control);
+    control.addEventListener("focus", () => updateProgress(index));
+    control.addEventListener("input", () => {
+      updateField(control);
+      if (control === messageInput) updateMessageCount();
+    });
+    control.addEventListener("change", () => {
+      updateField(control, true);
+      if (control === serviceSelect) updateSelection();
+    });
+    control.addEventListener("blur", () => updateField(control, true));
+  });
+  form.addEventListener("invalid", (event) => {
+    const control = event.target;
+    updateField(control, true);
+    if (status) {
+      status.dataset.state = "error";
+      status.textContent = "Revise o campo destacado antes de continuar.";
+    }
+  }, true);
+  updateSelection({ animate: false });
+  updateMessageCount();
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    if (!business.whatsapp) {
+      if (status) {
+        status.dataset.state = "error";
+        status.textContent = "O canal de agendamento será publicado assim que o contato oficial for confirmado.";
+      }
+      return;
+    }
+    const data = new FormData(form);
+    const name = String(data.get("nome") || "").trim();
+    const service = String(data.get("servico") || "uma avaliação");
+    const message = String(data.get("mensagem") || "").trim();
     const selectedService = services.find((item) => item.name === service);
-    const priceContext = selectedService?.price != null ? ` Consultei o valor inicial de ${servicePriceLabel(selectedService)}, sujeito à avaliação do veículo.` : "";
-    const text = `Olá, LavaMed! Meu nome é ${name}. Tenho interesse em uma avaliação para ${service}.${priceContext}${message ? ` ${message}` : ""}`;
-    open(`https://wa.me/${business.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank", "noopener"); status.textContent = "Abrindo o WhatsApp…";
+    const interest = selectedService ? `o serviço ${service}` : "uma avaliação do meu veículo";
+    const priceContext = selectedService ? ` Consultei o valor inicial de ${servicePriceLabel(selectedService)}, sujeito à avaliação do veículo.` : "";
+    const text = `Olá, LavaMed! Meu nome é ${name}. Tenho interesse em ${interest}.${priceContext}${message ? ` ${message}` : ""}`;
+    if (submitButton) submitButton.classList.add("is-sending");
+    if (submitLabel) submitLabel.textContent = "Abrindo WhatsApp";
+    if (status) {
+      status.dataset.state = "success";
+      status.textContent = "Abrindo o WhatsApp…";
+    }
+    open(`https://wa.me/${business.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    setTimeout(() => {
+      submitButton?.classList.remove("is-sending");
+      if (submitLabel) submitLabel.textContent = "Continuar no WhatsApp";
+    }, 1200);
   });
 }
 
@@ -779,7 +884,7 @@ function initPointerEffects() {
   const setCursorX = gsap.quickSetter(cursor, "x", "px");
   const setCursorY = gsap.quickSetter(cursor, "y", "px");
   const interactiveSelector = "a,button,[role='button'],summary,label,select";
-  const textSelector = "input,textarea,[contenteditable='true']";
+  const textSelector = "input,textarea,select,[contenteditable='true']";
   let currentState = "";
 
   const setState = (target) => {

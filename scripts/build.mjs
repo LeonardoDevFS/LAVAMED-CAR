@@ -332,7 +332,35 @@ function serviceContent(service) {
 }
 
 function contactContent() {
-  return `<section class="content-section dark"><div class="contact-panel"><form class="contact-form" data-contact-form><div class="field"><label for="nome">Seu nome</label><input id="nome" name="nome" autocomplete="name" required></div><div class="field"><label for="servico">Serviço de interesse</label><select id="servico" name="servico"><option value="uma avaliação">Quero uma avaliação</option>${services.map((service) => `<option value="${service.name}">${service.name} — ${servicePriceLabel(service)}</option>`).join("")}</select></div><div class="field"><label for="mensagem">Conte um pouco sobre o veículo</label><textarea id="mensagem" name="mensagem"></textarea></div><button class="submit-button" type="submit">Continuar no WhatsApp ↗</button><p class="form-status" aria-live="polite"></p></form><aside class="contact-aside"><h2>A conversa começa aqui.</h2><p>A LavaMed está em Itajubá, no bairro Medicina. WhatsApp, Instagram e localização no Maps já estão disponíveis; rua, número e horários ainda aguardam confirmação.</p><a class="cta-pill contact-direct" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Chamar no WhatsApp</span><i>↗</i></a><div data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></aside></div></section>`;
+  const serviceOptions = services.map((service) => `<option value="${escapeHtml(service.name)}">${escapeHtml(service.name)} — ${escapeHtml(servicePriceLabel(service))}</option>`).join("");
+  return `<section class="content-section dark contact-experience"><div class="contact-panel">
+    <div class="contact-form-shell">
+      <header class="contact-form-intro"><span>Solicitação / 01</span><p>Preencha os detalhes e continue a conversa no WhatsApp oficial da LavaMed.</p></header>
+      <form class="contact-form" data-contact-form>
+        <div class="contact-form-progress" aria-hidden="true"><i data-contact-progress></i><span>01</span><span>02</span><span>03</span></div>
+        <div class="field" data-contact-field>
+          <label for="nome"><span>01</span>Seu nome <small>Obrigatório</small></label>
+          <div class="field-control"><input id="nome" name="nome" autocomplete="name" minlength="2" placeholder="Como podemos chamar você?" required><i aria-hidden="true"></i></div>
+          <small class="field-error">Informe seu nome para continuar.</small>
+        </div>
+        <div class="field" data-contact-field>
+          <label for="servico"><span>02</span>Serviço de interesse <small>Escolha livre</small></label>
+          <div class="field-control field-control--select"><select id="servico" name="servico" aria-describedby="contact-selection"><option value="uma avaliação">Quero uma avaliação</option>${serviceOptions}</select><i aria-hidden="true"></i></div>
+        </div>
+        <div class="contact-selection" id="contact-selection" data-contact-selection aria-live="polite">
+          <span>Seleção atual</span><strong data-contact-service>Quero uma avaliação</strong><small data-contact-price>Escopo e valor confirmados após conhecer o veículo.</small><i aria-hidden="true">02</i>
+        </div>
+        <div class="field" data-contact-field>
+          <label for="mensagem"><span>03</span>Conte um pouco sobre o veículo <small>Opcional</small></label>
+          <div class="field-control field-control--textarea"><textarea id="mensagem" name="mensagem" maxlength="280" placeholder="Modelo, condição atual e o cuidado que você procura."></textarea><i aria-hidden="true"></i></div>
+          <div class="field-meta"><span>Quanto mais contexto, melhor a avaliação.</span><output data-message-count for="mensagem">0 / 280</output></div>
+        </div>
+        <div class="contact-form-action"><button class="submit-button" type="submit"><span data-submit-label>Continuar no WhatsApp</span><i aria-hidden="true">↗</i></button><small>Nenhum dado é armazenado pelo site.</small></div>
+        <p class="form-status" data-form-status role="status" aria-live="polite"></p>
+      </form>
+    </div>
+    <aside class="contact-aside"><span class="contact-aside-index">Contato / direto</span><h2>A conversa começa aqui.</h2><p>A LavaMed está em Itajubá, no bairro Medicina. WhatsApp, Instagram e localização no Maps já estão disponíveis; rua, número e horários ainda aguardam confirmação.</p><a class="cta-pill contact-direct" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Chamar no WhatsApp</span><i>↗</i></a><div data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></aside>
+  </div></section>`;
 }
 
 function comparisonContent() {
