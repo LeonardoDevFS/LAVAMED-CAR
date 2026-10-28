@@ -8,7 +8,7 @@
       "height": 1080
     },
     "documentWidth": 1920,
-    "pageHeight": 18268,
+    "pageHeight": 18326,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -69,6 +69,75 @@
     "errors": []
   },
   {
+    "width": 1600,
+    "height": 900,
+    "group": "desktop",
+    "viewport": {
+      "width": 1600,
+      "height": 900
+    },
+    "documentWidth": 1600,
+    "pageHeight": 17617,
+    "fonts": [
+      {
+        "family": "Archivo Black",
+        "status": "loaded",
+        "weight": "400"
+      },
+      {
+        "family": "Space Grotesk",
+        "status": "loaded",
+        "weight": "300 700"
+      }
+    ],
+    "titleLines": [
+      {
+        "text": "NÃO É SÓ",
+        "maskHeight": 143.34,
+        "glyphHeight": 115,
+        "verticalSlack": 28.34,
+        "lineHeight": "125.44px",
+        "letterSpacing": "-7.04px",
+        "clipPath": "none"
+      },
+      {
+        "text": "LAVAR.",
+        "maskHeight": 143.34,
+        "glyphHeight": 88,
+        "verticalSlack": 55.34,
+        "lineHeight": "125.44px",
+        "letterSpacing": "-7.04px",
+        "clipPath": "none"
+      },
+      {
+        "text": "É TRANSFORMAR.",
+        "maskHeight": 111.81,
+        "glyphHeight": 90,
+        "verticalSlack": 21.81,
+        "lineHeight": "97.8432px",
+        "letterSpacing": "-5.9904px",
+        "clipPath": "none"
+      }
+    ],
+    "logo": {
+      "width": 135,
+      "height": 119
+    },
+    "heading": {
+      "top": 336,
+      "bottom": 734,
+      "height": 399
+    },
+    "booking": {
+      "top": 782,
+      "bottom": 834,
+      "width": 226,
+      "height": 52
+    },
+    "heroCarSource": "http://127.0.0.1:4173/assets/images/generated/conceitual-coupe-escuro-1672.avif",
+    "errors": []
+  },
+  {
     "width": 1440,
     "height": 900,
     "group": "desktop",
@@ -77,7 +146,7 @@
       "height": 900
     },
     "documentWidth": 1440,
-    "pageHeight": 17093,
+    "pageHeight": 17024,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -146,7 +215,7 @@
       "height": 768
     },
     "documentWidth": 1366,
-    "pageHeight": 15912,
+    "pageHeight": 15755,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -215,7 +284,7 @@
       "height": 720
     },
     "documentWidth": 1280,
-    "pageHeight": 15128,
+    "pageHeight": 14943,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -284,7 +353,7 @@
       "height": 1180
     },
     "documentWidth": 820,
-    "pageHeight": 16323,
+    "pageHeight": 17004,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -353,7 +422,7 @@
       "height": 1024
     },
     "documentWidth": 768,
-    "pageHeight": 15566,
+    "pageHeight": 16238,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -422,7 +491,7 @@
       "height": 932
     },
     "documentWidth": 430,
-    "pageHeight": 14330,
+    "pageHeight": 14692,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -491,7 +560,7 @@
       "height": 844
     },
     "documentWidth": 390,
-    "pageHeight": 13555,
+    "pageHeight": 13893,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -560,7 +629,7 @@
       "height": 812
     },
     "documentWidth": 375,
-    "pageHeight": 13316,
+    "pageHeight": 13653,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -629,7 +698,7 @@
       "height": 800
     },
     "documentWidth": 360,
-    "pageHeight": 13189,
+    "pageHeight": 13542,
     "fonts": [
       {
         "family": "Archivo Black",
@@ -698,7 +767,7 @@
       "height": 568
     },
     "documentWidth": 320,
-    "pageHeight": 11821,
+    "pageHeight": 12170,
     "fonts": [
       {
         "family": "Archivo Black",

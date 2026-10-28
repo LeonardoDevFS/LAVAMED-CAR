@@ -436,24 +436,40 @@ const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homePortfolio = portfolioItems.map((item) => `<a class="gallery-item gallery-${item.shape}" href="/portfolio/" aria-label="Ver no portfólio — ${escapeHtml(item.title)}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: item.shape === "tall" ? "(max-width: 760px) 65vw, 34vw" : "(max-width: 760px) 84vw, 70vw" })}<span><b>${item.number}</b>${escapeHtml(item.note)} / ${escapeHtml(item.title)}</span></a>`).join("");
 const homeProcessVideo = `<div class="process-video-composition" data-process-video-slot data-video-state="poster">
-  <aside class="process-video-copy" aria-label="Identificação do registro">
-    <span>Filme 01 / acervo real</span>
-    <strong>VOLKS<br>WAGEN<br><em>UP.</em></strong>
-    <p>Comparação real do mesmo veículo. O material mostra o antes e o depois, sem atribuir um procedimento que o vídeo não comprova.</p>
+  <aside class="process-video-copy" aria-label="Apresentação do registro">
+    <span class="process-video-eyebrow">Acervo real / antes e depois</span>
+    <h3 class="process-video-identity">
+      <span class="process-video-title-mask"><span class="process-video-marque">VOLKSWAGEN</span></span>
+      <span class="process-video-title-mask"><span class="process-video-model">UP.</span></span>
+    </h3>
+    <p class="process-video-tagline">UMA TRANSFORMAÇÃO QUE SE VÊ NOS DETALHES.</p>
+    <p class="process-video-description">Um olhar de perto sobre os detalhes que fazem a diferença. Confira os registros reais do veículo antes e depois do cuidado da LavaMed.</p>
+    <dl class="process-video-facts" aria-label="Informações do filme">
+      <div><dt>Registro</dt><dd>Antes / depois</dd></div>
+      <div><dt>Duração</dt><dd>00:27</dd></div>
+      <div><dt>Formato</dt><dd>9:16</dd></div>
+    </dl>
+    <button class="process-video-play" type="button" data-video-open aria-controls="process-video-dialog" aria-haspopup="dialog">
+      <i aria-hidden="true">▶</i><span><small>Filme completo</small>Assistir ao antes e depois</span><b aria-hidden="true">00:27</b>
+    </button>
+    <small class="process-video-provenance">Registro real do mesmo veículo. A legenda não atribui um procedimento específico além do que as imagens confirmam.</small>
   </aside>
   <figure class="process-video-stage">
-    <video class="process-video-preview" data-process-preview muted playsinline loop preload="none" poster="${escapeHtml(processVideo.poster)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Preview silencioso do Volkswagen Up antes e depois">
-      <source data-src="${escapeHtml(processVideo.webm)}" type="video/webm">
-      <source data-src="${escapeHtml(processVideo.mp4)}" type="video/mp4">
-      Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(processVideo.fullSrc)}">Abra o vídeo completo</a>.
-    </video>
-    <div class="process-video-light" aria-hidden="true"></div>
-    <figcaption><span>Volkswagen Up</span><strong>ANTES E DEPOIS</strong><small>00:08 / preview silencioso</small></figcaption>
-    <button class="process-video-play" type="button" data-video-open aria-controls="process-video-dialog" aria-haspopup="dialog">
-      <span>Assistir ao resultado completo</span><i aria-hidden="true">▶</i>
-    </button>
+    <div class="process-video-atmosphere" aria-hidden="true"><img src="${escapeHtml(processVideo.poster)}" alt="" loading="lazy" width="${processVideo.width}" height="${processVideo.height}"></div>
+    <div class="process-video-orbit" aria-hidden="true"></div>
+    <div class="process-video-rail" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
+    <div class="process-video-frame">
+      <video class="process-video-preview" data-process-preview muted playsinline loop preload="none" poster="${escapeHtml(processVideo.poster)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Preview silencioso do Volkswagen Up antes e depois">
+        <source data-src="${escapeHtml(processVideo.webm)}" type="video/webm">
+        <source data-src="${escapeHtml(processVideo.mp4)}" type="video/mp4">
+        Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(processVideo.fullSrc)}">Abra o vídeo completo</a>.
+      </video>
+      <div class="process-video-light" aria-hidden="true"></div>
+      <span class="process-video-frame-code" aria-hidden="true">LVM / FILM 01</span>
+    </div>
+    <figcaption class="process-video-caption"><span>Volkswagen Up</span><strong>ANTES E DEPOIS</strong><small>Preview silencioso</small></figcaption>
+    <div class="process-video-progress" role="progressbar" aria-label="Progresso do preview" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i data-process-progress></i><span><b data-process-time>00:00</b> / 00:08</span></div>
   </figure>
-  <div class="process-video-index" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
   <noscript><a class="process-video-noscript" href="${escapeHtml(processVideo.fullSrc)}">Assistir ao vídeo completo do Volkswagen Up</a></noscript>
 </div>`;
 const homeVideoDialog = `<dialog class="video-dialog" id="process-video-dialog" data-video-dialog aria-labelledby="process-video-dialog-title">

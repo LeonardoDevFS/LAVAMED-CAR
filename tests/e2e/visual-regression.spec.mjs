@@ -3,6 +3,7 @@ import { services } from "../../src/config.js";
 
 const targetViewports = [
   { width: 1920, height: 1080 },
+  { width: 1600, height: 900 },
   { width: 1440, height: 900 },
   { width: 1366, height: 768 },
   { width: 1280, height: 720 },
@@ -45,6 +46,22 @@ async function typographyAudit(page) {
       const fontSize = parseFloat(style.fontSize);
       const lineHeight = parseFloat(style.lineHeight);
       let clippedBy = "";
+      const brokenWords = [];
+      const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        for (const match of textNode.data.matchAll(/\S+/g)) {
+          const rows = new Set();
+          for (let index = 0; index < match[0].length; index += 1) {
+            const range = document.createRange();
+            range.setStart(textNode, match.index + index);
+            range.setEnd(textNode, match.index + index + 1);
+            const character = range.getBoundingClientRect();
+            if (character.width > 0) rows.add(Math.round(character.top));
+          }
+          if (rows.size > 1) brokenWords.push(match[0]);
+        }
+      }
       let ancestor = node.parentElement;
       while (ancestor && ancestor !== document.body) {
         const ancestorStyle = getComputedStyle(ancestor);
@@ -61,7 +78,8 @@ async function typographyAudit(page) {
         text: node.textContent.trim().replace(/\s+/g, " ").slice(0, 80),
         family: style.fontFamily,
         lineHeightRatio: Number.isFinite(lineHeight) && fontSize ? lineHeight / fontSize : 1,
-        clippedBy
+        clippedBy,
+        brokenWords
       };
     });
   });
@@ -120,11 +138,74 @@ test("all generated pages keep visible Archivo headings unclipped", async ({ pag
           expect(heading.lineHeightRatio, `${route}: tight line-height in “${heading.text}”`).toBeGreaterThanOrEqual(.94);
         }
         expect(heading.clippedBy, `${route}: “${heading.text}” clipped by ${heading.clippedBy}`).toBe("");
+        expect(heading.brokenWords, `${route}: word split across lines in “${heading.text}”`).toEqual([]);
       }
       const width = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }));
       expect(width.document, `${route}: horizontal overflow at ${viewport.width}px`).toBeLessThanOrEqual(width.viewport);
     }
   }
+});
+
+test("Volkswagen film composition stays balanced and uncropped at every required viewport", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const viewport of targetViewports) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await waitForTypography(page);
+    const composition = page.locator(".process-video-composition");
+    await composition.scrollIntoViewIfNeeded();
+    const layout = await composition.evaluate((node) => {
+      const bounds = (selector) => node.querySelector(selector).getBoundingClientRect();
+      const compositionBox = node.getBoundingClientRect();
+      const stage = bounds(".process-video-stage");
+      const frame = bounds(".process-video-frame");
+      const preview = node.querySelector("[data-process-preview]");
+      const previewBox = preview.getBoundingClientRect();
+      const play = bounds("[data-video-open]");
+      const marque = node.querySelector(".process-video-marque");
+      const marqueRange = document.createRange();
+      marqueRange.selectNodeContents(marque);
+      const marqueLines = [...marqueRange.getClientRects()].filter((rect) => rect.width > 0).length;
+      const overlaps = !(play.right <= frame.left || play.left >= frame.right || play.bottom <= frame.top || play.top >= frame.bottom);
+      return {
+        title: marque.textContent.trim(),
+        marqueLines,
+        marqueFits: marque.scrollWidth <= marque.clientWidth + 1,
+        stageShare: stage.width / compositionBox.width,
+        stageViewportShare: stage.height / innerHeight,
+        videoRatio: previewBox.width / previewBox.height,
+        objectFit: getComputedStyle(preview).objectFit,
+        playWidth: play.width,
+        playHeight: play.height,
+        overlaps,
+        scrollWidth: document.documentElement.scrollWidth,
+        viewportWidth: innerWidth
+      };
+    });
+    expect(layout.title).toBe("VOLKSWAGEN");
+    expect(layout.marqueLines, `${viewport.width}x${viewport.height}: VOLKSWAGEN wrapped`).toBe(1);
+    expect(layout.marqueFits, `${viewport.width}x${viewport.height}: VOLKSWAGEN overflows its container`).toBe(true);
+    expect(layout.objectFit).toBe("contain");
+    expect(Math.abs(layout.videoRatio - 9 / 16), `${viewport.width}x${viewport.height}: video distorted`).toBeLessThan(.02);
+    expect(layout.playWidth).toBeGreaterThan(200);
+    expect(layout.playHeight).toBeGreaterThanOrEqual(44);
+    expect(layout.overlaps, `${viewport.width}x${viewport.height}: CTA overlaps the film`).toBe(false);
+    expect(layout.scrollWidth, `${viewport.width}x${viewport.height}: horizontal overflow`).toBeLessThanOrEqual(layout.viewportWidth);
+    expect(layout.stageViewportShare, `${viewport.width}x${viewport.height}: stage unnecessarily taller than viewport`).toBeLessThanOrEqual(.92);
+    if (viewport.width > 900) {
+      expect(layout.stageShare, `${viewport.width}x${viewport.height}: film stage is not dominant`).toBeGreaterThanOrEqual(.55);
+      expect(layout.stageShare, `${viewport.width}x${viewport.height}: film stage crowds out the editorial copy`).toBeLessThanOrEqual(.66);
+    }
+  }
+});
+
+test("Volkswagen film reveal reverses when scrolling back", async ({ page }) => {
+  await page.goto("/");
+  const section = page.locator("[data-process-cinema]");
+  await page.locator(".process-video-composition").scrollIntoViewIfNeeded();
+  await expect(section).toHaveAttribute("data-motion-state", "revealed", { timeout: 5_000 });
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await expect(section).toHaveAttribute("data-motion-state", "reset", { timeout: 5_000 });
 });
 
 test("approved hero compositions remain visually stable", async ({ page }) => {
@@ -176,11 +257,18 @@ test("approved editorial sections and internal hero remain visually stable", asy
   await page.locator("[data-video-close]").click();
   await expect(page.locator(".site-footer")).toHaveScreenshot("footer-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  await waitForTypography(page);
-  await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
-  await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-390.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+  for (const viewport of [
+    { width: 820, height: 1180 },
+    { width: 430, height: 932 },
+    { width: 390, height: 844 },
+    { width: 360, height: 800 }
+  ]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    await waitForTypography(page);
+    await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
+    await expect(page.locator("[data-process-cinema]")).toHaveScreenshot(`process-${viewport.width}.png`, { animations: "disabled", maxDiffPixelRatio: .008 });
+  }
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/servicos/higienizacao-avancada/");

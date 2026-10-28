@@ -43,7 +43,7 @@ export const services = [
     summary: "Limpeza exclusivamente externa para manter lataria, rodas e pneus bem cuidados com agilidade.",
     detail: "Uma lavagem de manutenção dedicada à parte externa do carro. A sequência reduz a sujeira pesada antes do contato e finaliza rodas, pneus e lataria com atenção.",
     features: [
-      ["Pré-lavagem", "Remoção da sujeira pesada para minimizar o risco de marcas na pintura."],
+      ["Pré‑lavagem", "Remoção da sujeira pesada para minimizar o risco de marcas na pintura."],
       ["Lavagem externa", "Limpeza cuidadosa de toda a lataria."],
       ["Rodas e pneus", "Limpeza de caixas de roda, pneus e calotas."],
       ["Acabamento", "Pretinho aplicado somente nas laterais dos pneus."]
@@ -65,7 +65,7 @@ export const services = [
     summary: "Limpeza externa e interna para renovar a apresentação e o conforto do veículo no mesmo pacote.",
     detail: "Combina o cuidado da carroceria com aspiração e limpeza das superfícies internas, respeitando os materiais encontrados na cabine.",
     features: [
-      ["Pré-lavagem", "Remoção inicial de sujeira pesada antes da lavagem externa."],
+      ["Pré‑lavagem", "Remoção inicial de sujeira pesada antes da lavagem externa."],
       ["Lavagem externa", "Lataria, caixas de roda, pneus e calotas."],
       ["Aspiração total", "Carpete, bancos e porta-malas."],
       ["Painel e portas", "Limpeza com produtos adequados a cada material."],
@@ -89,7 +89,7 @@ export const services = [
     summary: "Procedimento minucioso para áreas de difícil acesso e detalhes internos e externos.",
     detail: "Um nível mais profundo de cuidado para quem busca conservação e leitura visual refinada, incluindo frestas, chassi quando apropriado e tratamento dedicado da cabine.",
     features: [
-      ["Pré-lavagem e exterior", "Remoção cuidadosa da sujeira pesada e limpeza detalhada da lataria."],
+      ["Pré‑lavagem e exterior", "Remoção cuidadosa da sujeira pesada e limpeza detalhada da lataria."],
       ["Chassi", "Remoção de terra, graxa e resíduos quando tecnicamente apropriado."],
       ["Rodas", "Limpeza profunda de caixas de roda, pneus e calotas."],
       ["Cantos e frestas", "Dobradiças, vãos do porta-malas, grades e emblemas."],
@@ -120,7 +120,7 @@ export const services = [
       ["Motor", "Limpeza técnica de resíduos visíveis, respeitando componentes sensíveis."],
       ["Teto e plásticos", "Limpeza profunda e condicionamento compatível com cada superfície."],
       ["Cantos e frestas", "Dobradiças, porta-malas, grades, difusores de ar e emblemas."],
-      ["Exterior", "Pré-lavagem, lataria, chassi quando aplicável, caixas de roda, pneus e calotas."],
+      ["Exterior", "Pré‑lavagem, lataria, chassi quando aplicável, caixas de roda, pneus e calotas."],
       ["Finalização", "Vidros e pretinho somente nas laterais dos pneus."]
     ],
     benefits: ["Limpeza interna intensiva", "Tratamento de áreas inferiores e frestas", "Escopo definido após avaliação técnica"],
