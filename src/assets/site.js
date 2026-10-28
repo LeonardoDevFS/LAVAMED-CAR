@@ -89,27 +89,32 @@ function initProcessCinema() {
   const section = document.querySelector("[data-process-cinema]");
   if (!section) return;
   const slot = section.querySelector("[data-process-video-slot]");
-  const preview = section.querySelector("[data-process-preview]");
-  const openButton = section.querySelector("[data-video-open]");
+  const panels = [...section.querySelectorAll("[data-dual-panel]")];
+  const previews = [...section.querySelectorAll("[data-process-preview]")];
+  const selectButtons = [...section.querySelectorAll("[data-dual-select]")];
+  const openButtons = [...section.querySelectorAll("[data-video-open]")];
+  const nextButton = section.querySelector("[data-dual-next]");
+  const nextLabel = section.querySelector("[data-dual-next-label]");
   const dialog = document.querySelector("[data-video-dialog]");
   const fullVideo = dialog?.querySelector("[data-process-full]");
   const closeButton = dialog?.querySelector("[data-video-close]");
-  const progressTrack = section.querySelector(".process-video-progress");
-  const progressBar = section.querySelector("[data-process-progress]");
-  const progressTime = section.querySelector("[data-process-time]");
+  const dialogTitle = dialog?.querySelector("[data-video-dialog-title]");
+  const dialogDuration = dialog?.querySelector("[data-video-dialog-duration]");
+  const stateKeys = panels.map((panel) => panel.dataset.dualPanel);
+  const panelByState = new Map(panels.map((panel) => [panel.dataset.dualPanel, panel]));
+  const previewByState = new Map(previews.map((video) => [video.dataset.processPreview, video]));
+  const mobileQuery = window.matchMedia("(max-width: 700px)");
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const saveData = Boolean(connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || ""));
+  const allowAmbientPlayback = !reducedMotion && !saveData;
+  const userPausedStates = new Set();
+  let activeState = slot?.dataset.activeState || "before";
+  let experienceVisible = false;
   let opener = null;
 
   const formatTime = (seconds) => {
     const safeSeconds = Number.isFinite(seconds) ? Math.max(0, Math.floor(seconds)) : 0;
     return `${String(Math.floor(safeSeconds / 60)).padStart(2, "0")}:${String(safeSeconds % 60).padStart(2, "0")}`;
-  };
-  const updatePreviewProgress = () => {
-    if (!preview) return;
-    const duration = Number.isFinite(preview.duration) && preview.duration > 0 ? preview.duration : 8;
-    const percentage = Math.min(100, Math.max(0, (preview.currentTime / duration) * 100));
-    if (progressBar) progressBar.style.transform = `scaleX(${percentage / 100})`;
-    if (progressTime) progressTime.textContent = formatTime(preview.currentTime);
-    progressTrack?.setAttribute("aria-valuenow", String(Math.round(percentage)));
   };
 
   const loadVideo = (video) => {
@@ -126,27 +131,196 @@ function initProcessCinema() {
     video.load();
   };
 
+  const updatePreviewControls = (state) => {
+    const video = previewByState.get(state);
+    const panel = panelByState.get(state);
+    if (!video || !panel) return;
+    const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 6;
+    const percentage = Math.min(1000, Math.max(0, Math.round((video.currentTime / duration) * 1000)));
+    const seek = panel.querySelector(`[data-dual-seek="${state}"]`);
+    const time = panel.querySelector(`[data-dual-time="${state}"]`);
+    const toggle = panel.querySelector(`[data-dual-play="${state}"]`);
+    if (seek && document.activeElement !== seek) seek.value = String(percentage);
+    if (time) time.textContent = `${formatTime(video.currentTime)} / ${formatTime(duration)}`;
+    if (toggle) {
+      const playing = !video.paused && !video.ended;
+      toggle.setAttribute("aria-pressed", String(playing));
+      toggle.setAttribute("aria-label", `${playing ? "Pausar" : "Reproduzir"} preview — ${state === "before" ? "Antes" : "Depois"}`);
+      const icon = toggle.querySelector("i");
+      const label = toggle.querySelector("span");
+      if (icon) icon.textContent = playing ? "Ⅱ" : "▶";
+      if (label) label.textContent = playing ? "Pausar" : "Reproduzir";
+    }
+  };
+
+  const setPanelVideoState = (state, value) => {
+    const panel = panelByState.get(state);
+    if (!panel) return;
+    panel.dataset.videoState = value;
+    const status = panel.querySelector("[data-dual-status]");
+    if (status) status.textContent = value === "fallback" ? "Pôster disponível" : value === "playing" ? "Preview em reprodução" : "Preview silencioso";
+    if (state === activeState && slot) slot.dataset.videoState = value;
+  };
+
+  const pausePreview = (state, value = "paused") => {
+    const video = previewByState.get(state);
+    if (!video) return;
+    video.pause();
+    if (video.dataset.loaded === "true" && panelByState.get(state)?.dataset.videoState !== "fallback") setPanelVideoState(state, value);
+    updatePreviewControls(state);
+  };
+
+  const playPreview = async (state, { explicit = false } = {}) => {
+    const video = previewByState.get(state);
+    if (!video || (!explicit && (!allowAmbientPlayback || userPausedStates.has(state)))) return;
+    if (explicit) userPausedStates.delete(state);
+    stateKeys.filter((key) => key !== state).forEach((key) => pausePreview(key));
+    loadVideo(video);
+    video.muted = true;
+    video.volume = 0;
+    try {
+      await video.play();
+      setPanelVideoState(state, "playing");
+    } catch {
+      setPanelVideoState(state, "poster");
+    }
+    updatePreviewControls(state);
+  };
+
+  const syncResponsiveAria = () => {
+    panels.forEach((panel) => {
+      const isActive = panel.dataset.dualPanel === activeState;
+      panel.setAttribute("aria-hidden", String(mobileQuery.matches && !isActive));
+      panel.querySelectorAll("button,input").forEach((control) => {
+        if (mobileQuery.matches && !isActive) control.setAttribute("tabindex", "-1");
+        else if (!control.matches("[role=tab]")) control.removeAttribute("tabindex");
+      });
+    });
+  };
+
+  const selectState = (state, { focus = false, explicit = false } = {}) => {
+    if (!panelByState.has(state)) return;
+    const previousState = activeState;
+    activeState = state;
+    if (slot) slot.dataset.activeState = state;
+    panels.forEach((panel) => panel.classList.toggle("is-active", panel.dataset.dualPanel === state));
+    selectButtons.forEach((button) => {
+      const selected = button.dataset.dualSelect === state;
+      button.setAttribute("aria-selected", String(selected));
+      button.tabIndex = selected ? 0 : -1;
+      if (selected && focus) button.focus({ preventScroll: true });
+    });
+    if (nextButton) nextButton.dataset.targetState = state === "before" ? "after" : "before";
+    if (nextLabel) nextLabel.textContent = state === "before" ? "Ver depois" : "Rever antes";
+    syncResponsiveAria();
+    if (previousState !== state) pausePreview(previousState);
+    const activePanel = panelByState.get(state);
+    if (!reducedMotion && previousState !== state && activePanel) {
+      gsap.fromTo(activePanel, { clipPath: state === "after" ? "inset(0 0 0 100%)" : "inset(0 100% 0 0)" }, { clipPath: "inset(0 0 0 0)", duration: .72, ease: "expo.out", clearProps: "clipPath" });
+      const light = activePanel.querySelector(".dual-video-light");
+      if (light) gsap.fromTo(light, { xPercent: -130 }, { xPercent: 240, duration: 1.05, ease: "power2.inOut" });
+    }
+    if (experienceVisible && (allowAmbientPlayback || explicit)) playPreview(state, { explicit });
+    else if (slot) slot.dataset.videoState = reducedMotion ? "reduced-motion" : saveData ? "save-data" : activePanel?.dataset.videoState || "poster";
+  };
+
+  selectButtons.forEach((button) => {
+    button.addEventListener("click", () => selectState(button.dataset.dualSelect));
+    button.addEventListener("keydown", (event) => {
+      const currentIndex = stateKeys.indexOf(button.dataset.dualSelect);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (currentIndex + 1) % stateKeys.length;
+      else if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (currentIndex - 1 + stateKeys.length) % stateKeys.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = stateKeys.length - 1;
+      else return;
+      event.preventDefault();
+      selectState(stateKeys[nextIndex], { focus: true });
+    });
+  });
+  nextButton?.addEventListener("click", () => selectState(nextButton.dataset.targetState));
+
+  panels.forEach((panel) => {
+    const state = panel.dataset.dualPanel;
+    const video = previewByState.get(state);
+    const toggle = panel.querySelector(`[data-dual-play="${state}"]`);
+    const seek = panel.querySelector(`[data-dual-seek="${state}"]`);
+    toggle?.addEventListener("click", () => {
+      if (!video) return;
+      if (activeState !== state) selectState(state, { explicit: false });
+      if (toggle.getAttribute("aria-pressed") === "true") {
+        userPausedStates.add(state);
+        pausePreview(state);
+      } else {
+        userPausedStates.delete(state);
+        playPreview(state, { explicit: true });
+      }
+    });
+    seek?.addEventListener("input", () => {
+      if (!video) return;
+      if (activeState !== state) selectState(state, { explicit: false });
+      loadVideo(video);
+      const applySeek = () => {
+        const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 6;
+        video.currentTime = (Number(seek.value) / 1000) * duration;
+        updatePreviewControls(state);
+      };
+      if (video.readyState >= 1) applySeek();
+      else video.addEventListener("loadedmetadata", applySeek, { once: true });
+    });
+    video?.addEventListener("loadedmetadata", () => updatePreviewControls(state));
+    video?.addEventListener("durationchange", () => updatePreviewControls(state));
+    video?.addEventListener("timeupdate", () => updatePreviewControls(state));
+    video?.addEventListener("play", () => { setPanelVideoState(state, "playing"); updatePreviewControls(state); });
+    video?.addEventListener("pause", () => updatePreviewControls(state));
+    let failedSources = 0;
+    video?.querySelectorAll("source").forEach((source) => source.addEventListener("error", () => {
+      failedSources += 1;
+      if (failedSources >= video.querySelectorAll("source").length) setPanelVideoState(state, "fallback");
+    }));
+    video?.addEventListener("canplay", () => { failedSources = 0; });
+    video?.addEventListener("error", () => setPanelVideoState(state, "fallback"));
+    video?.addEventListener("volumechange", () => {
+      if (!video.muted || video.volume !== 0) { video.muted = true; video.volume = 0; }
+    });
+  });
+
   const pauseFullVideo = () => {
     fullVideo?.pause();
-    if (fullVideo) fullVideo.currentTime = 0;
+    if (fullVideo) {
+      try { fullVideo.currentTime = 0; } catch {}
+    }
   };
   const resetDialog = () => {
     pauseFullVideo();
+    if (fullVideo) {
+      fullVideo.removeAttribute("src");
+      fullVideo.removeAttribute("poster");
+      fullVideo.load();
+    }
     opener?.focus({ preventScroll: true });
     opener = null;
+    if (experienceVisible && allowAmbientPlayback) playPreview(activeState);
   };
 
-  openButton?.addEventListener("click", async () => {
-    if (!dialog || !fullVideo) return;
-    opener = openButton;
-    loadVideo(fullVideo);
+  openButtons.forEach((button) => button.addEventListener("click", async () => {
+    if (!dialog || !fullVideo || !button.dataset.videoSrc) return;
+    opener = button;
+    pausePreview(activeState);
+    if (activeState !== button.dataset.videoOpen) selectState(button.dataset.videoOpen, { explicit: false });
+    fullVideo.src = button.dataset.videoSrc;
+    fullVideo.poster = button.dataset.videoPoster || "";
+    fullVideo.setAttribute("aria-label", button.dataset.videoLabel || "Vídeo completo e silencioso do Volkswagen Up");
+    if (dialogTitle) dialogTitle.textContent = button.dataset.videoTitle || "VOLKSWAGEN UP";
+    if (dialogDuration) dialogDuration.textContent = `${button.dataset.videoDuration || ""} / 720 × 1280`;
     fullVideo.muted = true;
     fullVideo.volume = 0;
+    fullVideo.load();
     if (typeof dialog.showModal === "function") dialog.showModal();
     else dialog.setAttribute("open", "");
     requestAnimationFrame(() => closeButton?.focus({ preventScroll: true }));
     try { await fullVideo.play(); } catch {}
-  });
+  }));
   closeButton?.addEventListener("click", () => { pauseFullVideo(); dialog?.close(); });
   dialog?.addEventListener("click", (event) => { if (event.target === dialog) { pauseFullVideo(); dialog.close(); } });
   dialog?.addEventListener("cancel", pauseFullVideo);
@@ -155,46 +329,37 @@ function initProcessCinema() {
     if (!fullVideo.muted || fullVideo.volume !== 0) { fullVideo.muted = true; fullVideo.volume = 0; }
   });
 
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  const saveData = Boolean(connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || ""));
-  if (preview && !reducedMotion && !saveData && "IntersectionObserver" in window) {
+  if (slot && "IntersectionObserver" in window) {
     const observer = new IntersectionObserver((entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting && entry.intersectionRatio >= .36) {
-          loadVideo(preview);
-          preview.muted = true;
-          preview.play().then(() => { if (slot) slot.dataset.videoState = "playing"; }).catch(() => { if (slot) slot.dataset.videoState = "poster"; });
+        experienceVisible = entry.isIntersecting && entry.intersectionRatio >= .18;
+        if (experienceVisible) {
+          if (allowAmbientPlayback) playPreview(activeState);
+          else slot.dataset.videoState = reducedMotion ? "reduced-motion" : saveData ? "save-data" : "poster";
         } else {
-          preview.pause();
-          if (slot?.dataset.videoState === "playing") slot.dataset.videoState = "paused";
+          stateKeys.forEach((state) => pausePreview(state));
+          if (slot.dataset.videoState === "playing") slot.dataset.videoState = "paused";
         }
       }
-    }, { rootMargin: "160px 0px", threshold: [0, .36, .75] });
-    observer.observe(preview);
+    }, { rootMargin: "120px 0px", threshold: [0, .18, .5] });
+    observer.observe(slot);
   } else if (slot) {
     slot.dataset.videoState = reducedMotion ? "reduced-motion" : saveData ? "save-data" : "poster";
   }
-  const markVideoFallback = () => { if (slot) slot.dataset.videoState = "fallback"; };
-  preview?.addEventListener("error", markVideoFallback);
-  preview?.querySelectorAll("source").forEach((source) => source.addEventListener("error", markVideoFallback));
-  preview?.addEventListener("durationchange", updatePreviewProgress);
-  preview?.addEventListener("timeupdate", updatePreviewProgress);
-  preview?.addEventListener("seeked", updatePreviewProgress);
+  mobileQuery.addEventListener?.("change", syncResponsiveAria);
+  syncResponsiveAria();
 
   if (reducedMotion) {
     section.dataset.motionState = "static";
     return;
   }
   const composition = section.querySelector(".process-video-composition");
-  const copy = section.querySelector(".process-video-copy");
-  const stage = section.querySelector(".process-video-stage");
-  const frame = section.querySelector(".process-video-frame");
-  const light = section.querySelector(".process-video-light");
+  const intro = section.querySelector(".dual-motion-intro");
+  const stage = section.querySelector(".dual-motion-stage");
   const eyebrow = section.querySelector(".process-video-eyebrow");
   const titleLines = [...section.querySelectorAll(".process-video-title-mask > span")];
-  const secondary = [...section.querySelectorAll(".process-video-tagline,.process-video-description,.process-video-facts,.process-video-play,.process-video-provenance")];
+  const secondary = [...section.querySelectorAll(".process-video-description,.dual-motion-tabs,.dual-motion-footer")];
   const context = gsap.context(() => {
-    const stageClip = getComputedStyle(stage).clipPath;
     const timeline = gsap.timeline({
       defaults: { ease: "power3.out" },
       scrollTrigger: {
@@ -207,14 +372,13 @@ function initProcessCinema() {
       }
     });
     timeline
-      .fromTo(copy, { autoAlpha: 0 }, { autoAlpha: 1, duration: .25 }, 0)
+      .fromTo(intro, { autoAlpha: 0 }, { autoAlpha: 1, duration: .25 }, 0)
       .fromTo(eyebrow, { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: .55 }, .05)
       .fromTo(titleLines, { yPercent: 118 }, { yPercent: 0, duration: .9, stagger: .1, ease: "expo.out" }, .12)
-      .fromTo(stage, { clipPath: "polygon(0 0,0 0,0 100%,0 100%)", y: 42 }, { clipPath: stageClip, y: 0, duration: 1.05, ease: "expo.out" }, .22)
-      .fromTo(frame, { autoAlpha: 0, y: 28, scale: .975 }, { autoAlpha: 1, y: 0, scale: 1, duration: .82 }, .52)
+      .fromTo(stage, { clipPath: "inset(0 100% 0 0)", y: 42 }, { clipPath: "inset(0 0 0 0)", y: 0, duration: 1.05, ease: "expo.out" }, .22)
+      .fromTo(panels, { y: 28, scale: .975 }, { y: 0, scale: 1, duration: .82, stagger: .12, clearProps: "transform" }, .48)
       .fromTo(secondary, { autoAlpha: 0, y: 22 }, { autoAlpha: 1, y: 0, duration: .58, stagger: .07 }, .48)
-      .fromTo(progressTrack, { autoAlpha: 0 }, { autoAlpha: 1, duration: .45 }, .82)
-      .fromTo(light, { xPercent: -120 }, { xPercent: 245, duration: 1.35, ease: "power2.inOut" }, .72);
+      .fromTo(section.querySelectorAll(".dual-video-light"), { xPercent: -120 }, { xPercent: 245, duration: 1.35, stagger: .12, ease: "power2.inOut" }, .72);
   }, section);
   return () => context.revert();
 }

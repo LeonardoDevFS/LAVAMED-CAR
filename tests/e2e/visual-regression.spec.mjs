@@ -146,7 +146,7 @@ test("all generated pages keep visible Archivo headings unclipped", async ({ pag
   }
 });
 
-test("Volkswagen film composition stays balanced and uncropped at every required viewport", async ({ page }) => {
+test("Volkswagen dual-motion composition stays balanced and uncropped at every required viewport", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   for (const viewport of targetViewports) {
     await page.setViewportSize(viewport);
@@ -155,46 +155,57 @@ test("Volkswagen film composition stays balanced and uncropped at every required
     const composition = page.locator(".process-video-composition");
     await composition.scrollIntoViewIfNeeded();
     const layout = await composition.evaluate((node) => {
-      const bounds = (selector) => node.querySelector(selector).getBoundingClientRect();
       const compositionBox = node.getBoundingClientRect();
-      const stage = bounds(".process-video-stage");
-      const frame = bounds(".process-video-frame");
-      const preview = node.querySelector("[data-process-preview]");
-      const previewBox = preview.getBoundingClientRect();
-      const play = bounds("[data-video-open]");
+      const stage = node.querySelector(".dual-motion-stage").getBoundingClientRect();
+      const panels = [...node.querySelectorAll("[data-dual-panel]")].map((panel) => {
+        const panelBox = panel.getBoundingClientRect();
+        const preview = panel.querySelector("[data-process-preview]");
+        const full = panel.querySelector("[data-video-open]").getBoundingClientRect();
+        const style = getComputedStyle(panel);
+        return {
+          state: panel.dataset.dualPanel,
+          visible: style.visibility !== "hidden" && style.display !== "none" && Number(style.opacity) > 0,
+          left: panelBox.left,
+          right: panelBox.right,
+          videoRatio: Number(preview.getAttribute("width")) / Number(preview.getAttribute("height")),
+          objectFit: getComputedStyle(preview).objectFit,
+          fullHeight: full.height,
+          withinStage: panelBox.left >= stage.left - 1 && panelBox.right <= stage.right + 1
+        };
+      });
       const marque = node.querySelector(".process-video-marque");
       const marqueRange = document.createRange();
       marqueRange.selectNodeContents(marque);
       const marqueLines = [...marqueRange.getClientRects()].filter((rect) => rect.width > 0).length;
-      const overlaps = !(play.right <= frame.left || play.left >= frame.right || play.bottom <= frame.top || play.top >= frame.bottom);
       return {
         title: marque.textContent.trim(),
         marqueLines,
         marqueFits: marque.scrollWidth <= marque.clientWidth + 1,
         stageShare: stage.width / compositionBox.width,
         stageViewportShare: stage.height / innerHeight,
-        videoRatio: previewBox.width / previewBox.height,
-        objectFit: getComputedStyle(preview).objectFit,
-        playWidth: play.width,
-        playHeight: play.height,
-        overlaps,
+        panels,
         scrollWidth: document.documentElement.scrollWidth,
         viewportWidth: innerWidth
       };
     });
-    expect(layout.title).toBe("VOLKSWAGEN");
-    expect(layout.marqueLines, `${viewport.width}x${viewport.height}: VOLKSWAGEN wrapped`).toBe(1);
-    expect(layout.marqueFits, `${viewport.width}x${viewport.height}: VOLKSWAGEN overflows its container`).toBe(true);
-    expect(layout.objectFit).toBe("contain");
-    expect(Math.abs(layout.videoRatio - 9 / 16), `${viewport.width}x${viewport.height}: video distorted`).toBeLessThan(.02);
-    expect(layout.playWidth).toBeGreaterThan(200);
-    expect(layout.playHeight).toBeGreaterThanOrEqual(44);
-    expect(layout.overlaps, `${viewport.width}x${viewport.height}: CTA overlaps the film`).toBe(false);
+    expect(layout.title).toBe("VOLKSWAGEN UP.");
+    expect(layout.marqueLines, `${viewport.width}x${viewport.height}: VOLKSWAGEN UP wrapped`).toBe(1);
+    expect(layout.marqueFits, `${viewport.width}x${viewport.height}: VOLKSWAGEN UP overflows its container`).toBe(true);
+    expect(layout.panels).toHaveLength(2);
+    for (const panel of layout.panels.filter((item) => item.visible)) {
+      expect(panel.objectFit).toBe("contain");
+      expect(Math.abs(panel.videoRatio - 9 / 16), `${viewport.width}x${viewport.height}: ${panel.state} video distorted`).toBeLessThan(.02);
+      expect(panel.fullHeight).toBeGreaterThanOrEqual(42);
+      expect(panel.withinStage, `${viewport.width}x${viewport.height}: ${panel.state} panel escapes the stage`).toBe(true);
+    }
     expect(layout.scrollWidth, `${viewport.width}x${viewport.height}: horizontal overflow`).toBeLessThanOrEqual(layout.viewportWidth);
-    expect(layout.stageViewportShare, `${viewport.width}x${viewport.height}: stage unnecessarily taller than viewport`).toBeLessThanOrEqual(.92);
-    if (viewport.width > 900) {
-      expect(layout.stageShare, `${viewport.width}x${viewport.height}: film stage is not dominant`).toBeGreaterThanOrEqual(.55);
-      expect(layout.stageShare, `${viewport.width}x${viewport.height}: film stage crowds out the editorial copy`).toBeLessThanOrEqual(.66);
+    expect(layout.stageViewportShare, `${viewport.width}x${viewport.height}: stage unnecessarily taller than viewport`).toBeLessThanOrEqual(1.04);
+    expect(layout.stageShare, `${viewport.width}x${viewport.height}: dual stage is not dominant`).toBeGreaterThanOrEqual(.98);
+    if (viewport.width > 700) {
+      expect(layout.panels.filter((panel) => panel.visible)).toHaveLength(2);
+      expect(layout.panels[0].right).toBeLessThanOrEqual(layout.panels[1].left);
+    } else {
+      expect(layout.panels.filter((panel) => panel.visible)).toHaveLength(1);
     }
   }
 });
@@ -251,23 +262,32 @@ test("approved editorial sections and internal hero remain visually stable", asy
   await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
   await expect(page.locator("#manifesto")).toHaveScreenshot("manifesto-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
   await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
-  await page.locator("[data-video-open]").click();
+  await page.locator('[data-dual-select="after"]').click();
+  await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-after-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+  await page.locator('[data-video-open="before"]').click();
   await page.locator("[data-process-full]").evaluate((video) => { video.pause(); video.currentTime = 0; });
   await expect(page.locator("[data-video-dialog]")).toHaveScreenshot("video-dialog-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
   await page.locator("[data-video-close]").click();
   await expect(page.locator(".site-footer")).toHaveScreenshot("footer-1440.png", { animations: "disabled", maxDiffPixelRatio: .008 });
 
   for (const viewport of [
+    { width: 1920, height: 1080 },
+    { width: 1366, height: 768 },
     { width: 820, height: 1180 },
     { width: 430, height: 932 },
     { width: 390, height: 844 },
-    { width: 360, height: 800 }
+    { width: 360, height: 800 },
+    { width: 320, height: 568 }
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/");
     await waitForTypography(page);
     await page.addStyleTag({ content: ".site-header,.skip-link,.noise,.cursor,.scroll-progress,.water-canvas,.liquid-canvas{display:none!important}" });
     await expect(page.locator("[data-process-cinema]")).toHaveScreenshot(`process-${viewport.width}.png`, { animations: "disabled", maxDiffPixelRatio: .008 });
+    if (viewport.width === 390) {
+      await page.locator('[data-dual-select="after"]').click();
+      await expect(page.locator("[data-process-cinema]")).toHaveScreenshot("process-after-390.png", { animations: "disabled", maxDiffPixelRatio: .008 });
+    }
   }
 
   await page.setViewportSize({ width: 1440, height: 900 });

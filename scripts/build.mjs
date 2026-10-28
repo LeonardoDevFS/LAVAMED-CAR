@@ -8,7 +8,7 @@ import {
   comparisonPairs,
   homeMedia,
   portfolioItems,
-  processVideo,
+  processVideos,
   serviceGroups,
   servicePriceLabel,
   services,
@@ -435,48 +435,66 @@ const featuredServices = services.filter((service) => service.featured);
 const firstFeatured = featuredServices[0];
 const homeRows = featuredServices.map((service, index) => `<a class="service-row${index === 0 ? " is-active" : ""}" href="/servicos/${service.slug}/" data-service="${service.slug}" role="listitem"><span>${service.number}</span><div><h3>${service.name}</h3><small>${service.label}<b>${servicePriceLabel(service)}</b></small></div><i>↗</i></a>`).join("");
 const homePortfolio = portfolioItems.map((item) => `<a class="gallery-item gallery-${item.shape}" href="/portfolio/" aria-label="Ver no portfólio — ${escapeHtml(item.title)}">${pictureMarkup(item.media, { alt: item.media.alt, sizes: item.shape === "tall" ? "(max-width: 760px) 65vw, 34vw" : "(max-width: 760px) 84vw, 70vw" })}<span><b>${item.number}</b>${escapeHtml(item.note)} / ${escapeHtml(item.title)}</span></a>`).join("");
-const homeProcessVideo = `<div class="process-video-composition" data-process-video-slot data-video-state="poster">
-  <aside class="process-video-copy" aria-label="Apresentação do registro">
-    <span class="process-video-eyebrow">Acervo real / antes e depois</span>
-    <h3 class="process-video-identity">
-      <span class="process-video-title-mask"><span class="process-video-marque">VOLKSWAGEN</span></span>
-      <span class="process-video-title-mask"><span class="process-video-model">UP.</span></span>
-    </h3>
-    <p class="process-video-tagline">UMA TRANSFORMAÇÃO QUE SE VÊ NOS DETALHES.</p>
-    <p class="process-video-description">Um olhar de perto sobre os detalhes que fazem a diferença. Confira os registros reais do veículo antes e depois do cuidado da LavaMed.</p>
-    <dl class="process-video-facts" aria-label="Informações do filme">
-      <div><dt>Registro</dt><dd>Antes / depois</dd></div>
-      <div><dt>Duração</dt><dd>00:27</dd></div>
-      <div><dt>Formato</dt><dd>9:16</dd></div>
-    </dl>
-    <button class="process-video-play" type="button" data-video-open aria-controls="process-video-dialog" aria-haspopup="dialog">
-      <i aria-hidden="true">▶</i><span><small>Filme completo</small>Assistir ao antes e depois</span><b aria-hidden="true">00:27</b>
-    </button>
-    <small class="process-video-provenance">Registro real do mesmo veículo. A legenda não atribui um procedimento específico além do que as imagens confirmam.</small>
-  </aside>
-  <figure class="process-video-stage">
-    <div class="process-video-atmosphere" aria-hidden="true"><img src="${escapeHtml(processVideo.poster)}" alt="" loading="lazy" width="${processVideo.width}" height="${processVideo.height}"></div>
-    <div class="process-video-orbit" aria-hidden="true"></div>
-    <div class="process-video-rail" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
-    <div class="process-video-frame">
-      <video class="process-video-preview" data-process-preview muted playsinline loop preload="none" poster="${escapeHtml(processVideo.poster)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Preview silencioso do Volkswagen Up antes e depois">
-        <source data-src="${escapeHtml(processVideo.webm)}" type="video/webm">
-        <source data-src="${escapeHtml(processVideo.mp4)}" type="video/mp4">
-        Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(processVideo.fullSrc)}">Abra o vídeo completo</a>.
-      </video>
-      <div class="process-video-light" aria-hidden="true"></div>
-      <span class="process-video-frame-code" aria-hidden="true">LVM / FILM 01</span>
+const formatVideoDuration = (seconds) => {
+  const rounded = Math.max(0, Math.round(Number(seconds) || 0));
+  return `${String(Math.floor(rounded / 60)).padStart(2, "0")}:${String(rounded % 60).padStart(2, "0")}`;
+};
+const dualVideoPanel = (key, media, label, accent, index) => `<article class="dual-motion-panel${key === "before" ? " is-active" : ""}" id="dual-motion-${key}" data-dual-panel="${key}" data-video-state="poster" data-accent="${accent}" role="tabpanel" aria-labelledby="dual-motion-tab-${key}"${key === "after" ? " aria-hidden=\"true\"" : ""}>
+  <header class="dual-motion-panel-head">
+    <span>${String(index).padStart(2, "0")} / ${label}</span>
+    <small>Registro real · ${formatVideoDuration(media.duration)}</small>
+  </header>
+  <div class="dual-video-shell">
+    <div class="dual-video-atmosphere" aria-hidden="true"><img src="${escapeHtml(media.poster)}" alt="" loading="lazy" width="${media.width}" height="${media.height}"></div>
+    <video class="dual-video-preview" data-process-preview="${key}" muted playsinline loop preload="none" poster="${escapeHtml(media.poster)}" width="${media.width}" height="${media.height}" aria-label="Preview silencioso do Volkswagen Up — ${label.toLowerCase()}">
+      <source data-src="${escapeHtml(media.webm)}" type="video/webm">
+      <source data-src="${escapeHtml(media.mp4)}" type="video/mp4">
+      Seu navegador não conseguiu reproduzir o preview. <a href="${escapeHtml(media.fullSrc)}">Abra o vídeo completo</a>.
+    </video>
+    <div class="dual-video-light" aria-hidden="true"></div>
+    <span class="dual-video-code" aria-hidden="true">LVM / ${String(index).padStart(2, "0")}</span>
+    <span class="dual-video-status" data-dual-status>Preview silencioso</span>
+  </div>
+  <div class="dual-video-controls" aria-label="Controles do preview — ${label}">
+    <button class="dual-video-toggle" type="button" data-dual-play="${key}" aria-label="Reproduzir preview — ${label}" aria-pressed="false"><i aria-hidden="true">▶</i><span>Reproduzir</span></button>
+    <label class="dual-video-timeline"><span class="sr-only">Posição do preview — ${label}</span><input type="range" min="0" max="1000" value="0" step="1" data-dual-seek="${key}" aria-label="Posição do preview — ${label}"></label>
+    <output data-dual-time="${key}" aria-live="off">00:00 / 00:06</output>
+  </div>
+  <button class="dual-video-full" type="button" data-video-open="${key}" data-video-src="${escapeHtml(media.fullSrc)}" data-video-poster="${escapeHtml(media.poster)}" data-video-title="VOLKSWAGEN UP — ${label.toUpperCase()}" data-video-label="Vídeo completo e silencioso do Volkswagen Up — ${label.toLowerCase()}" data-video-duration="${formatVideoDuration(media.duration)}" aria-controls="process-video-dialog" aria-haspopup="dialog"><span>Assistir completo</span><i aria-hidden="true">↗</i></button>
+</article>`;
+const homeProcessVideo = `<div class="process-video-composition dual-motion" data-process-video-slot data-active-state="before" data-video-state="poster">
+  <header class="dual-motion-intro">
+    <div>
+      <span class="process-video-eyebrow">LavaMed Dual Motion Experience</span>
+      <h3 class="process-video-identity">
+        <span class="process-video-title-mask"><span class="process-video-marque">VOLKSWAGEN UP.</span></span>
+        <span class="process-video-title-mask"><span class="process-video-model">DO ANTES AO DEPOIS.</span></span>
+      </h3>
     </div>
-    <figcaption class="process-video-caption"><span>Volkswagen Up</span><strong>ANTES E DEPOIS</strong><small>Preview silencioso</small></figcaption>
-    <div class="process-video-progress" role="progressbar" aria-label="Progresso do preview" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i data-process-progress></i><span><b data-process-time>00:00</b> / 00:08</span></div>
-  </figure>
-  <noscript><a class="process-video-noscript" href="${escapeHtml(processVideo.fullSrc)}">Assistir ao vídeo completo do Volkswagen Up</a></noscript>
+    <div class="dual-motion-copy">
+      <p class="process-video-description">Dois registros reais do mesmo veículo, apresentados em seus próprios tempos. Compare a condição documentada antes e o resultado final depois dos cuidados da LavaMed.</p>
+      <div class="dual-motion-tabs" role="tablist" aria-label="Escolha o estado do Volkswagen Up">
+        <button id="dual-motion-tab-before" type="button" role="tab" aria-selected="true" aria-controls="dual-motion-before" tabindex="0" data-dual-select="before"><span>01</span>Antes</button>
+        <button id="dual-motion-tab-after" type="button" role="tab" aria-selected="false" aria-controls="dual-motion-after" tabindex="-1" data-dual-select="after"><span>02</span>Depois</button>
+      </div>
+    </div>
+  </header>
+  <div class="dual-motion-stage" data-dual-stage>
+    ${dualVideoPanel("before", processVideos.before, "Antes", "cyan", 1)}
+    <div class="dual-motion-axis" aria-hidden="true"><span>BEFORE</span><i></i><span>AFTER</span></div>
+    ${dualVideoPanel("after", processVideos.after, "Depois", "yellow", 2)}
+  </div>
+  <footer class="dual-motion-footer">
+    <small class="process-video-provenance">Registros reais do mesmo veículo. Os movimentos e as durações são independentes; não há sincronização artificial nem atribuição de procedimento além do que as imagens confirmam.</small>
+    <button class="dual-motion-next" type="button" data-dual-next data-target-state="after"><span data-dual-next-label>Ver depois</span><i aria-hidden="true">→</i></button>
+  </footer>
+  <noscript><div class="process-video-noscript"><a href="${escapeHtml(processVideos.before.fullSrc)}">Assistir ao vídeo completo — antes</a><a href="${escapeHtml(processVideos.after.fullSrc)}">Assistir ao vídeo completo — depois</a></div></noscript>
 </div>`;
 const homeVideoDialog = `<dialog class="video-dialog" id="process-video-dialog" data-video-dialog aria-labelledby="process-video-dialog-title">
   <div class="video-dialog-shell">
-    <header><div><span>Acervo real / filme completo</span><h2 id="process-video-dialog-title">VOLKSWAGEN UP — ANTES E DEPOIS</h2></div><button type="button" data-video-close aria-label="Fechar vídeo"><i></i><i></i></button></header>
-    <video data-process-full controls muted playsinline preload="none" poster="${escapeHtml(processVideo.poster)}" data-src="${escapeHtml(processVideo.fullSrc)}" width="${processVideo.width}" height="${processVideo.height}" aria-label="Vídeo completo e silencioso do Volkswagen Up antes e depois"></video>
-    <footer><span>00:27 / 720 × 1280</span><p>Registro real. Procedimento específico não confirmado pelo material.</p></footer>
+    <header><div><span>Acervo real / filme completo</span><h2 id="process-video-dialog-title" data-video-dialog-title>VOLKSWAGEN UP</h2></div><button type="button" data-video-close aria-label="Fechar vídeo"><i></i><i></i></button></header>
+    <video data-process-full controls muted playsinline preload="none" width="720" height="1280" aria-label="Vídeo completo e silencioso do Volkswagen Up"></video>
+    <footer><span data-video-dialog-duration>720 × 1280</span><p>Registro real. Procedimento específico não confirmado pelo material.</p></footer>
   </div>
 </dialog>`;
 const compareMarkup = (pair, label) => `<div class="compare" data-compare style="--position:50%">${pictureMarkup(pair.after, { className: "compare-base", alt: pair.after.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}<div class="compare-overlay">${pictureMarkup(pair.before, { alt: pair.before.alt, sizes: "(max-width: 760px) 94vw, 64vw" })}</div><div class="compare-refraction" aria-hidden="true"></div><span class="compare-label before">Antes</span><span class="compare-label after">Depois</span><button class="compare-handle" type="button" role="slider" aria-label="Comparar antes e depois: ${escapeHtml(label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i>↔</i></button></div>`;

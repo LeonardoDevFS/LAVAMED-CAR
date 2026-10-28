@@ -13,7 +13,7 @@ for (const route of routes) {
   try { await access(path.join(root, route)); } catch { problems.push(`Missing: ${route}`); }
 }
 const home = await readFile(path.join(root, "index.html"), "utf8");
-for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "data-process-video-slot", "data-process-preview", "data-video-dialog", "data-service-quote", "lang=\"pt-BR\""]) {
+for (const required of ["<h1", "canonical", "og:title", "data-compare", "menu-toggle", "data-process-video-slot", "data-process-preview=\"before\"", "data-process-preview=\"after\"", "data-dual-select", "data-video-dialog", "data-service-quote", "lang=\"pt-BR\""]) {
   if (required === "canonical") continue;
   if (!home.includes(required)) problems.push(`Home missing marker: ${required}`);
 }
@@ -27,24 +27,32 @@ if (home.includes("lavamed.example")) problems.push("Home contains the retired .
 if (!home.includes("/assets/images/hero/LavaMed_logo_vetorial_HD.svg")) problems.push("Home is not using the official LavaMed logo");
 if (!home.includes('type="image/avif"') || !home.includes("srcset=")) problems.push("Home is missing responsive AVIF/WebP media");
 if ((home.match(/class="gallery-item/g) || []).length !== 7) problems.push("Home gallery does not contain the seven classified portfolio items");
-if ((home.match(/data-process-preview/g) || []).length !== 1) problems.push("Home must contain exactly one real process preview");
+if ((home.match(/data-process-preview=/g) || []).length !== 2) problems.push("Home must contain exactly two independent real process previews");
 if ((home.match(/class="service-row/g) || []).length !== 8) problems.push("Home does not prioritize the eight requested commercial services");
 if ((home.match(/class="results-feature/g) || []).length !== 2) problems.push("Home does not contain the two featured real comparisons");
 if (!home.includes("conceitual-coupe-escuro")) problems.push("Home is not using the original black campaign car");
 if (home.includes("data-sound-toggle") || home.includes("experiência sonora")) problems.push("Home still contains removed sound controls");
-const processVideo = mediaCatalog["volkswagen-up-antes-depois"];
-if (!processVideo || processVideo.type !== "video") problems.push("Volkswagen Up video is missing from the generated media manifest");
-if (!home.includes("<video") || !home.includes(processVideo?.poster || "__missing_poster__") || !home.includes(processVideo?.fullSrc || "__missing_full_video__")) problems.push("Home is missing the real video, poster or full source");
-if (!home.includes("muted playsinline loop preload=\"none\"") || !home.includes("data-src=")) problems.push("Process preview is missing silent lazy-loading policy");
-if (!home.includes("Procedimento específico não confirmado")) problems.push("Video truthfulness disclosure is missing");
-if (processVideo?.hasAudio !== false) problems.push("Public video manifest must guarantee a silent derivative");
-try {
-  const videoAudit = JSON.parse(await readFile(path.resolve("docs/video-audit/volkswagen-up-antes-depois-metadata.json"), "utf8"));
-  if (videoAudit.derivatives.some((derivative) => derivative.streams.some((stream) => stream.codecType === "audio"))) problems.push("A public video derivative still contains an audio stream");
-  if (videoAudit.derivatives.length !== 3) problems.push("Video audit must document full MP4 and both preview formats");
-  const contactSheet = await stat(path.resolve("docs/video-audit/volkswagen-up-antes-depois-contact-sheet.jpg"));
-  if (contactSheet.size < 100_000) problems.push("Video contact sheet is missing or unexpectedly small");
-} catch { problems.push("Video FFprobe audit metadata or contact sheet is missing"); }
+const processVideos = [mediaCatalog["volkswagen-up-antes"], mediaCatalog["volkswagen-up-depois"]];
+if (processVideos.some((video) => !video || video.type !== "video")) problems.push("One or both Volkswagen Up state videos are missing from the generated media manifest");
+for (const video of processVideos) {
+  if (!video) continue;
+  if (!home.includes(video.poster) || !home.includes(video.fullSrc) || !home.includes(video.mp4) || !home.includes(video.webm)) problems.push(`Home is missing dual-motion sources for ${video.id}`);
+  if (video.hasAudio !== false) problems.push(`Public video manifest must guarantee a silent derivative: ${video.id}`);
+  if (!video.plateStatus?.includes("nenhuma placa legível")) problems.push(`Video privacy review is not documented: ${video.id}`);
+}
+if ((home.match(/muted playsinline loop preload="none"/g) || []).length !== 2 || (home.match(/<source data-src=/g) || []).length !== 4) problems.push("Dual previews are missing the silent lazy-loading policy");
+if (!home.includes("Os movimentos e as durações são independentes") || !home.includes("Procedimento específico não confirmado")) problems.push("Dual-video truthfulness disclosure is missing");
+if (home.includes("volkswagen-up-antes-depois-preview") || home.includes("volkswagen-up-antes-depois-completo")) problems.push("Home still uses the retired combined video as its primary experience");
+for (const videoId of ["volkswagen-up-antes", "volkswagen-up-depois"]) {
+  try {
+    const videoAudit = JSON.parse(await readFile(path.resolve(`docs/video-audit/dual-motion/${videoId}-metadata.json`), "utf8"));
+    if (videoAudit.derivatives.some((derivative) => derivative.streams.some((stream) => stream.codecType === "audio"))) problems.push(`A public derivative still contains audio: ${videoId}`);
+    if (videoAudit.derivatives.length !== 3) problems.push(`Video audit must document full MP4 and both preview formats: ${videoId}`);
+    if (!Array.isArray(videoAudit.privacyMasks)) problems.push(`Video privacy mask audit is malformed: ${videoId}`);
+    const contactSheet = await stat(path.resolve(`docs/video-audit/dual-motion/${videoId}-contact-sheet.jpg`));
+    if (contactSheet.size < 80_000) problems.push(`Video contact sheet is missing or unexpectedly small: ${videoId}`);
+  } catch { problems.push(`Video FFprobe audit metadata or contact sheet is missing: ${videoId}`); }
+}
 if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
 if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
 if ((home.match(/rel="preload" href="[^"]+\.woff2"/g) || []).length !== 2) problems.push("Home must preload both local brand fonts");
@@ -83,7 +91,7 @@ if (!sourceJs.includes('(min-width: 901px)') || !sourceJs.includes('(max-width: 
 if (!sourceJs.includes("document.fonts?.ready")) problems.push("ScrollTrigger is not refreshed after local fonts load");
 if (sourceJs.includes('gsap.quickTo(cursor, "x"') || !sourceJs.includes("gsap.quickSetter(cursor")) problems.push("Custom cursor is not using immediate low-latency setters");
 if (!sourceJs.includes('root.classList.add("has-custom-cursor")') || !sourceJs.includes('event.pointerType !== "mouse"')) problems.push("Custom cursor is missing safe mouse-only activation");
-if (!sourceJs.includes("IntersectionObserver") || !sourceJs.includes("connection?.saveData") || !sourceJs.includes("preview.pause()")) problems.push("Process preview is missing viewport/data-saver lifecycle handling");
+if (!sourceJs.includes("IntersectionObserver") || !sourceJs.includes("connection?.saveData") || !sourceJs.includes("video.pause()")) problems.push("Process previews are missing viewport/data-saver lifecycle handling");
 if (!sourceJs.includes('dialog?.addEventListener("close", resetDialog)') || !sourceJs.includes("fullVideo?.pause()")) problems.push("Full video dialog is missing accessible pause/focus cleanup");
 for (const media of Object.values(mediaCatalog)) {
   if (media.type === "video") {

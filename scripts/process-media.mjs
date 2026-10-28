@@ -50,13 +50,15 @@ function videoFilter(entry) {
     filters.push(`[${base}][${blurred}]overlay=${mask.x}:${mask.y}:enable='between(t,${mask.start},${mask.end})'[${masked}]`);
     current = masked;
   }
-  filters.push(`[${current}]eq=contrast=1.035:saturation=1.025:gamma=0.995,unsharp=5:5:0.18:3:3:0[processed]`);
+  filters.push(entry.preserveVisuals
+    ? `[${current}]null[processed]`
+    : `[${current}]eq=contrast=1.035:saturation=1.025:gamma=0.995,unsharp=5:5:0.18:3:3:0[processed]`);
   return filters.join(";");
 }
 
 async function processVideo(entry, sourcePath, metadata, probe) {
   const outputDir = path.join(imagesRoot, entry.publicationDir);
-  const auditDir = path.join(root, "docs", "video-audit");
+  const auditDir = path.join(root, entry.auditDir || path.join("docs", "video-audit"));
   await mkdir(outputDir, { recursive: true });
   await mkdir(thumbnailRoot, { recursive: true });
   await mkdir(auditDir, { recursive: true });
@@ -72,17 +74,28 @@ async function processVideo(entry, sourcePath, metadata, probe) {
   const previewWebmPath = path.join(outputDir, previewWebmName);
   const posterJpegPath = path.join(outputDir, `${entry.publicationBase}-poster-source.jpg`);
 
-  await runFile(ffmpegPath, [
-    "-hide_banner", "-loglevel", "error", "-y",
-    "-i", sourcePath,
-    "-filter_complex", videoFilter(entry),
-    "-map", "[processed]",
-    "-an",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "22",
-    "-profile:v", "high", "-level", "4.0", "-pix_fmt", "yuv420p",
-    "-movflags", "+faststart",
-    fullPath
-  ], { maxBuffer: 4 * 1024 * 1024 });
+  if (entry.preserveVisuals && !(entry.privacyMasks || []).length) {
+    await runFile(ffmpegPath, [
+      "-hide_banner", "-loglevel", "error", "-y",
+      "-i", sourcePath,
+      "-map", "0:v:0", "-an",
+      "-c:v", "copy",
+      "-movflags", "+faststart",
+      fullPath
+    ], { maxBuffer: 4 * 1024 * 1024 });
+  } else {
+    await runFile(ffmpegPath, [
+      "-hide_banner", "-loglevel", "error", "-y",
+      "-i", sourcePath,
+      "-filter_complex", videoFilter(entry),
+      "-map", "[processed]",
+      "-an",
+      "-c:v", "libx264", "-preset", "slow", "-crf", "22",
+      "-profile:v", "high", "-level", "4.0", "-pix_fmt", "yuv420p",
+      "-movflags", "+faststart",
+      fullPath
+    ], { maxBuffer: 4 * 1024 * 1024 });
+  }
 
   const segments = entry.previewSegments || [];
   const previewDuration = segments.reduce((total, segment) => total + segment.end - segment.start, 0);
@@ -124,10 +137,13 @@ async function processVideo(entry, sourcePath, metadata, probe) {
     .toFile(path.join(thumbnailRoot, thumbnailName));
   await rm(posterJpegPath, { force: true });
 
+  const contactSheetFrames = entry.contactSheetFrames || 12;
+  const contactSheetColumns = 4;
+  const contactSheetRows = Math.ceil(contactSheetFrames / contactSheetColumns);
   await runFile(ffmpegPath, [
     "-hide_banner", "-loglevel", "error", "-y",
     "-i", sourcePath,
-    "-vf", "fps=1/2.3,scale=240:-2:flags=lanczos,tile=4x3:padding=8:margin=8:color=0x050b12",
+    "-vf", `fps=${contactSheetFrames}/${Number(probe.format.duration).toFixed(6)},scale=320:-2:flags=lanczos,tile=${contactSheetColumns}x${contactSheetRows}:padding=8:margin=8:color=0x050b12`,
     "-frames:v", "1", "-q:v", "2", "-update", "1",
     path.join(auditDir, `${entry.publicationBase}-contact-sheet.jpg`)
   ]);
@@ -170,6 +186,7 @@ async function processVideo(entry, sourcePath, metadata, probe) {
     },
     privacyMasks: entry.privacyMasks,
     previewSegments: entry.previewSegments,
+    preserveVisuals: Boolean(entry.preserveVisuals),
     derivatives: derivativeFiles.map((file, index) => ({
       file: slash(path.relative(root, file)),
       duration: Number(derivativeProbes[index].format.duration),
@@ -189,6 +206,7 @@ async function processVideo(entry, sourcePath, metadata, probe) {
     classification: entry.classification,
     confidence: entry.confidence,
     stage: entry.stage,
+    stateLabel: entry.stateLabel || entry.stage,
     alt: entry.alt,
     truthLabel: entry.classification,
     illustrative: false,
@@ -357,15 +375,17 @@ for (const entry of catalog) {
 const manifestSource = `/**\n * Gerado por scripts/process-media.mjs a partir de media/catalog.json.\n * Não editar manualmente.\n */\nexport const mediaCatalog = ${JSON.stringify(manifest, null, 2)};\n\nexport function mediaById(id) {\n  const media = mediaCatalog[id];\n  if (!media) throw new Error(\`Mídia não encontrada: \${id}\`);\n  return media;\n}\n`;
 await writeFile(manifestPath, manifestSource, "utf8");
 
+const inventoryDate = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo" }).format(new Date());
+const videoCount = inventory.filter((item) => item.type === "vídeo").length;
 const markdown = `# Inventário de mídias da LavaMed\n\n` +
-  `Gerado em 26/10/2026 por \`npm run media:process\`. Os originais ficam fora de \`src/\` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.\n\n` +
+  `Gerado em ${inventoryDate} por \`npm run media:process\`. Os originais ficam fora de \`src/\` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.\n\n` +
   `## Resumo\n\n` +
   `- ${inventory.filter((item) => item.type === "fotografia").length} fotografias raster encontradas.\n` +
   `- ${inventory.filter((item) => item.type === "vetor").length} arquivo vetorial encontrado.\n` +
-  `- ${inventory.filter((item) => item.type === "vídeo").length} vídeo real encontrado e processado.\n` +
+  `- ${videoCount} ${videoCount === 1 ? "vídeo real encontrado e processado" : "vídeos reais encontrados e processados"}.\n` +
   `- 2 duplicatas binárias preservadas, mas não replicadas no build.\n` +
-  `- Fotografias publicadas em WebP/AVIF; vídeo publicado em MP4 H.264 e preview adicional em WebM VP9; thumbnails em WebP.\n` +
-  `- Os arquivos fotográficos com veículos externos já chegaram com a placa coberta pela marca LavaMed; a aparição parcial da placa no vídeo recebeu máscara preventiva nos derivados.\n\n` +
+  `- Fotografias publicadas em WebP/AVIF; vídeos publicados em MP4 H.264 e previews adicionais em WebM VP9; thumbnails em WebP.\n` +
+  `- Os arquivos com placas visíveis recebem máscara nos derivados; os dois registros Dual Motion não exibem placa legível nos enquadramentos inspecionados.\n\n` +
   `## Inventário detalhado\n\n` +
   `| Original | Publicação | Procedimento / conteúdo | Confiança | Resolução | Tamanho | Tipo | Etapa | Qualidade | Edição | Melhor uso | Placa | Caminho final | SHA-256 |\n` +
   `|---|---|---|---|---:|---:|---|---|---|---|---|---|---|---|\n` +
@@ -374,8 +394,9 @@ const markdown = `# Inventário de mídias da LavaMed\n\n` +
   `- “Exterior finalizado” descreve somente o que a fotografia comprova; não implica polimento, vitrificação ou outro tratamento específico.\n` +
   `- Os pares do trilho do banco e do farol têm o mesmo veículo e enquadramento compatível e podem ser usados em comparadores.\n` +
   `- Os dois assets em \`generated/\` são composições conceituais e nunca são apresentados como atendimento real.\n` +
-  `- O vídeo do Volkswagen Up comprova um antes/depois do mesmo veículo, mas não permite afirmar qual pacote ou procedimento específico foi executado.\n` +
-  `- O áudio presente no original foi removido integralmente dos derivados públicos; a experiência permanece silenciosa.\n`;
+  `- Os dois vídeos Dual Motion documentam o estado anterior e o resultado final do mesmo Volkswagen Up, mas não permitem afirmar qual pacote específico foi executado.\n` +
+  `- Os ângulos e as durações dos dois estados não são idênticos; a comparação é editorial e não sincroniza artificialmente os quadros.\n` +
+  `- Todo áudio presente nos originais foi removido integralmente dos derivados públicos; a experiência permanece silenciosa.\n`;
 await writeFile(inventoryPath, markdown, "utf8");
 
 console.log(`Processadas ${catalog.length} entradas; ${Object.keys(manifest).length} mídias publicáveis e ${inventory.length} registros inventariados.`);

@@ -1,15 +1,15 @@
 # Inventário de mídias da LavaMed
 
-Gerado em 26/10/2026 por `npm run media:process`. Os originais ficam fora de `src/` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.
+Gerado em 27/10/2026 por `npm run media:process`. Os originais ficam fora de `src/` para não entrarem no build. Nenhum original foi excluído ou sobrescrito.
 
 ## Resumo
 
 - 22 fotografias raster encontradas.
 - 1 arquivo vetorial encontrado.
-- 1 vídeo real encontrado e processado.
+- 3 vídeos reais encontrados e processados.
 - 2 duplicatas binárias preservadas, mas não replicadas no build.
-- Fotografias publicadas em WebP/AVIF; vídeo publicado em MP4 H.264 e preview adicional em WebM VP9; thumbnails em WebP.
-- Os arquivos fotográficos com veículos externos já chegaram com a placa coberta pela marca LavaMed; a aparição parcial da placa no vídeo recebeu máscara preventiva nos derivados.
+- Fotografias publicadas em WebP/AVIF; vídeos publicados em MP4 H.264 e previews adicionais em WebM VP9; thumbnails em WebP.
+- Os arquivos com placas visíveis recebem máscara nos derivados; os dois registros Dual Motion não exibem placa legível nos enquadramentos inspecionados.
 
 ## Inventário detalhado
 
@@ -38,6 +38,8 @@ Gerado em 26/10/2026 por `npm run media:process`. Os originais ficam fora de `sr
 | media-originals/legacy-conceptual/lavamed-detail.jpg | conceitual-detalhe-agua | Composição conceitual — detalhe de pintura e água | alta | 1672 × 941 | 427.4 KB | fotografia | indeterminada | boa; horizontal | otimização e derivados responsivos | transição líquida e apoio visual; nunca como trabalho real | sem placa visível | /assets/images/generated/conceitual-detalhe-agua-1672.webp | `cec52f723adc…` |
 | media-originals/legacy-conceptual/lavamed-hero.jpg | conceitual-coupe-escuro | Composição conceitual — cupê em estúdio escuro | alta | 1672 × 941 | 258.1 KB | fotografia | indeterminada | boa; horizontal | otimização e derivados responsivos | apoio de campanha; nunca como trabalho real | sem placa visível | /assets/images/generated/conceitual-coupe-escuro-1672.webp | `d7d7f73026e2…` |
 | media-originals/2026-10-26/videos/Video do UP em antes e depois.mp4 | volkswagen-up-antes-depois | Volkswagen Up — registro real de antes e depois; procedimento específico não confirmado | alta para a comparação; baixa para o procedimento executado | 720 × 1280 | 5.61 MB | vídeo | antes e depois | boa; vídeo vertical 720 × 1280, luz solar variável e movimento de câmera manual | máscara preventiva na aparição parcial da placa, correção de cor moderada, nitidez discreta, remoção integral do áudio e derivados H.264/VP9 para web | preview cinematográfico na home e reprodução completa sob demanda | placa traseira aparece parcialmente na borda inferior entre aproximadamente 2,1 s e 3,5 s; região mascarada nos derivados | /assets/images/videos/volkswagen-up-antes-depois-preview.mp4 | `580527e838a7…` |
+| media-originals/2026-10-27/videos/volkswagen-up-antes.mp4 | volkswagen-up-antes | Volkswagen Up — estado original documentado antes dos cuidados da LavaMed | alta para o estado anterior; procedimento específico não identificado pelo arquivo | 720 × 1280 | 3.49 MB | vídeo | antes | boa; vídeo vertical 720 × 1280, luz solar intensa e movimento de câmera manual | preservação cromática, remoção integral do áudio, remux H.264 silencioso e previews H.264/VP9 para web | estado Antes da experiência LavaMed Dual Motion | nenhuma placa legível identificada na inspeção quadro a quadro; a região da placa permanece fora do enquadramento útil | /assets/images/videos/volkswagen-up/antes/volkswagen-up-antes-preview.mp4 | `0376e48fe19f…` |
+| media-originals/2026-10-27/videos/volkswagen-up-depois.mp4 | volkswagen-up-depois | Volkswagen Up — resultado final documentado depois dos cuidados da LavaMed | alta para o estado posterior; procedimento específico não identificado pelo arquivo | 720 × 1280 | 5.14 MB | vídeo | depois | boa; vídeo vertical 720 × 1280, luz solar intensa e movimento de câmera manual | preservação cromática, remoção integral do áudio, remux H.264 silencioso e previews H.264/VP9 para web | estado Depois da experiência LavaMed Dual Motion | nenhuma placa legível identificada na inspeção quadro a quadro; reflexos do ambiente foram preservados sem alterar o veículo | /assets/images/videos/volkswagen-up/depois/volkswagen-up-depois-preview.mp4 | `f282fa7f436b…` |
 | src/assets/images/hero/LavaMed_logo_vetorial_HD.svg | LavaMed_logo_vetorial_HD.svg | Identidade visual oficial | alta | 628 × 552 | 63.0 KB | vetor | indeterminada | vetorial | nenhuma | cabeçalho, rodapé e metadados | não aplicável | /assets/images/hero/LavaMed_logo_vetorial_HD.svg | `3807d4ca4b40…` |
 
 ## Critérios de verdade visual
@@ -45,5 +47,6 @@ Gerado em 26/10/2026 por `npm run media:process`. Os originais ficam fora de `sr
 - “Exterior finalizado” descreve somente o que a fotografia comprova; não implica polimento, vitrificação ou outro tratamento específico.
 - Os pares do trilho do banco e do farol têm o mesmo veículo e enquadramento compatível e podem ser usados em comparadores.
 - Os dois assets em `generated/` são composições conceituais e nunca são apresentados como atendimento real.
-- O vídeo do Volkswagen Up comprova um antes/depois do mesmo veículo, mas não permite afirmar qual pacote ou procedimento específico foi executado.
-- O áudio presente no original foi removido integralmente dos derivados públicos; a experiência permanece silenciosa.
+- Os dois vídeos Dual Motion documentam o estado anterior e o resultado final do mesmo Volkswagen Up, mas não permitem afirmar qual pacote específico foi executado.
+- Os ângulos e as durações dos dois estados não são idênticos; a comparação é editorial e não sincroniza artificialmente os quadros.
+- Todo áudio presente nos originais foi removido integralmente dos derivados públicos; a experiência permanece silenciosa.

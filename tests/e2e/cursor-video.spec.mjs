@@ -110,77 +110,108 @@ test("cursor interaction states do not interfere with menu, dragging, comparison
   await expect(page.locator(":focus")).toBeVisible();
 });
 
-test("video preview is lazy, silent, stable and pauses outside the viewport", async ({ page, request }) => {
+test("dual previews load independently, stay silent and pause outside the viewport", async ({ page, request }) => {
   const mediaRequests = [];
-  page.on("request", (resource) => { if (/volkswagen-up-antes-depois-(preview|completo)\.(mp4|webm)/.test(resource.url())) mediaRequests.push(resource.url()); });
+  const runtimeErrors = [];
+  page.on("request", (resource) => { if (/volkswagen-up-(antes|depois)-(preview|completo)\.(mp4|webm)/.test(resource.url())) mediaRequests.push(resource.url()); });
+  page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
   await page.goto("/");
   await page.waitForTimeout(500);
   expect(mediaRequests).toEqual([]);
 
-  for (const asset of [
-    "/assets/images/videos/volkswagen-up-antes-depois-preview.mp4",
-    "/assets/images/videos/volkswagen-up-antes-depois-preview.webm",
-    "/assets/images/videos/volkswagen-up-antes-depois-completo.mp4",
-    "/assets/images/videos/volkswagen-up-antes-depois-poster.webp"
-  ]) {
-    const response = await request.get(asset);
-    expect(response.status(), asset).toBe(200);
-    expect((await response.body()).byteLength, asset).toBeGreaterThan(5_000);
+  for (const state of ["antes", "depois"]) {
+    for (const file of [`volkswagen-up-${state}-preview.mp4`, `volkswagen-up-${state}-preview.webm`, `volkswagen-up-${state}-completo.mp4`, `volkswagen-up-${state}-poster.webp`]) {
+      const asset = `/assets/images/videos/volkswagen-up/${state}/${file}`;
+      const response = await request.get(asset);
+      expect(response.status(), asset).toBe(200);
+      expect((await response.body()).byteLength, asset).toBeGreaterThan(5_000);
+    }
   }
 
   const slot = page.locator("[data-process-video-slot]");
-  const preview = page.locator("[data-process-preview]");
-  const before = await preview.evaluate((video) => ({ width: video.offsetWidth, height: video.offsetHeight }));
+  const stage = page.locator("[data-dual-stage]");
+  const before = page.locator('[data-process-preview="before"]');
+  const after = page.locator('[data-process-preview="after"]');
+  const stageBefore = await stage.boundingBox();
   await slot.scrollIntoViewIfNeeded();
   await expect(slot).toHaveAttribute("data-video-state", "playing", { timeout: 12_000 });
-  await expect.poll(() => preview.evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
-  await expect.poll(() => page.locator(".process-video-progress").getAttribute("aria-valuenow").then(Number)).toBeGreaterThan(0);
-  const after = await preview.evaluate((video) => ({ width: video.offsetWidth, height: video.offsetHeight }));
-  expect(Math.abs(before.width - after.width)).toBeLessThanOrEqual(1);
-  expect(Math.abs(before.height - after.height)).toBeLessThanOrEqual(1);
-  expect(await preview.evaluate((video) => ({ muted: video.muted, loop: video.loop, playsInline: video.playsInline, preload: video.preload }))).toEqual({ muted: true, loop: true, playsInline: true, preload: "none" });
+  await expect.poll(() => before.evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
+  const stageAfter = await stage.boundingBox();
+  expect(Math.abs(stageBefore.width - stageAfter.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(stageBefore.height - stageAfter.height)).toBeLessThanOrEqual(1);
+  expect(await after.evaluate((video) => video.dataset.loaded || "")).toBe("");
+  expect(await before.evaluate((video) => ({ muted: video.muted, loop: video.loop, playsInline: video.playsInline, preload: video.preload }))).toEqual({ muted: true, loop: true, playsInline: true, preload: "none" });
+
+  await page.locator('[data-dual-select="after"]').click();
+  await expect(slot).toHaveAttribute("data-active-state", "after");
+  await expect.poll(() => after.evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
+  await expect.poll(() => before.evaluate((video) => video.paused)).toBe(true);
+  expect(mediaRequests.some((url) => url.includes("volkswagen-up-antes-preview"))).toBe(true);
+  expect(mediaRequests.some((url) => url.includes("volkswagen-up-depois-preview"))).toBe(true);
+
+  const pause = page.locator('[data-dual-play="after"]');
+  await pause.click();
+  await expect.poll(() => after.evaluate((video) => video.paused)).toBe(true);
+  const seek = page.locator('[data-dual-seek="after"]');
+  await seek.fill("500");
+  await seek.dispatchEvent("input");
+  await expect.poll(() => after.evaluate((video) => video.currentTime)).toBeGreaterThan(2);
 
   await page.evaluate(() => scrollTo(0, 0));
-  await expect.poll(() => preview.evaluate((video) => video.paused)).toBe(true);
+  await expect.poll(() => after.evaluate((video) => video.paused)).toBe(true);
   await expect(slot).toHaveAttribute("data-video-state", "paused");
+  expect(runtimeErrors).toEqual([]);
 });
 
-test("full video dialog loads on demand, remains silent and restores focus", async ({ page }) => {
+test("each full film loads on demand, remains silent and restores focus", async ({ page }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  const trigger = page.locator("[data-video-open]");
-  await trigger.scrollIntoViewIfNeeded();
-  const full = page.locator("[data-process-full]");
-  expect(await full.getAttribute("src")).toBeNull();
-
-  await trigger.click();
+  const slot = page.locator("[data-process-video-slot]");
+  await slot.scrollIntoViewIfNeeded();
   const dialog = page.locator("[data-video-dialog]");
+  const full = page.locator("[data-process-full]");
+  await expect(full).not.toHaveAttribute("src", /.+/);
+
+  const beforeTrigger = page.locator('[data-video-open="before"]');
+  await beforeTrigger.click();
   await expect(dialog).toHaveAttribute("open", "");
-  await expect(full).toHaveAttribute("src", /volkswagen-up-antes-depois-completo\.mp4/);
+  await expect(full).toHaveAttribute("src", /volkswagen-up-antes-completo\.mp4/);
+  await expect(page.locator("[data-video-dialog-title]")).toContainText("ANTES");
   await expect.poll(() => full.evaluate((video) => video.readyState)).toBeGreaterThanOrEqual(2);
   expect(await full.evaluate((video) => ({ muted: video.muted, volume: video.volume }))).toEqual({ muted: true, volume: 0 });
   await page.keyboard.press("Escape");
   await expect(dialog).not.toHaveAttribute("open", "");
-  expect(await full.evaluate((video) => ({ paused: video.paused, currentTime: video.currentTime }))).toEqual({ paused: true, currentTime: 0 });
-  await expect(trigger).toBeFocused();
+  await expect(beforeTrigger).toBeFocused();
+  await expect(full).not.toHaveAttribute("src", /.+/);
+
+  await page.locator('[data-dual-select="after"]').click();
+  const afterTrigger = page.locator('[data-video-open="after"]');
+  await afterTrigger.click();
+  await expect(full).toHaveAttribute("src", /volkswagen-up-depois-completo\.mp4/);
+  await expect(page.locator("[data-video-dialog-title]")).toContainText("DEPOIS");
+  await page.locator("[data-video-close]").click();
+  await expect(afterTrigger).toBeFocused();
   expect(errors).toEqual([]);
 });
 
-test("preview failure preserves the poster fallback without breaking the section", async ({ page }) => {
-  await page.route(/volkswagen-up-antes-depois-preview\.(mp4|webm)/, (route) => route.abort("failed"));
+test("one failed state preserves its own poster fallback without breaking the other", async ({ page }) => {
+  await page.route(/volkswagen-up-antes-preview\.(mp4|webm)/, (route) => route.abort("failed"));
   await page.goto("/");
   const slot = page.locator("[data-process-video-slot]");
-  const preview = page.locator("[data-process-preview]");
+  const beforePanel = page.locator('[data-dual-panel="before"]');
   await slot.scrollIntoViewIfNeeded();
-  await expect(slot).toHaveAttribute("data-video-state", "fallback", { timeout: 10_000 });
-  await expect(preview).toHaveAttribute("poster", /volkswagen-up-antes-depois-poster\.webp/);
-  await expect(page.locator("[data-video-open]")).toBeVisible();
+  await expect(beforePanel).toHaveAttribute("data-video-state", "fallback", { timeout: 10_000 });
+  await expect(page.locator('[data-process-preview="before"]')).toHaveAttribute("poster", /volkswagen-up-antes-poster\.webp/);
+  await page.locator('[data-dual-select="after"]').click();
+  await expect.poll(() => page.locator('[data-process-preview="after"]').evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
+  await expect(page.locator('[data-video-open="before"]')).toBeVisible();
 });
 
-test("reduced motion keeps the video on its poster and does not fetch the preview", async ({ page }) => {
+test("reduced motion keeps both previews on their posters until explicit playback", async ({ page }) => {
   const mediaRequests = [];
-  page.on("request", (resource) => { if (/volkswagen-up-antes-depois-preview\.(mp4|webm)/.test(resource.url())) mediaRequests.push(resource.url()); });
+  page.on("request", (resource) => { if (/volkswagen-up-(antes|depois)-preview\.(mp4|webm)/.test(resource.url())) mediaRequests.push(resource.url()); });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const slot = page.locator("[data-process-video-slot]");
@@ -188,20 +219,41 @@ test("reduced motion keeps the video on its poster and does not fetch the previe
   await page.waitForTimeout(400);
   await expect(slot).toHaveAttribute("data-video-state", "reduced-motion");
   expect(mediaRequests).toEqual([]);
-  await expect(page.locator("[data-process-preview] source").first()).not.toHaveAttribute("src", /.+/);
+  await expect(page.locator('[data-process-preview="before"] source').first()).not.toHaveAttribute("src", /.+/);
+  await page.locator('[data-dual-play="before"]').click();
+  await expect.poll(() => page.locator('[data-process-preview="before"]').evaluate((video) => video.currentTime)).toBeGreaterThan(.05);
+});
+
+test("dual-state tabs support arrow keys and keep only one preview playing", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("[data-process-video-slot]").scrollIntoViewIfNeeded();
+  const beforeTab = page.locator('[data-dual-select="before"]');
+  await expect(beforeTab).toBeVisible();
+  await page.waitForTimeout(1_200);
+  await beforeTab.press("ArrowRight");
+  const afterTab = page.locator('[data-dual-select="after"]');
+  await expect(afterTab).toBeFocused();
+  await expect(afterTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator('[data-dual-panel="after"]')).toHaveClass(/is-active/);
+  await expect.poll(() => page.locator('[data-process-preview="before"]').evaluate((video) => video.paused)).toBe(true);
+  await afterTab.press("Home");
+  await expect(beforeTab).toBeFocused();
+  await expect(beforeTab).toHaveAttribute("aria-selected", "true");
 });
 
 test.describe("touch input", () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } });
 
-  test("keeps the native touch model and an uncropped vertical video", async ({ page }) => {
+  test("uses one large uncropped film at a time and switches by touch", async ({ page }) => {
     await page.goto("/");
     await page.touchscreen.tap(180, 300);
     await expect(page.locator("html")).not.toHaveClass(/has-custom-cursor/);
     await expect(page.locator(".cursor")).toHaveCSS("display", "none");
-    const stage = page.locator(".process-video-stage");
+    const stage = page.locator(".dual-motion-stage");
     await stage.scrollIntoViewIfNeeded();
-    const presentation = await page.locator("[data-process-preview]").evaluate((video) => ({
+    await expect(page.locator('[data-dual-panel="before"]')).toBeVisible();
+    await expect(page.locator('[data-dual-panel="after"]')).toBeHidden();
+    const presentation = await page.locator('[data-process-preview="before"]').evaluate((video) => ({
       objectFit: getComputedStyle(video).objectFit,
       ratio: video.getBoundingClientRect().width / video.getBoundingClientRect().height,
       scrollWidth: document.documentElement.scrollWidth,
@@ -210,8 +262,12 @@ test.describe("touch input", () => {
     expect(presentation.objectFit).toBe("contain");
     expect(Math.abs(presentation.ratio - 9 / 16)).toBeLessThan(.02);
     expect(presentation.scrollWidth).toBeLessThanOrEqual(presentation.viewport);
-    await page.locator("[data-video-open]").tap();
+    await page.locator('[data-dual-select="after"]').tap();
+    await expect(page.locator('[data-dual-panel="after"]')).toBeVisible();
+    await expect(page.locator('[data-dual-panel="before"]')).toBeHidden();
+    await page.locator('[data-video-open="after"]').tap();
     await expect(page.locator("[data-video-dialog]")).toHaveAttribute("open", "");
+    await expect(page.locator("[data-process-full]")).toHaveAttribute("src", /volkswagen-up-depois-completo\.mp4/);
     expect(await page.locator("[data-process-full]").evaluate((video) => video.muted && video.playsInline)).toBe(true);
     await page.locator("[data-video-close]").tap();
     await expect(page.locator("[data-video-dialog]")).not.toHaveAttribute("open", "");

@@ -307,8 +307,11 @@ export const storyActs = [
   { key: "resultado", image: mediaById("honda-civic-g10-tres-quartos"), illustrative: false }
 ];
 
-/** Vídeo real do Volkswagen Up, publicado sem áudio e com privacidade tratada. */
-export const processVideo = mediaById("volkswagen-up-antes-depois");
+/** Registros reais e independentes do Volkswagen Up, publicados sem áudio. */
+export const processVideos = Object.freeze({
+  before: mediaById("volkswagen-up-antes"),
+  after: mediaById("volkswagen-up-depois")
+});
 
 /** Fotografias reais preservadas como fallback editorial sem JavaScript ou vídeo. */
 export const processMedia = [

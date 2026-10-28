@@ -59,6 +59,7 @@
       "label": "interior depois"
     }
   ],
+  "preserveVisuals": false,
   "derivatives": [
     {
       "file": "src/assets/images/videos/volkswagen-up-antes-depois-completo.mp4",

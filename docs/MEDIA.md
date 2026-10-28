@@ -2,7 +2,7 @@
 
 ## Fluxo dos arquivos
 
-Os arquivos-fonte ficam em `media-originals/`, fora de `src/`, para não serem copiados ao build. A pasta `2026-10-25/` preserva os nomes recebidos; `legacy-conceptual/` preserva as duas artes da campanha original.
+Os arquivos-fonte ficam em `media-originals/`, fora de `src/`, para não serem copiados ao build. As pastas datadas preservam os nomes e os binários recebidos; `legacy-conceptual/` preserva as duas artes da campanha original.
 
 `media/catalog.json` é a fonte de verdade para classificação, confiança, etapa, uso, texto alternativo e regras de largura. Execute:
 
@@ -22,7 +22,7 @@ Nunca edite `src/media-manifest.js` manualmente. Para incluir material novo, pre
 |---|---|
 | Hero e cena final | cupê preto da campanha conceitual original, claramente identificado |
 | Storytelling | campanha conceitual, farol real, cabine em processo e Civic finalizado |
-| Processo | vídeo real do Volkswagen Up, com fotografias classificadas preservadas como fallback editorial |
+| Processo | dois vídeos reais e independentes do Volkswagen Up: estado anterior e resultado final |
 | Serviços | oito serviços prioritários na home e onze rotas individuais |
 | Portfólio | Civic, HB20, Compass, Volkswagen, interior, motor e Yamaha Fazer |
 | Antes/depois | cabine desmontada, trilho do banco e farol |
@@ -35,19 +35,24 @@ As placas visíveis nos arquivos de exterior já chegaram cobertas pela marca La
 
 Esta versão não usa música, efeitos sintetizados, arquivos sonoros ou controles de som. A decisão é intencional e preserva toda a linguagem visual e as animações.
 
-## Vídeo do Volkswagen Up
+## LavaMed Dual Motion Experience
 
-O original de 27,77 segundos fica preservado em `media-originals/2026-10-26/videos/`, fora do build público. Ele é vertical, tem resolução de 720 × 1280, 30 fps, vídeo H.264 High e uma faixa AAC que não é publicada.
+Os dois originais ficam preservados em `media-originals/2026-10-27/videos/`, fora do build público:
 
-O conteúdo comprova o antes e o depois do mesmo Volkswagen Up, mostrando exterior traseiro e interior. O material não comprova qual pacote ou procedimento específico foi executado; por isso os textos permanecem neutros.
+- `volkswagen-up-antes.mp4`: 10,82 s, 720 × 1280, H.264 Main, aproximadamente 30 fps;
+- `volkswagen-up-depois.mp4`: 16,36 s, 720 × 1280, H.264 Main, aproximadamente 30 fps.
 
-Derivados gerados:
+Ambos chegaram com faixa AAC, removida integralmente dos derivados públicos. O vídeo H.264 das versões completas é preservado por remux, sem correção cromática ou alteração do veículo. A inspeção dos contact sheets não encontrou placa legível; por isso esses dois registros não recebem máscara. Os reflexos e a luz variável do material original permanecem intactos.
 
-- preview de 8 segundos com quatro trechos correspondentes de antes e depois;
+O conteúdo comprova a condição anterior e o resultado final do mesmo Volkswagen Up. Os ângulos e as durações não são idênticos e o material não comprova qual pacote específico foi executado. A interface apresenta uma comparação editorial com reprodução independente, sem scrub sincronizado ou falsa equivalência quadro a quadro.
+
+Para cada estado, o pipeline gera:
+
+- preview editorial de 6 segundos em MP4 H.264 e WebM VP9;
 - MP4 H.264 completo com `faststart`, sem áudio;
-- preview WebM VP9, menor que o MP4 e utilizado quando suportado;
 - poster WebP/AVIF e thumbnail WebP;
-- contact sheet em `docs/video-audit/`;
-- máscara preventiva acompanhando a aparição parcial da placa traseira entre aproximadamente 2,1 s e 3,5 s.
+- contact sheet e metadados FFprobe em `docs/video-audit/dual-motion/`.
 
-O preview usa `preload="none"`, só recebe as fontes quando a seção se aproxima da viewport, pausa ao sair da tela e permanece no poster com redução de movimento ou economia de dados. O vídeo completo é carregado apenas quando o visitante abre o diálogo e continua permanentemente silencioso.
+Os previews usam `preload="none"`. Apenas o estado ativo recebe as fontes quando a experiência se aproxima da viewport; a troca pausa o anterior e a saída da tela pausa ambos. Redução de movimento e economia de dados mantêm os pôsteres até uma ação explícita. Cada vídeo completo é carregado somente no diálogo solicitado e permanece permanentemente silencioso.
+
+O vídeo combinado de 2026-10-26 continua arquivado e auditável como material legado, mas não é mais a fonte primária da experiência na home.
