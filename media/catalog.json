@@ -395,6 +395,58 @@
     ]
   },
   {
+    "id": "volkswagen-up-antes",
+    "source": "media-originals/2026-10-27/videos/volkswagen-up-antes.mp4",
+    "publicationDir": "videos/volkswagen-up/antes",
+    "publicationBase": "volkswagen-up-antes",
+    "classification": "Volkswagen Up — estado original documentado antes dos cuidados da LavaMed",
+    "confidence": "alta para o estado anterior; procedimento específico não identificado pelo arquivo",
+    "stage": "antes",
+    "stateLabel": "01 / Antes",
+    "quality": "boa; vídeo vertical 720 × 1280, luz solar intensa e movimento de câmera manual",
+    "edit": "preservação cromática, remoção integral do áudio, remux H.264 silencioso e previews H.264/VP9 para web",
+    "usage": "estado Antes da experiência LavaMed Dual Motion",
+    "alt": "Volkswagen Up antes dos cuidados realizados pela LavaMed",
+    "plateStatus": "nenhuma placa legível identificada na inspeção quadro a quadro; a região da placa permanece fora do enquadramento útil",
+    "pipeline": "video",
+    "preserveVisuals": true,
+    "auditDir": "docs/video-audit/dual-motion",
+    "contactSheetFrames": 12,
+    "posterTime": 1.4,
+    "previewSegments": [
+      { "start": 0.3, "end": 2.3, "label": "traseira antes" },
+      { "start": 4.3, "end": 6.3, "label": "soleira antes" },
+      { "start": 8.5, "end": 10.5, "label": "interior traseiro antes" }
+    ],
+    "privacyMasks": []
+  },
+  {
+    "id": "volkswagen-up-depois",
+    "source": "media-originals/2026-10-27/videos/volkswagen-up-depois.mp4",
+    "publicationDir": "videos/volkswagen-up/depois",
+    "publicationBase": "volkswagen-up-depois",
+    "classification": "Volkswagen Up — resultado final documentado depois dos cuidados da LavaMed",
+    "confidence": "alta para o estado posterior; procedimento específico não identificado pelo arquivo",
+    "stage": "depois",
+    "stateLabel": "02 / Depois",
+    "quality": "boa; vídeo vertical 720 × 1280, luz solar intensa e movimento de câmera manual",
+    "edit": "preservação cromática, remoção integral do áudio, remux H.264 silencioso e previews H.264/VP9 para web",
+    "usage": "estado Depois da experiência LavaMed Dual Motion",
+    "alt": "Volkswagen Up depois dos cuidados realizados pela LavaMed",
+    "plateStatus": "nenhuma placa legível identificada na inspeção quadro a quadro; reflexos do ambiente foram preservados sem alterar o veículo",
+    "pipeline": "video",
+    "preserveVisuals": true,
+    "auditDir": "docs/video-audit/dual-motion",
+    "contactSheetFrames": 16,
+    "posterTime": 1.4,
+    "previewSegments": [
+      { "start": 0.3, "end": 2.3, "label": "traseira depois" },
+      { "start": 3.4, "end": 5.4, "label": "soleira depois" },
+      { "start": 10.3, "end": 12.3, "label": "interior depois" }
+    ],
+    "privacyMasks": []
+  },
+  {
     "id": "logo-oficial",
     "source": "src/assets/images/hero/LavaMed_logo_vetorial_HD.svg",
     "publication": "/assets/images/hero/LavaMed_logo_vetorial_HD.svg",

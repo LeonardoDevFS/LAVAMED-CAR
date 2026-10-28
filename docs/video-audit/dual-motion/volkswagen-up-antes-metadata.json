@@ -1,0 +1,83 @@
+{
+  "source": {
+    "path": "media-originals/2026-10-27/videos/volkswagen-up-antes.mp4",
+    "sha256": "0376e48fe19f64cabe922a2f72f90b40b21d2f8bb714046df4e11f99b8a69268",
+    "duration": 10.815979,
+    "size": 3663908,
+    "bitrate": 2709996,
+    "streams": [
+      {
+        "codecType": "video",
+        "codec": "h264",
+        "profile": "Main",
+        "width": 720,
+        "height": 1280,
+        "fps": "966000/32191",
+        "duration": 10.730333,
+        "bitrate": 2534205
+      },
+      {
+        "codecType": "audio",
+        "codec": "aac",
+        "profile": "LC",
+        "fps": "0/0",
+        "duration": 10.815979,
+        "bitrate": 192000
+      }
+    ]
+  },
+  "privacyMasks": [],
+  "previewSegments": [
+    {
+      "start": 0.3,
+      "end": 2.3,
+      "label": "traseira antes"
+    },
+    {
+      "start": 4.3,
+      "end": 6.3,
+      "label": "soleira antes"
+    },
+    {
+      "start": 8.5,
+      "end": 10.5,
+      "label": "interior traseiro antes"
+    }
+  ],
+  "preserveVisuals": true,
+  "derivatives": [
+    {
+      "file": "src/assets/images/videos/volkswagen-up/antes/volkswagen-up-antes-completo.mp4",
+      "duration": 10.730333,
+      "size": 3401379,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up/antes/volkswagen-up-antes-preview.mp4",
+      "duration": 6,
+      "size": 1974114,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up/antes/volkswagen-up-antes-preview.webm",
+      "duration": 6,
+      "size": 1158408,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "vp9"
+        }
+      ]
+    }
+  ]
+}

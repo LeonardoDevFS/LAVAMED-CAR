@@ -1,0 +1,83 @@
+{
+  "source": {
+    "path": "media-originals/2026-10-27/videos/volkswagen-up-depois.mp4",
+    "sha256": "f282fa7f436b1a050aabd2e768b837e5c9de8c910bb0151a6dbd2287913be350",
+    "duration": 16.362646,
+    "size": 5392323,
+    "bitrate": 2636406,
+    "streams": [
+      {
+        "codecType": "video",
+        "codec": "h264",
+        "profile": "Main",
+        "width": 720,
+        "height": 1280,
+        "fps": "41000/1363",
+        "duration": 16.356,
+        "bitrate": 2441844
+      },
+      {
+        "codecType": "audio",
+        "codec": "aac",
+        "profile": "LC",
+        "fps": "0/0",
+        "duration": 16.362646,
+        "bitrate": 192000
+      }
+    ]
+  },
+  "privacyMasks": [],
+  "previewSegments": [
+    {
+      "start": 0.3,
+      "end": 2.3,
+      "label": "traseira depois"
+    },
+    {
+      "start": 3.4,
+      "end": 5.4,
+      "label": "soleira depois"
+    },
+    {
+      "start": 10.3,
+      "end": 12.3,
+      "label": "interior depois"
+    }
+  ],
+  "preserveVisuals": true,
+  "derivatives": [
+    {
+      "file": "src/assets/images/videos/volkswagen-up/depois/volkswagen-up-depois-completo.mp4",
+      "duration": 16.356,
+      "size": 4995302,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up/depois/volkswagen-up-depois-preview.mp4",
+      "duration": 6,
+      "size": 1806594,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "h264"
+        }
+      ]
+    },
+    {
+      "file": "src/assets/images/videos/volkswagen-up/depois/volkswagen-up-depois-preview.webm",
+      "duration": 6,
+      "size": 985567,
+      "streams": [
+        {
+          "codecType": "video",
+          "codec": "vp9"
+        }
+      ]
+    }
+  ]
+}
