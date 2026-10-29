@@ -53,7 +53,7 @@ function valueOf(html, pattern) {
 
 async function validateScenario(name, siteUrl) {
   const indexable = Boolean(siteUrl);
-  runBuild(siteUrl, name === "provisional" ? verificationToken : "");
+  runBuild(siteUrl, name === "secondary" ? verificationToken : "");
   const files = await collectHtml(output);
   invariant(files.length === 20, `${name}: expected 20 HTML files, found ${files.length}`);
 
@@ -102,7 +102,7 @@ async function validateScenario(name, siteUrl) {
     invariant(schemas.some((schema) => schema["@type"] === "AutoWash"), `${name}: AutoWash schema missing in ${route}`);
     if (!indexable) invariant(!schemas.some((schema) => schema["@type"] === "WebSite" || schema["@type"] === "WebPage"), `${name}: local build leaked absolute website schema in ${route}`);
 
-    const otherDomains = [domainConfig.provisionalUrl, domainConfig.futureCommercialUrl].filter((candidate) => candidate !== siteUrl);
+    const otherDomains = [domainConfig.secondaryUrl, domainConfig.primaryUrl].filter((candidate) => candidate !== siteUrl);
     for (const other of otherDomains) invariant(!html.includes(other), `${name}: inactive domain leaked into ${route}: ${other}`);
   }
 
@@ -120,16 +120,25 @@ async function validateScenario(name, siteUrl) {
   }
 
   const home = await readFile(path.join(output, "index.html"), "utf8");
-  if (name === "provisional") {
-    invariant(home.includes(`<meta name="google-site-verification" content="${verificationToken}">`), "provisional: Search Console verification tag missing");
+  if (name === "secondary") {
+    invariant(home.includes(`<meta name="google-site-verification" content="${verificationToken}">`), "secondary: Search Console verification tag missing");
   }
   console.log(`✓ ${name}: ${files.length} HTML files, metadata, JSON-LD, sitemap and robots.txt`);
 }
 
-invariant(domainConfig.desiredNetlifySiteName === "lava-med-netlify", "Unexpected desired Netlify site name");
-invariant(domainConfig.provisionalUrl === "https://lava-med-netlify.netlify.app", "Unexpected provisional URL");
-invariant(domainConfig.futureCommercialUrl === "https://lavamed.com.br", "Unexpected commercial URL");
-invariant(normalizeSiteUrl("https://lavamed.com.br/") === domainConfig.futureCommercialUrl, "URL normalization failed");
+invariant(domainConfig.netlifySiteName === "lavamed", "Unexpected desired Netlify site name");
+invariant(domainConfig.secondaryUrl === "https://lavamed.netlify.app", "Unexpected secondary URL");
+invariant(domainConfig.primaryUrl === "https://lavamed.com.br", "Unexpected production URL");
+invariant(normalizeSiteUrl("https://lavamed.com.br/") === domainConfig.primaryUrl, "URL normalization failed");
+const netlifyConfig = await readFile(path.join(root, "netlify.toml"), "utf8");
+invariant(netlifyConfig.includes(`[context.production.environment]\n  SITE_URL = "${domainConfig.primaryUrl}"`), "Netlify production must use the primary domain");
+for (const context of ["deploy-preview", "branch-deploy", "dev"]) {
+  invariant(netlifyConfig.includes(`[context.${context}.environment]\n  SITE_URL = ""`), `${context} must remain noindex`);
+}
+for (const origin of [domainConfig.secondaryUrl, domainConfig.wwwUrl]) {
+  const redirect = netlifyConfig.split("[[redirects]]").find((block) => block.includes(`from = "${origin}/*"`));
+  invariant(redirect?.includes(`to = "${domainConfig.primaryUrl}/:splat"`) && redirect.includes("status = 301") && redirect.includes("force = true"), `${origin} must redirect permanently to the primary domain`);
+}
 for (const invalid of ["http://lavamed.com.br", "https://lavamed.com.br/path", "not-a-url"]) {
   let rejected = false;
   try { normalizeSiteUrl(invalid); } catch { rejected = true; }
@@ -139,8 +148,8 @@ for (const invalid of ["http://lavamed.com.br", "https://lavamed.com.br/path", "
 let failure;
 try {
   await validateScenario("local", "");
-  await validateScenario("provisional", domainConfig.provisionalUrl);
-  await validateScenario("commercial", domainConfig.futureCommercialUrl);
+  await validateScenario("secondary", domainConfig.secondaryUrl);
+  await validateScenario("production", domainConfig.primaryUrl);
 } catch (error) {
   failure = error;
 } finally {

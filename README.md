@@ -70,11 +70,11 @@ Os quatro atos da narrativa usam mídias independentes classificadas no manifest
 
 O `netlify.toml` já aponta para `dist/`, inclui os redirecionamentos 301 dos slugs antigos e mantém os cabeçalhos de cache. Na Netlify, use o comando `npm run build` e publique a pasta `dist`.
 
-Defina `SITE_URL` somente no contexto Production com a origem pública que estiver realmente ativa. O build não usa automaticamente a variável `URL` da Netlify. Sem `SITE_URL`, canonical e `og:url` são omitidos, as páginas recebem `noindex`, o sitemap não publica URLs e `robots.txt` bloqueia rastreamento.
+O contexto Production já define `SITE_URL=https://lavamed.com.br` no `netlify.toml`. O endereço secundário `https://lavamed.netlify.app` e a variante `www` redirecionam com 301 para o domínio principal, preservando o caminho. Canonical, Open Graph, JSON-LD, sitemap e robots usam a origem principal.
 
-O planejamento completo para `lava-med-netlify.netlify.app`, a futura migração para `lavamed.com.br`, Search Console e Perfil da Empresa está em [docs/DOMINIOS-SEO-DEPLOY.md](docs/DOMINIOS-SEO-DEPLOY.md).
+Builds locais sem `SITE_URL`, Deploy Previews e Branch Deploys permanecem `noindex`. O build não usa a variável automática `URL` da Netlify. Veja [docs/DOMINIOS-SEO-DEPLOY.md](docs/DOMINIOS-SEO-DEPLOY.md) para os detalhes de produção e SEO.
 
-Use `npm run test:domains` para validar automaticamente os cenários local, provisório e comercial.
+Use `npm run test:domains` para validar automaticamente os cenários local, secundário e produção.
 
 ## Capturas verificadas
 
