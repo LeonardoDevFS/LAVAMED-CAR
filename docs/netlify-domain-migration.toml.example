@@ -1,12 +1,12 @@
-# NÃO copiar para netlify.toml antes de https://lavamed.com.br estar ativo,
-# com DNS, certificado HTTPS e SITE_URL validados em produção.
-
+﻿# Referência das regras já ativas em netlify.toml. Não é necessário copiá-las.
 [[redirects]]
-  from = "https://lava-med-netlify.netlify.app/*"
+  from = "https://lavamed.netlify.app/*"
   to = "https://lavamed.com.br/:splat"
   status = 301
   force = true
 
-# Ao definir lavamed.com.br como domínio principal, a Netlify normalmente
-# redireciona www.lavamed.com.br para o apex. Se o painel não mostrar esse
-# comportamento, habilitar um Domain redirect no próprio Domain management.
+[[redirects]]
+  from = "https://www.lavamed.com.br/*"
+  to = "https://lavamed.com.br/:splat"
+  status = 301
+  force = true

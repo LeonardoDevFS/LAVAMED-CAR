@@ -5,10 +5,10 @@
  * sitemap e URLs absolutas quando SITE_URL estiver definido explicitamente.
  */
 export const domainConfig = Object.freeze({
-  desiredNetlifySiteName: "lava-med-netlify",
-  provisionalUrl: "https://lava-med-netlify.netlify.app",
-  futureCommercialUrl: "https://lavamed.com.br",
-  futureWwwUrl: "https://www.lavamed.com.br",
+  netlifySiteName: "lavamed",
+  secondaryUrl: "https://lavamed.netlify.app",
+  primaryUrl: "https://lavamed.com.br",
+  wwwUrl: "https://www.lavamed.com.br",
   activeUrlEnvironmentVariable: "SITE_URL",
   searchConsoleVerificationEnvironmentVariable: "GOOGLE_SITE_VERIFICATION"
 });
@@ -38,7 +38,7 @@ export function resolveActiveSiteUrl(environment = process.env) {
 
 export function domainStage(siteUrl) {
   if (!siteUrl) return "local";
-  if (siteUrl === domainConfig.provisionalUrl) return "provisional";
-  if (siteUrl === domainConfig.futureCommercialUrl) return "commercial";
+  if (siteUrl === domainConfig.secondaryUrl) return "secondary";
+  if (siteUrl === domainConfig.primaryUrl) return "production";
   return "custom";
 }
