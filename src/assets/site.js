@@ -1,12 +1,12 @@
 import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import "./site.css";
+import { reducedMotion, initMotionPreferences } from "./motion-preferences.js";
 import { business, servicePriceLabel, services, whatsappUrl } from "../config.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const body = document.body;
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const finePointer = matchMedia("(pointer: fine) and (hover: hover)").matches;
 const header = document.querySelector("[data-header]");
 const progress = document.querySelector(".scroll-progress span");
@@ -716,7 +716,7 @@ function initMenu() {
   addEventListener("keydown", (event) => {
     if (event.key === "Escape" && body.classList.contains("menu-open")) setMenu(false);
     if (event.key !== "Tab" || !body.classList.contains("menu-open")) return;
-    const focusable = [...panel.querySelectorAll("a,button")]; const first = focusable[0]; const last = focusable.at(-1);
+    const focusable = [...panel.querySelectorAll("a,button,select")]; const first = focusable[0]; const last = focusable.at(-1);
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
@@ -933,8 +933,15 @@ function initPointerEffects() {
   });
 }
 
+initMotionPreferences();
 initHeroMotion();
-initCameraStory();
+document.documentElement.dataset.cameraReady = "true";
+try {
+  initCameraStory();
+} catch (error) {
+  delete document.documentElement.dataset.cameraReady;
+  throw error;
+}
 initProcessCinema();
 initServiceVisual();
 initCompare();

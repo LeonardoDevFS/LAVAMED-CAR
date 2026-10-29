@@ -42,7 +42,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await page.waitForTimeout(350);
   await expect(page.locator("#menu-panel a").first()).toBeFocused();
   await page.keyboard.press("Shift+Tab");
-  await expect(page.locator("#menu-panel a").last()).toBeFocused();
+  await expect(page.locator("#motion-mode")).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(menu).toHaveAttribute("aria-expanded", "false");
   await expect(menu).toBeFocused();
@@ -378,7 +378,7 @@ test.describe("mobile and reduced motion", () => {
     await page.goto("/");
     await page.locator("[data-camera]").scrollIntoViewIfNeeded();
     await expect(page.locator('[data-scene="0"]')).toBeVisible();
-    await expect(page.locator('[data-scene="1"]')).toBeHidden();
+    await expect(page.locator('[data-scene="1"]')).toBeVisible();
     await page.locator("[data-process-cinema]").scrollIntoViewIfNeeded();
     await expect(page.locator('[data-process-preview="before"]')).toBeVisible();
     await expect(page.locator('[data-dual-panel="after"]')).toBeHidden();
