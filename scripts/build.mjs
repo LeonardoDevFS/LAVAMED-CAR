@@ -291,7 +291,7 @@ function footer() {
       <section class="footer-column footer-services"><p class="footer-heading">Serviços em Itajubá</p><nav aria-label="Serviços em destaque">${footerServiceLinks()}</nav></section>
       <section class="footer-column footer-contact"><p class="footer-heading">Contato e localização</p><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">WhatsApp da LavaMed<br><strong>${escapeHtml(business.phoneDisplay)}</strong></a><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">Bairro Medicina<br><strong>Itajubá, Minas Gerais</strong></a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener">Instagram<br><strong>@lavamed.itajuba</strong></a><a href="/contato/">Formulário de contato</a></section>
     </div>
-    <div class="footer-bottom"><div class="footer-legal"><p>© <span data-year></span> LavaMed Estética Automotiva. Todos os direitos reservados.</p><p class="footer-credit">Desenvolvimento: <strong>${escapeHtml(siteCredits.developer)}</strong> · <a href="tel:${escapeHtml(siteCredits.phone)}" aria-label="Telefone de Leonardo Jonathan do Carmo: ${escapeHtml(siteCredits.phoneDisplay)}">${escapeHtml(siteCredits.phoneDisplay)}</a></p></div><a class="footer-to-top" href="#conteudo">Voltar ao topo <span aria-hidden="true">↑</span></a></div>
+    <div class="footer-bottom"><div class="footer-legal"><p>© <span data-year></span> LavaMed Estética Automotiva. Todos os direitos reservados.</p><a href="/politica-de-privacidade/">Política de privacidade</a></div><a class="footer-to-top" href="#conteudo">Voltar ao topo <span aria-hidden="true">↑</span></a></div>
   </footer>`;
 }
 
@@ -401,7 +401,23 @@ function faqContent() {
 }
 
 function privacyContent() {
-  return `<section class="content-section"><div class="content-grid"><div class="content-index">Versão / 24.10.2026</div><div class="content-copy"><h2>Informação essencial.</h2><p>Este site não utiliza contas de usuário e não armazena os dados do formulário em banco de dados. Ao continuar, as informações preenchidas são usadas somente para compor uma mensagem que o visitante decide enviar pelo próprio WhatsApp.</p><p>O provedor de hospedagem pode processar registros técnicos essenciais, como endereço IP, data, navegador e rota acessada, para segurança e operação do serviço.</p><p>Links para WhatsApp, Instagram e Google Maps seguem as políticas desses serviços. Solicitações relacionadas ao atendimento podem ser enviadas pelo canal oficial de WhatsApp.</p><p class="small">Este texto descreve a implementação técnica atual e deve ser revisado caso sejam adicionados analytics, pixels, formulários persistentes ou outras integrações.</p></div></div></section>`;
+  return `<section class="content-section"><div class="content-grid"><div class="content-index">Atualização / 28.10.2026</div><div class="content-copy">
+    <h2>Informações que você compartilha.</h2>
+    <p>Este site apresenta os serviços da LavaMed e facilita o contato com a equipe. Não há criação de contas nem armazenamento dos dados do formulário em um banco de dados do site.</p>
+    <p>O nome, o serviço de interesse e a mensagem preenchidos no formulário são usados no seu navegador para preparar uma conversa no WhatsApp. Você pode conferir a mensagem e decidir se deseja enviá-la. Depois do envio, a conversa passa a fazer parte do atendimento da LavaMed pelo WhatsApp.</p>
+    <h2>Preferências e navegação.</h2>
+    <p>A escolha de experiência visual pode ser salva no armazenamento local do seu navegador para ser lembrada nas próximas visitas. Ela não contém os dados do formulário. Você pode mudar essa opção no menu ou apagar os dados do site nas configurações do navegador.</p>
+    <p>O provedor de hospedagem pode processar registros técnicos, como endereço IP, data, navegador e página acessada, para operação e segurança do serviço. O site não inclui ferramentas de publicidade ou análise de audiência na implementação atual.</p>
+    <h2>Serviços externos.</h2>
+    <p>Ao abrir WhatsApp, Instagram ou Google Maps, você acessa serviços externos, sujeitos às respectivas políticas de privacidade. Compartilhe nas mensagens apenas as informações necessárias ao seu atendimento.</p>
+    <h2>Dúvidas sobre a LavaMed e privacidade.</h2>
+    <p>Para tirar dúvidas sobre serviços, preços, agendamentos, atendimento ou informações compartilhadas com a LavaMed, fale com a equipe pelo canal oficial. Use esse contato também para solicitar esclarecimentos, correção ou exclusão de informações enviadas no atendimento.</p>
+    <p><a class="cta-pill" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Falar com a LavaMed · ${escapeHtml(business.phoneDisplay)}</span><i aria-hidden="true">↗</i></a></p>
+    <h2>Problemas com o desenvolvimento do site.</h2>
+    <p>Se encontrar páginas com erro, botões que não funcionam ou alguma dificuldade técnica de navegação, entre em contato com ${escapeHtml(siteCredits.developer)}, responsável pelo desenvolvimento. Informe a página e o que aconteceu, sem enviar senhas ou dados sensíveis.</p>
+    <p><a class="cta-pill" href="tel:${escapeHtml(siteCredits.phone)}"><span>Falar com ${escapeHtml(siteCredits.developer)} · ${escapeHtml(siteCredits.phoneDisplay)}</span><i aria-hidden="true">↗</i></a></p>
+    <p class="small">Esta política descreve o funcionamento atual do site e será atualizada quando houver mudanças no tratamento de informações.</p>
+  </div></div></section>`;
 }
 
 const pages = [
