@@ -56,7 +56,10 @@ for (const videoId of ["volkswagen-up-antes", "volkswagen-up-depois"]) {
 if (!activeSiteUrl && (home.includes('rel="canonical"') || home.includes('property="og:url"'))) problems.push("Local home must not publish canonical or og:url");
 if (!activeSiteUrl && !home.includes('name="robots" content="noindex,nofollow"')) problems.push("Local home is missing noindex");
 if ((home.match(/rel="preload" href="[^"]+\.woff2"/g) || []).length !== 2) problems.push("Home must preload both local brand fonts");
-if (!home.includes("Leonardo Jonathan do Carmo") || !home.includes('href="tel:+5535988267259"')) problems.push("Footer is missing the developer credit or telephone link");
+if (!home.includes('href="/politica-de-privacidade/"')) problems.push("Footer is missing the privacy policy link");
+if (home.includes("Leonardo") || home.includes('href="tel:+5535988267259"')) problems.push("Developer contact must appear only on the privacy policy page");
+const privacy = await readFile(path.join(root, "politica-de-privacidade/index.html"), "utf8");
+if (!privacy.includes("Leonardo") || !privacy.includes('href="tel:+5535988267259"')) problems.push("Privacy policy is missing the developer support contact");
 for (const servicePath of ["lavagem-detalhada", "higienizacao-avancada", "polimento-comercial", "polimento-farol", "lavagem-moto-detalhada", "lavagem-motor"]) {
   if (!home.includes(`/servicos/${servicePath}/`)) problems.push(`Footer is missing priority service link: ${servicePath}`);
 }

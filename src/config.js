@@ -18,7 +18,7 @@ export const business = {
 };
 
 export const siteCredits = Object.freeze({
-  developer: "Leonardo Jonathan do Carmo",
+  developer: "Leonardo",
   phone: "+5535988267259",
   phoneDisplay: "(35) 98826-7259"
 });

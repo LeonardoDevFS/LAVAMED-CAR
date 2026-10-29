@@ -177,8 +177,8 @@ test("loads the brand fonts, tracks the pointer and publishes a readable footer"
   const footer = page.locator(".site-footer");
   await footer.scrollIntoViewIfNeeded();
   await expect(footer).toContainText("Todos os direitos reservados");
-  await expect(footer).toContainText("Leonardo Jonathan do Carmo");
-  await expect(footer.locator('a[href="tel:+5535988267259"]')).toHaveText("(35) 98826-7259");
+  await expect(footer).not.toContainText("Leonardo");
+  await expect(footer.getByRole("link", { name: "Política de privacidade" })).toHaveAttribute("href", "/politica-de-privacidade/");
   await expect(footer.locator(".footer-services a")).toHaveCount(6);
   const footerSizes = await footer.evaluate((node) => ({
     link: parseFloat(getComputedStyle(node.querySelector(".footer-grid a")).fontSize),
@@ -393,7 +393,8 @@ test.describe("mobile and reduced motion", () => {
     await page.screenshot({ path: `${screenshotDirectory}/mobile-services.png`, fullPage: false });
 
     await page.locator(".site-footer").scrollIntoViewIfNeeded();
-    await expect(page.locator(".footer-credit")).toContainText("Leonardo Jonathan do Carmo");
+    await expect(page.locator(".site-footer")).not.toContainText("Leonardo");
+    await expect(page.locator('.site-footer a[href="/politica-de-privacidade/"]')).toBeVisible();
     const footerLayout = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, viewport: innerWidth }));
     expect(footerLayout.scrollWidth).toBeLessThanOrEqual(footerLayout.viewport);
     await page.screenshot({ path: `${screenshotDirectory}/footer-mobile.png`, fullPage: false });
