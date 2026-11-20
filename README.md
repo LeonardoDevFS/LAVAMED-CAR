@@ -27,7 +27,7 @@ Edite `src/config.js` para manter apenas dados confirmados. Já estão cadastrad
 - localização compartilhada no Google Maps;
 - cidade de Itajubá e bairro Medicina.
 
-Ainda faltam rua/número e horário de funcionamento. O domínio canônico confirmado é `https://lavamed.com.br/`. Enquanto os campos comerciais estiverem vazios, o site não publica informações presumidas. Os botões de agendamento têm links de WhatsApp contextualizados já no HTML estático; o formulário monta a mensagem com JavaScript.
+Endereço informado pelo proprietário: Rua Orminda Ribeiro Dias, R. Comendador João Carneiro, 468, bairro Medicina, Itajubá - MG, CEP 37502-140. O endereço e o link direto do Google Maps ficam em `src/config.js` e alimentam contato, rodapé, FAQ e dados estruturados. O horário de funcionamento ainda aguarda confirmação. O domínio canônico confirmado é `https://lavamed.com.br/`. Os botões de agendamento têm links de WhatsApp contextualizados já no HTML estático; o formulário monta a mensagem com JavaScript.
 
 Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informado ou `sob consulta`), inclusões e ressalvas também ficam em `src/config.js`. A mesma fonte alimenta catálogo, páginas individuais, formulário, dados estruturados e seleção editorial da home.
 

@@ -154,7 +154,7 @@ Não foi medido INP de campo, nem feita uma medição Lighthouse mobile com rede
 
 ### Proprietário e Perfil da Empresa no Google
 
-1. Confirmar rua, número, complemento quando aplicável, CEP e horários de funcionamento/feriados. O código só publica rua/horários quando preenchidos; os demais campos exigem inclusão deliberada após confirmação.
+1. Confirmar horários de funcionamento/feriados. Endereço e CEP foram informados pelo proprietário após a auditoria: Rua Orminda Ribeiro Dias, R. Comendador João Carneiro, 468, Itajubá - MG, 37502-140. Os dois nomes de rua foram preservados como enviados, sem presumir esquina, entrada ou complemento.
 2. Confirmar o valor da modalidade de motor com verniz, que continua sob avaliação, sem preço inventado.
 3. Revisar a propriedade e a ficha ligada ao Maps, a categoria principal e categorias adicionais disponíveis que descrevam serviços realmente prestados.
 4. Manter nome, site, telefone e endereço coerentes no Perfil da Empresa e no site; cadastrar os serviços reais e suas condições, sem categorias artificiais.
@@ -169,13 +169,17 @@ Não foi medido INP de campo, nem feita uma medição Lighthouse mobile com rede
 5. Conferir canonical declarada versus selecionada pelo Google, páginas excluídas, rastreamento e consultas que acionam mais de uma página.
 6. Validar amostras publicadas no Schema Markup Validator e no Rich Results Test. A validação local cobre sintaxe/coerência, mas não substitui o processamento do Google.
 
-`AutoWash` é um subtipo adequado de `LocalBusiness`. O endereço completo segue pendente; isso pode limitar o atendimento aos requisitos do Google para resultados enriquecidos de empresas locais. Nenhuma estrela, exibição enriquecida, escolha de meta description ou posição é garantida. O Google pode reescrever títulos e descrições.
+`AutoWash` é um subtipo adequado de `LocalBusiness`. O endereço e o CEP confirmados pelo proprietário agora aparecem em `PostalAddress.streetAddress` e `PostalAddress.postalCode`. Horários continuam pendentes. Nenhuma estrela, exibição enriquecida, escolha de meta description ou posição é garantida. O Google pode reescrever títulos e descrições.
 
 Os redirects de `index.html` foram verificados no artefato e no servidor local; a normalização real da Netlify deve ser confirmada após publicação. Links antigos genéricos de serviços foram mantidos para preservar comportamento; avaliar eventuais soft 404s desses destinos no Search Console antes de mudar regras sem dados de tráfego.
 
 As consultas ao Maps, Search Console e conta Netlify exigem acesso do proprietário. A ficha, categorias, avaliações e métricas não foram editadas. O briefing contém uma amostra pequena e não permite atribuir causalidade ou prever crescimento.
 
 ## F. Métricas e acompanhamento
+
+Atualização de localização em 20/11/2026: endereço/CEP centralizados em `src/config.js`, exibidos no rodapé de todas as páginas, na página de contato (inclusive sem JavaScript) e no FAQ. `hasMap` e todos os links de localização usam o [Maps informado pelo proprietário](https://www.google.com/maps/place/Lava+Med+-+Est%C3%A9tica+Automotiva/@-22.4349528,-45.4589267,17z/data=!4m6!3m5!1s0x94cb7de89d7530d1:0x19ffb7cbb6e2adf6!8m2!3d-22.4349528!4d-45.4589267!16s%2Fg%2F11njqg77ff), sem parâmetros de rastreamento. Nenhuma coordenada ou horário foi acrescentado ao schema.
+
+Validação desta atualização: `npm run build`, `npm run check` e `npm run test:domains` aprovados. Sete cenários E2E afetados passaram, com atualização das três referências visuais de contato/rodapé. Depois da inspeção das capturas, os dois cenários visuais foram repetidos sem atualização de snapshots e passaram. A suíte completa e a auditoria de performance não foram repetidas para essa alteração de dados comerciais. Sem push ou deploy.
 
 Dados fornecidos no briefing: últimos três meses, com atividade apresentada desde **28/10/2026**. **248 impressões, 10 cliques, CTR de 4%, posição média geral de 4,3**. Não confundir a média geral com posição de cada consulta.
 

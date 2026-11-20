@@ -78,12 +78,17 @@ export async function checkSeo(root, origin) {
     require(company?.name === business.name && company?.telephone === `+${business.whatsapp}`, `SEO: business identity mismatch in ${route}`);
     require(company?.address?.addressLocality === business.city && company?.address?.addressRegion === business.state && company?.address?.addressCountry === "BR", `SEO: confirmed location mismatch in ${route}`);
     require(company?.address?.streetAddress === (business.address || undefined) && company?.openingHours === (business.openingHours || undefined), `SEO: unconfirmed address/hours in ${route}`);
+    require(company?.address?.postalCode === (business.postalCode || undefined), `SEO: postal code mismatch in ${route}`);
+    const footer = html.match(/<footer class="site-footer">([\s\S]*?)<\/footer>/)?.[1] || "";
+    for (const field of [business.address, business.postalCode].filter(Boolean)) {
+      require(textOf(footer).includes(field), `SEO: confirmed address missing from static footer in ${route}`);
+    }
     require(company?.sameAs?.length === 1 && company.sameAs[0] === business.instagram && company?.hasMap === business.mapsUrl, `SEO: official profiles mismatch in ${route}`);
     require(!company?.priceRange, `SEO: unsupported maximum price in ${route}`);
     const rejectInvented = (value) => {
       if (!value || typeof value !== "object") return;
       for (const [key, child] of Object.entries(value)) {
-        require(!["aggregateRating", "review", "ratingValue", "geo", "latitude", "longitude", "postalCode", "openingHoursSpecification"].includes(key), `SEO: unconfirmed business field ${key} in ${route}`);
+        require(!["aggregateRating", "review", "ratingValue", "geo", "latitude", "longitude", "openingHoursSpecification"].includes(key), `SEO: unconfirmed business field ${key} in ${route}`);
         rejectInvented(child);
       }
     };

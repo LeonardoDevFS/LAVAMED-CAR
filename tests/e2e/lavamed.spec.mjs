@@ -1,6 +1,6 @@
 import { mkdir } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { servicePriceLabel, services } from "../../src/config.js";
+import { business, servicePriceLabel, services } from "../../src/config.js";
 
 const screenshotDirectory = "test-results/screenshots";
 
@@ -23,7 +23,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await expect(page.locator(".site-header .brand-channels a")).toHaveCount(3);
   await expect(page.locator('.site-header .brand-channels a[aria-label*="WhatsApp"]')).toHaveAttribute("href", /wa\.me\/5535984586615/);
   await expect(page.locator('.site-header .brand-channels a[aria-label*="Instagram"]')).toHaveAttribute("href", "https://www.instagram.com/lavamed.itajuba/");
-  await expect(page.locator('.site-header .brand-channels a[aria-label*="Maps"]')).toHaveAttribute("href", "https://share.google/Vm2BAGotXmrrtKJi1");
+  await expect(page.locator('.site-header .brand-channels a[aria-label*="Maps"]')).toHaveAttribute("href", business.mapsUrl);
   await expect(page.locator('picture source[type="image/avif"]')).not.toHaveCount(0);
   await expect(page.locator(".gallery-item")).toHaveCount(7);
   await expect(page.locator("[data-sound-toggle]")).toHaveCount(0);
@@ -83,6 +83,9 @@ test("contact form follows the LavaMed theme and reacts to every field", async (
   page.on("pageerror", (error) => runtimeErrors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
   await page.goto("/contato/");
+  await expect(page.locator("[data-business-meta]")).toContainText(business.address);
+  await expect(page.locator("[data-business-meta]")).toContainText(business.postalCode);
+  await expect(page.getByRole("link", { name: "Como chegar" })).toHaveAttribute("href", business.mapsUrl);
   const form = page.locator("[data-contact-form]");
   const name = page.locator("#nome");
   const service = page.locator("#servico");

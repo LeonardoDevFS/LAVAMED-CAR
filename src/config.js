@@ -11,11 +11,21 @@ export const business = {
   city: "Itajubá",
   state: "MG",
   neighborhood: "Medicina",
-  address: "",
+  address: "Rua Orminda Ribeiro Dias, R. Comendador João Carneiro, 468",
+  postalCode: "37502-140",
   openingHours: "",
   instagram: "https://www.instagram.com/lavamed.itajuba/",
-  mapsUrl: "https://share.google/Vm2BAGotXmrrtKJi1"
+  mapsUrl: "https://www.google.com/maps/place/Lava+Med+-+Est%C3%A9tica+Automotiva/@-22.4349528,-45.4589267,17z/data=!4m6!3m5!1s0x94cb7de89d7530d1:0x19ffb7cbb6e2adf6!8m2!3d-22.4349528!4d-45.4589267!16s%2Fg%2F11njqg77ff"
 };
+
+export function businessLocationLines() {
+  return [
+    business.address,
+    business.neighborhood ? `Bairro ${business.neighborhood}` : "",
+    [business.city, business.state].filter(Boolean).join(", "),
+    business.postalCode ? `CEP ${business.postalCode}` : ""
+  ].filter(Boolean);
+}
 
 export const siteCredits = Object.freeze({
   developer: "Leonardo",

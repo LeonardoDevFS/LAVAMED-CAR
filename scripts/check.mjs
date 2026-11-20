@@ -1,7 +1,7 @@
 import { checkSeo } from "./check-seo.mjs";
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
-import { comparisonPairs, servicePriceLabel, services } from "../src/config.js";
+import { business, comparisonPairs, servicePriceLabel, services } from "../src/config.js";
 import { mediaCatalog } from "../src/media-manifest.js";
 import { resolveActiveSiteUrl } from "../src/site-config.js";
 
@@ -64,7 +64,7 @@ if (!privacy.includes("Leonardo") || !privacy.includes('href="tel:+5535988267259
 for (const servicePath of ["lavagem-detalhada", "higienizacao-avancada", "polimento-comercial", "polimento-farol", "lavagem-moto-detalhada", "lavagem-motor"]) {
   if (!home.includes(`/servicos/${servicePath}/`)) problems.push(`Footer is missing priority service link: ${servicePath}`);
 }
-for (const channel of ["https://share.google/Vm2BAGotXmrrtKJi1", "https://www.instagram.com/lavamed.itajuba/", "https://wa.me/5535984586615"]) {
+for (const channel of [business.mapsUrl, business.instagram, `https://wa.me/${business.whatsapp}`]) {
   if (!home.includes(channel)) problems.push(`Home is missing official channel: ${channel}`);
 }
 const assetNames = await readdir(path.join(root, "assets"));
