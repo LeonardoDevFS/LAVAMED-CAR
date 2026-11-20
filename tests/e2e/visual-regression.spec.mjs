@@ -109,7 +109,7 @@ test("hero typography, logo and CTA are safe at every required viewport", async 
         scrollWidth: document.documentElement.scrollWidth,
         viewportWidth: innerWidth,
         carSource: document.querySelector(".hero-car-layer img")?.currentSrc || "",
-        titleText: document.querySelector(".hero h1").innerText
+        titleText: document.querySelector(".hero-slogan").innerText
       };
     });
     expect(Math.min(...audit.lines), `${viewport.width}x${viewport.height}: insufficient glyph clearance`).toBeGreaterThanOrEqual(5);
@@ -126,11 +126,13 @@ test("hero typography, logo and CTA are safe at every required viewport", async 
 
 test("all generated pages keep visible Archivo headings unclipped", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 820, height: 1180 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
     await page.setViewportSize(viewport);
     for (const route of routes) {
       await page.goto(route);
       await waitForTypography(page);
+      const titleWidth = await page.locator("h1").evaluate((node) => ({ content: node.scrollWidth, available: node.clientWidth }));
+      expect(titleWidth.content, `${route}: h1 text exceeds its box at ${viewport.width}px`).toBeLessThanOrEqual(titleWidth.available + 2);
       const headings = await typographyAudit(page);
       expect(headings.length, `${route} has no visible heading`).toBeGreaterThan(0);
       for (const heading of headings) {

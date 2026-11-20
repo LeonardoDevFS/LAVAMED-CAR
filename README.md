@@ -27,7 +27,7 @@ Edite `src/config.js` para manter apenas dados confirmados. Já estão cadastrad
 - localização compartilhada no Google Maps;
 - cidade de Itajubá e bairro Medicina.
 
-Ainda faltam rua/número, horário de funcionamento e domínio canônico. Enquanto esses campos estiverem vazios, o site não publica informações presumidas. Os botões de agendamento e o formulário abrem o WhatsApp oficial com uma mensagem contextualizada.
+Ainda faltam rua/número e horário de funcionamento. O domínio canônico confirmado é `https://lavamed.com.br/`. Enquanto os campos comerciais estiverem vazios, o site não publica informações presumidas. Os botões de agendamento têm links de WhatsApp contextualizados já no HTML estático; o formulário monta a mensagem com JavaScript.
 
 Os 11 grupos de serviços, preços, qualificadores (`a partir de`, valor informado ou `sob consulta`), inclusões e ressalvas também ficam em `src/config.js`. A mesma fonte alimenta catálogo, páginas individuais, formulário, dados estruturados e seleção editorial da home.
 
@@ -74,7 +74,9 @@ O contexto Production já define `SITE_URL=https://lavamed.com.br` no `netlify.t
 
 Builds locais sem `SITE_URL`, Deploy Previews e Branch Deploys permanecem `noindex`. O build não usa a variável automática `URL` da Netlify. Veja [docs/DOMINIOS-SEO-DEPLOY.md](docs/DOMINIOS-SEO-DEPLOY.md) para os detalhes de produção e SEO.
 
-Use `npm run test:domains` para validar automaticamente os cenários local, secundário e produção.
+Use `npm run test:domains` para validar produção, builds locais, endereço secundário e previews, inclusive com variáveis herdadas. Somente a origem principal libera indexação; o contexto de preview prevalece sobre `SITE_URL`. Produção com origem ausente ou incorreta interrompe o build.
+
+A auditoria, o mapa de intenções de busca, os resultados dos testes e as pendências externas estão em [docs/SEO-LOCAL-LAVAMED.md](docs/SEO-LOCAL-LAVAMED.md).
 
 ## Capturas verificadas
 

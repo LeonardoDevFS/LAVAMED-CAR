@@ -16,7 +16,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("lavamed-sound", "enabled"));
   await page.goto("/");
   await page.waitForTimeout(2100);
-  await expect(page.locator("h1")).toContainText("NÃO É SÓ");
+  await expect(page.locator("h1")).toHaveText("Estética Automotiva e Lava Rápido em Itajubá");
   await expect(page.locator(".eyebrow")).toContainText("Itajubá");
   await expect(page.locator(".hero-car-layer")).toBeVisible();
   await expect(page.locator(".site-header .brand img")).toHaveAttribute("src", "/assets/images/hero/LavaMed_logo_vetorial_HD.svg");
@@ -52,7 +52,7 @@ test("hero, menu and internal navigation are functional", async ({ page }) => {
     page.waitForURL("**/servicos/"),
     page.locator('#menu-panel a[href="/servicos/"]').click()
   ]);
-  await expect(page.locator("h1")).toContainText("CUIDADO EM");
+  await expect(page.locator("h1")).toContainText("SERVIÇOS");
   await expect(page.locator(".catalog-row")).toHaveCount(11);
 
   await page.goto("/servicos/lavagem-simples/");
@@ -151,7 +151,7 @@ test("loads the brand fonts, tracks the pointer and publishes a readable footer"
   const typography = await page.evaluate(() => ({
     archivo: [...document.fonts].some((font) => font.family.includes("Archivo Black") && font.status === "loaded"),
     spaceGrotesk: [...document.fonts].some((font) => font.family.includes("Space Grotesk") && font.status === "loaded"),
-    displayFamily: getComputedStyle(document.querySelector("h1")).fontFamily,
+    displayFamily: getComputedStyle(document.querySelector(".hero-slogan")).fontFamily,
     bodyFamily: getComputedStyle(document.body).fontFamily,
     damagedEncoding: /�|Ã[\u0080-\u00bf]|Â[\u0080-\u00bf]|â€/.test(document.body.innerText),
     loadedFontFiles: performance.getEntriesByType("resource").filter((entry) => entry.name.includes(".woff2")).length

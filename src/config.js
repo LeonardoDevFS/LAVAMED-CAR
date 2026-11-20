@@ -36,7 +36,12 @@ export const services = [
     number: "01",
     group: "carros",
     name: "Lavagem Simples",
-    seoName: "Lavagem de Carro",
+    seoName: "Lavagem Simples de Carro",
+    seoDescription: "Lavagem simples na LavaMed, em Itajubá: limpeza de lataria, rodas e pneus. Modalidade exclusivamente externa, sem aspiração interna. Peça seu agendamento.",
+    relatedServices: [
+      ["lavagem-completa", "Para incluir aspiração e limpeza das superfícies internas."],
+      ["lavagem-detalhada", "Para ampliar o cuidado a frestas e detalhes internos e externos."]
+    ],
     label: "Apenas exterior",
     price: 40,
     priceQualifier: "starting",
@@ -59,6 +64,11 @@ export const services = [
     group: "carros",
     name: "Lavagem Completa",
     seoName: "Lavagem Completa de Carro",
+    seoDescription: "Lavagem completa em Itajubá: exterior, aspiração, painel, portas e vidros na LavaMed, bairro Medicina. Veja o escopo e solicite uma avaliação.",
+    relatedServices: [
+      ["lavagem-simples", "Para manutenção apenas externa, sem limpeza da cabine."],
+      ["lavagem-detalhada", "Para cuidar também de frestas, bancos e teto, conforme o material."]
+    ],
     label: "Externa e interna",
     price: 80,
     priceQualifier: "starting",
@@ -83,6 +93,11 @@ export const services = [
     group: "carros",
     name: "Lavagem Detalhada",
     seoName: "Lavagem Detalhada",
+    seoDescription: "Lavagem detalhada na LavaMed, em Itajubá: cuidado com frestas, rodas, bancos e teto, conforme a condição do veículo. Confira o escopo e agende.",
+    relatedServices: [
+      ["lavagem-completa", "Para uma limpeza externa e interna de manutenção."],
+      ["higienizacao-avancada", "Para limpeza interna intensiva, com remoção técnica dos bancos quando segura."]
+    ],
     label: "Estética premium",
     price: 160,
     priceQualifier: "starting",
@@ -109,6 +124,11 @@ export const services = [
     group: "carros",
     name: "Higienização e Estética Avançada",
     seoName: "Higienização Automotiva",
+    seoDescription: "Higienização automotiva em Itajubá, no bairro Medicina. Limpeza interna intensiva e cuidados definidos após avaliação na LavaMed. Conheça as condições.",
+    relatedServices: [
+      ["lavagem-detalhada", "Compare o escopo de cuidado interno e externo da lavagem detalhada."],
+      ["adicionais", "Para consultar limpeza de bancos, teto ou carpetes como serviços avulsos."]
+    ],
     label: "Limpeza intensiva",
     price: 350,
     priceQualifier: "starting",
@@ -134,6 +154,11 @@ export const services = [
     group: "tecnicos",
     name: "Lavagem Técnica do Motor",
     seoName: "Lavagem de Motor",
+    seoDescription: "Lavagem técnica do motor na LavaMed, em Itajubá. Compare a limpeza tradicional e a opção com verniz sob avaliação. Confira valores e condições.",
+    relatedServices: [
+      ["higienizacao-avancada", "O pacote de higienização avançada também prevê limpeza técnica do motor."],
+      ["lavagem-completa", "Para combinar o cuidado do motor com a limpeza externa e interna do carro."]
+    ],
     label: "Duas modalidades",
     price: 60,
     priceQualifier: "starting",
@@ -159,6 +184,11 @@ export const services = [
     group: "tecnicos",
     name: "Polimento de Farol com Proteção",
     seoName: "Polimento de Farol",
+    seoDescription: "Polimento de farol em Itajubá com proteção final na LavaMed. A partir de R$ 80 o par, conforme avaliação da lente. Veja limites e cuidados do serviço.",
+    relatedServices: [
+      ["polimento-comercial", "Para avaliar brilho e marcas superficiais na pintura do veículo."],
+      ["lavagem-simples", "Para manter a limpeza externa de lataria, rodas e pneus."]
+    ],
     label: "Grafeno + SiO₂",
     price: 80,
     priceQualifier: "starting",
@@ -182,6 +212,11 @@ export const services = [
     group: "tecnicos",
     name: "Descontaminação de Pintura",
     seoName: "Descontaminação de Pintura",
+    seoDescription: "Descontaminação de pintura na LavaMed, em Itajubá. Remoção de contaminantes aderidos à superfície, conforme avaliação. Conheça o escopo e solicite orçamento.",
+    relatedServices: [
+      ["polimento-comercial", "Para avaliar marcas leves e o brilho da pintura após examinar a superfície."],
+      ["adicionais", "Consulte o enceramento e outros cuidados avulsos compatíveis com a pintura."]
+    ],
     label: "Superfície e preparo",
     price: 75,
     priceQualifier: "starting",
@@ -202,7 +237,12 @@ export const services = [
     number: "08",
     group: "tecnicos",
     name: "Polimento Comercial",
-    seoName: "Polimento Automotivo",
+    seoName: "Polimento Comercial Automotivo",
+    seoDescription: "Polimento comercial automotivo em Itajubá. Cuidado com brilho e marcas leves na LavaMed, respeitando o estado do verniz. Solicite uma avaliação.",
+    relatedServices: [
+      ["descontaminacao-pintura", "Para entender o tratamento de contaminantes aderidos à pintura."],
+      ["polimento-farol", "Para avaliar separadamente a opacidade e o desgaste superficial dos faróis."]
+    ],
     label: "Brilho e marcas leves",
     price: 350,
     priceQualifier: "starting",
@@ -223,7 +263,11 @@ export const services = [
     number: "09",
     group: "motos",
     name: "Lavagem Simples de Moto",
-    seoName: "Lavagem de Moto",
+    seoName: "Lavagem Simples de Moto",
+    seoDescription: "Lavagem simples de moto na LavaMed, em Itajubá. Limpeza de carenagem, tanque e componentes visíveis por R$ 40. Consulte as condições e agende.",
+    relatedServices: [
+      ["lavagem-moto-detalhada", "Para incluir cantos de difícil acesso, cera e cuidado de plásticos compatíveis."]
+    ],
     label: "Manutenção cotidiana",
     price: 40,
     priceQualifier: "fixed",
@@ -244,6 +288,10 @@ export const services = [
     group: "motos",
     name: "Lavagem Detalhada de Moto",
     seoName: "Lavagem Detalhada de Moto",
+    seoDescription: "Lavagem detalhada de moto em Itajubá: limpeza minuciosa, cera e cuidado de plásticos conforme compatibilidade. Confira o serviço e as condições na LavaMed.",
+    relatedServices: [
+      ["lavagem-moto-simples", "Para uma lavagem de manutenção de carenagem, tanque e componentes visíveis."]
+    ],
     label: "Estética premium",
     price: 70,
     priceQualifier: "starting",
@@ -266,7 +314,12 @@ export const services = [
     number: "11",
     group: "personalizados",
     name: "Serviços Adicionais",
-    seoName: "Serviços de Estética Automotiva",
+    seoName: "Serviços Adicionais de Estética Automotiva",
+    seoDescription: "Serviços adicionais na LavaMed, em Itajubá: bancos, teto, carpetes, plásticos e cuidados de pintura. Contratação avulsa ou combinada, com orçamento sob consulta.",
+    relatedServices: [
+      ["higienizacao-avancada", "Compare os cuidados avulsos de interior com o pacote de limpeza intensiva."],
+      ["descontaminacao-pintura", "Para avaliar contaminantes aderidos à superfície da pintura."]
+    ],
     label: "Estética personalizada",
     price: null,
     priceQualifier: "consult",
