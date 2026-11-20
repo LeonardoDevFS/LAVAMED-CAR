@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { services, servicePriceLabel, whatsappUrl } from "../../src/config.js";
+import { business, services, servicePriceLabel, whatsappUrl } from "../../src/config.js";
 
 for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
   test(`local content and booking work without JavaScript at ${viewport.width}px`, async ({ browser }) => {
@@ -17,6 +17,8 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
       await expect(page.locator(".hero-slogan")).toContainText("É TRANSFORMAR.");
       await expect(page.locator(".hero-booking")).toHaveAttribute("href", whatsappUrl());
       await expect(page.locator(".local-intro")).toContainText("bairro Medicina, em Itajubá");
+      await expect(page.locator(".footer-contact")).toContainText(business.address);
+      await expect(page.locator(".footer-contact")).toContainText(business.postalCode);
       await page.locator('.local-intro a[href="/servicos/lavagem-completa/"]').click();
       await expect(page).toHaveURL(/\/servicos\/lavagem-completa\/$/);
       const service = services.find((item) => item.slug === "lavagem-completa");

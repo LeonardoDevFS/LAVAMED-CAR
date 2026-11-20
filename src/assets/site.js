@@ -2,7 +2,7 @@ import gsap from "gsap";
 import ScrollTrigger from "gsap/ScrollTrigger";
 import "./site.css";
 import { reducedMotion, initMotionPreferences } from "./motion-preferences.js";
-import { business, servicePriceLabel, services, whatsappUrl } from "../config.js";
+import { business, businessLocationLines, servicePriceLabel, services, whatsappUrl } from "../config.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,9 +25,7 @@ document.querySelectorAll("[data-booking]").forEach((link) => {
 });
 
 document.querySelectorAll("[data-business-meta]").forEach((meta) => {
-  const location = [business.city, business.state].filter(Boolean).join(", ");
-  const neighborhood = business.neighborhood ? `Bairro ${business.neighborhood}` : "";
-  const items = [location, neighborhood, business.address, business.openingHours].filter(Boolean).map((item) => `<span>${item}</span>`);
+  const items = [...businessLocationLines(), business.openingHours].filter(Boolean).map((item) => `<span>${item}</span>`);
   if (business.whatsapp) items.push(`<a href="${whatsappUrl()}" target="_blank" rel="noopener">WhatsApp ${business.phoneDisplay || business.whatsapp} ↗</a>`);
   if (business.instagram) items.push(`<a href="${business.instagram}" target="_blank" rel="noopener">Instagram ↗</a>`);
   if (business.mapsUrl) items.push(`<a href="${business.mapsUrl}" target="_blank" rel="noopener">Como chegar ↗</a>`);

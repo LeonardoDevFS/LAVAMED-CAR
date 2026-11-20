@@ -4,6 +4,7 @@ import path from "node:path";
 import { build } from "vite";
 import {
   business,
+  businessLocationLines,
   campaignMedia,
   comparisonPairs,
   homeMedia,
@@ -100,6 +101,7 @@ function localBusinessSchema() {
     schema.image = absoluteUrl(socialImagePath);
   }
   if (business.address) schema.address.streetAddress = business.address;
+  if (business.postalCode) schema.address.postalCode = business.postalCode;
   if (business.openingHours) schema.openingHours = business.openingHours;
   return schema;
 }
@@ -321,7 +323,7 @@ function footer() {
     <div class="footer-grid">
       <section class="footer-column"><p class="footer-heading">Explorar</p><nav aria-label="Navegação do rodapé"><a href="/servicos/">Todos os serviços</a><a href="/portfolio/">Portfólio</a><a href="/antes-e-depois/">Antes e depois</a><a href="/sobre/">Sobre a LavaMed</a><a href="/faq/">Perguntas frequentes</a></nav></section>
       <section class="footer-column footer-services"><p class="footer-heading">Serviços em Itajubá</p><nav aria-label="Serviços em destaque">${footerServiceLinks()}</nav></section>
-      <section class="footer-column footer-contact"><p class="footer-heading">Contato e localização</p><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">WhatsApp da LavaMed<br><strong>${escapeHtml(business.phoneDisplay)}</strong></a><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">Bairro Medicina<br><strong>Itajubá, Minas Gerais</strong></a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener">Instagram<br><strong>@lavamed.itajuba</strong></a><a href="/contato/">Formulário de contato</a></section>
+      <section class="footer-column footer-contact"><p class="footer-heading">Contato e localização</p><a href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener">WhatsApp da LavaMed<br><strong>${escapeHtml(business.phoneDisplay)}</strong></a><a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">${businessLocationLines().map(escapeHtml).join("<br>")}</a><a href="${escapeHtml(business.instagram)}" target="_blank" rel="noopener">Instagram<br><strong>@lavamed.itajuba</strong></a><a href="/contato/">Formulário de contato</a></section>
     </div>
     <div class="footer-bottom"><div class="footer-legal"><p>© <span data-year></span> LavaMed Estética Automotiva. Todos os direitos reservados.</p><a href="/politica-de-privacidade/">Política de privacidade</a></div><a class="footer-to-top" href="#conteudo">Voltar ao topo <span aria-hidden="true">↑</span></a></div>
   </footer>`;
@@ -396,7 +398,7 @@ function contactContent() {
         <p class="form-status" data-form-status role="status" aria-live="polite"></p>
       </form>
     </div>
-    <aside class="contact-aside"><span class="contact-aside-index">Contato / direto</span><h2>A conversa começa aqui.</h2><p>A LavaMed está em Itajubá, no bairro Medicina. WhatsApp, Instagram e localização no Maps já estão disponíveis; rua, número e horários ainda aguardam confirmação.</p><a class="cta-pill contact-direct" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Chamar no WhatsApp</span><i>↗</i></a><div data-business-meta><span>Itajubá, MG</span><span>Bairro Medicina</span></div></aside>
+    <aside class="contact-aside"><span class="contact-aside-index">Contato / direto</span><h2>A conversa começa aqui.</h2><p>A LavaMed está em ${escapeHtml(business.city)}, no bairro ${escapeHtml(business.neighborhood)}. Confira o endereço abaixo, abra a localização no Maps e confirme a disponibilidade pelo WhatsApp antes de trazer o veículo.</p><a class="cta-pill contact-direct" href="${escapeHtml(whatsappUrl())}" target="_blank" rel="noopener"><span>Chamar no WhatsApp</span><i>↗</i></a><div data-business-meta>${businessLocationLines().map((line) => `<span>${escapeHtml(line)}</span>`).join("")}<a href="${escapeHtml(business.mapsUrl)}" target="_blank" rel="noopener">Como chegar ↗</a></div></aside>
   </div></section>`;
 }
 
@@ -418,7 +420,7 @@ const faqQuestions = [
   ["Quanto tempo leva?","O prazo varia conforme o serviço e o estado do veículo. A LavaMed confirma a estimativa depois da avaliação."],
   ["O polimento remove todo risco?","Não. A possibilidade de correção depende da profundidade da marca e do estado do verniz. Nenhum resultado universal é prometido."],
   ["É preciso agendar?","Use o WhatsApp oficial para solicitar uma avaliação e confirmar a disponibilidade antes de levar o veículo."],
-  ["Onde fica a LavaMed?","Em Itajubá, no bairro Medicina. A rua e o número ainda não foram informados e não são inventados no site."]
+  ["Onde fica a LavaMed?", `${businessLocationLines().join(". ")}. Use o link do Google Maps para consultar a localização e a rota.`]
 ];
 
 function faqSchema() {
