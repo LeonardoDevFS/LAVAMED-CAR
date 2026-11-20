@@ -1,8 +1,8 @@
 /**
  * Configuração central dos endereços públicos da LavaMed.
  *
- * Nenhuma URL abaixo é ativada automaticamente. O build só publica canonical,
- * sitemap e URLs absolutas quando SITE_URL estiver definido explicitamente.
+ * Somente SITE_URL com a origem principal libera indexação. Contextos de
+ * preview prevalecem sobre variáveis herdadas; produção mal configurada falha.
  */
 export const domainConfig = Object.freeze({
   netlifySiteName: "lavamed",
@@ -33,7 +33,12 @@ export function normalizeSiteUrl(value = "") {
 }
 
 export function resolveActiveSiteUrl(environment = process.env) {
-  return normalizeSiteUrl(environment[domainConfig.activeUrlEnvironmentVariable]);
+  if (["deploy-preview", "branch-deploy", "dev"].includes(environment.CONTEXT)) return "";
+  const origin = normalizeSiteUrl(environment[domainConfig.activeUrlEnvironmentVariable]);
+  if (environment.CONTEXT === "production" && origin !== domainConfig.primaryUrl) {
+    throw new Error(`Production requires SITE_URL=${domainConfig.primaryUrl}`);
+  }
+  return origin === domainConfig.primaryUrl ? origin : "";
 }
 
 export function domainStage(siteUrl) {

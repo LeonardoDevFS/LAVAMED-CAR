@@ -63,10 +63,10 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
-[[redirects]]
-  from = "/servicos"
-  to = "/servicos/"
-  status = 301
+# A barra final é normalizada pelo Pretty URLs da Netlify (diretórios index.html).
+# Não forçar redirects entre variantes de barra: o matcher as considera iguais.
+# O build gera _headers de noindex apenas fora da origem/contexto de produção
+# e _redirects específicos para os aliases index.html de rotas existentes.
 
 [[redirects]]
   from = "/servicos/lavagem-tecnica/*"

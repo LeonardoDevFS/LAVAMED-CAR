@@ -1,3 +1,4 @@
+import { checkSeo } from "./check-seo.mjs";
 import { access, readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { comparisonPairs, servicePriceLabel, services } from "../src/config.js";
@@ -154,7 +155,7 @@ if (activeSiteUrl && (sitemapLocations.length !== 19 || sitemapLocations.some((l
 if (!activeSiteUrl && sitemapLocations.length) problems.push("Local sitemap must not publish URLs");
 const robots = await readFile(path.join(root, "robots.txt"), "utf8");
 if (activeSiteUrl && !robots.includes(`Sitemap: ${activeSiteUrl}/sitemap.xml`)) problems.push("robots.txt does not match active SITE_URL");
-if (!activeSiteUrl && robots !== "User-agent: *\nDisallow: /\n") problems.push("Local robots.txt must block indexing");
+if (!activeSiteUrl && robots !== "User-agent: *\nAllow: /\n") problems.push("Local robots.txt must allow reading noindex");
 const netlify = await readFile(path.resolve("netlify.toml"), "utf8");
 for (const legacy of ["lavagem-tecnica", "higienizacao-interna", "polimento-automotivo", "vitrificacao", "detalhamento", "revitalizacao"]) {
   if (!netlify.includes(`/servicos/${legacy}/`)) problems.push(`Missing Netlify redirect for legacy slug: ${legacy}`);
@@ -197,5 +198,6 @@ for (const file of htmlFiles) {
     try { await access(candidate); } catch { problems.push(`Broken local reference in ${path.relative(root,file)}: ${reference}`); }
   }
 }
+problems.push(...await checkSeo(root, activeSiteUrl));
 if (problems.length) { console.error(problems.join("\n")); process.exit(1); }
 console.log(`Checks passed: ${htmlFiles.length} HTML pages, routes, metadata, local links, interactions, and visual assets.`);

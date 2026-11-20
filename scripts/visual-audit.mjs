@@ -56,7 +56,7 @@ for (const viewport of viewports) {
       };
     });
     const logo = document.querySelector(".site-header .brand img").getBoundingClientRect();
-    const heading = document.querySelector(".hero h1").getBoundingClientRect();
+    const heading = document.querySelector(".hero-slogan").getBoundingClientRect();
     const booking = document.querySelector(".hero-booking").getBoundingClientRect();
     return {
       viewport: { width: innerWidth, height: innerHeight },

@@ -42,7 +42,7 @@
   </div>
 
   <main id="conteudo">
-    <section class="hero" data-hero aria-labelledby="hero-title">
+    <section class="hero" data-hero aria-labelledby="local-title">
       <canvas class="water-canvas" data-liquid-canvas="droplets" aria-hidden="true"></canvas>
       <div class="hero-media" aria-hidden="true">
         <!-- HOME_HERO_BACKDROP -->
@@ -54,14 +54,14 @@
       </div>
       <div class="hero-wordmark" aria-hidden="true">LAVAMED</div>
       <div class="hero-copy">
-        <p class="eyebrow reveal-line"><span>LavaMed / Itajubá / bairro Medicina</span></p>
-        <h1 id="hero-title">
+        <h1 class="eyebrow hero-local-title reveal-line" id="local-title">Estética Automotiva e Lava Rápido em Itajubá</h1>
+        <p class="hero-slogan" id="hero-title">
           <span class="title-mask"><span>NÃO É SÓ</span></span>
           <span class="title-mask title-accent"><span>LAVAR.</span></span>
           <span class="title-mask title-indent"><span>É TRANSFORMAR.</span></span>
-        </h1>
+        </p>
         <div class="hero-bottom">
-          <p>Limpeza, proteção e embelezamento.<br>Cuidado profissional em Itajubá.</p>
+          <p>Limpeza, proteção e embelezamento.<br>LavaMed / bairro Medicina.</p>
           <div class="hero-actions">
             <a class="hero-booking magnetic" href="/contato/" data-booking>Agendar pelo WhatsApp <i aria-hidden="true">↗</i></a>
             <a class="round-link magnetic" href="#manifesto" aria-label="Explorar a experiência"><span>Explorar</span><i aria-hidden="true">↓</i></a>
@@ -135,9 +135,10 @@
         <div class="chapter-label"><span>03</span><p>Serviços prioritários</p></div>
         <h2 id="services-title">O CUIDADO ESTÁ<br><em>NOS DETALHES.</em></h2>
       </div>
+      <!-- HOME_LOCAL_INTRO -->
       <div class="services-layout">
         <div class="services-visual" data-service-visual aria-live="polite">
-          <img data-service-image src="{{HOME_SERVICE_IMAGE}}" srcset="{{HOME_SERVICE_SRCSET}}" sizes="{{HOME_SERVICE_SIZES}}" width="{{HOME_SERVICE_WIDTH}}" height="{{HOME_SERVICE_HEIGHT}}" alt="{{HOME_SERVICE_ALT}}">
+          <img data-service-image loading="lazy" decoding="async" src="{{HOME_SERVICE_IMAGE}}" srcset="{{HOME_SERVICE_SRCSET}}" sizes="{{HOME_SERVICE_SIZES}}" width="{{HOME_SERVICE_WIDTH}}" height="{{HOME_SERVICE_HEIGHT}}" alt="{{HOME_SERVICE_ALT}}">
           <div class="service-placeholder is-{{HOME_SERVICE_SLUG}}" data-service-placeholder aria-hidden="true" hidden>
             <div class="placeholder-rings"><i></i><i></i><i></i></div><span>LVM / 01</span>
           </div>

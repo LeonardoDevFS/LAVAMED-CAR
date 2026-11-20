@@ -2,7 +2,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { domainConfig, normalizeSiteUrl } from "../src/site-config.js";
+import { checkSeo } from "./check-seo.mjs";
+import { domainConfig, normalizeSiteUrl, resolveActiveSiteUrl } from "../src/site-config.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.join(root, "dist");
@@ -12,8 +13,8 @@ function invariant(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function runBuild(siteUrl = "", verification = "") {
-  const environment = { ...process.env };
+function runBuild(siteUrl = "", verification = "", context = "") {
+  const environment = { ...process.env, CONTEXT: context };
   if (siteUrl) environment.SITE_URL = siteUrl;
   else delete environment.SITE_URL;
   if (verification) environment.GOOGLE_SITE_VERIFICATION = verification;
@@ -51,9 +52,10 @@ function valueOf(html, pattern) {
   return html.match(pattern)?.[1] || "";
 }
 
-async function validateScenario(name, siteUrl) {
+async function validateScenario(name, configuredUrl, context = "") {
+  const siteUrl = resolveActiveSiteUrl({ SITE_URL: configuredUrl, CONTEXT: context });
   const indexable = Boolean(siteUrl);
-  runBuild(siteUrl, name === "secondary" ? verificationToken : "");
+  runBuild(configuredUrl, name === "production" ? verificationToken : "", context);
   const files = await collectHtml(output);
   invariant(files.length === 20, `${name}: expected 20 HTML files, found ${files.length}`);
 
@@ -116,13 +118,15 @@ async function validateScenario(name, siteUrl) {
     invariant(robots.includes("Allow: /"), `${name}: robots.txt must allow crawling`);
   } else {
     invariant(locations.length === 0, `${name}: local sitemap must not publish URLs`);
-    invariant(robots === "User-agent: *\nDisallow: /\n", `${name}: local robots.txt must block indexing`);
+    invariant(robots === "User-agent: *\nAllow: /\n", `${name}: crawlers must be able to read noindex`);
   }
 
   const home = await readFile(path.join(output, "index.html"), "utf8");
-  if (name === "secondary") {
-    invariant(home.includes(`<meta name="google-site-verification" content="${verificationToken}">`), "secondary: Search Console verification tag missing");
+  if (name === "production") {
+    invariant(home.includes(`<meta name="google-site-verification" content="${verificationToken}">`), "production: Search Console verification tag missing");
   }
+  const seoProblems = await checkSeo(output, siteUrl);
+  invariant(!seoProblems.length, `${name}: ${seoProblems.join("\n")}`);
   console.log(`✓ ${name}: ${files.length} HTML files, metadata, JSON-LD, sitemap and robots.txt`);
 }
 
@@ -149,7 +153,16 @@ let failure;
 try {
   await validateScenario("local", "");
   await validateScenario("secondary", domainConfig.secondaryUrl);
-  await validateScenario("production", domainConfig.primaryUrl);
+  await validateScenario("production", domainConfig.primaryUrl, "production");
+  for (const context of ["deploy-preview", "branch-deploy", "dev"]) {
+    await validateScenario(context, domainConfig.primaryUrl, context);
+  }
+  await validateScenario("custom-preview", "https://branch--lavamed.netlify.app");
+  for (const siteUrl of ["", domainConfig.secondaryUrl]) {
+    let rejected = false;
+    try { resolveActiveSiteUrl({ SITE_URL: siteUrl, CONTEXT: "production" }); } catch { rejected = true; }
+    invariant(rejected, "Misconfigured production must fail instead of publishing noindex");
+  }
 } catch (error) {
   failure = error;
 } finally {

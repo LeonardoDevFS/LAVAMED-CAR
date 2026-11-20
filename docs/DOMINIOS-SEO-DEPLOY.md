@@ -10,7 +10,11 @@ O `netlify.toml` define `SITE_URL=https://lavamed.com.br` somente no contexto Pr
 
 O endereço secundário e a variante www têm redirecionamentos 301 para o domínio principal, preservando o caminho. As regras estão antes dos redirecionamentos de serviços antigos. O endereço secundário continua sendo uma entrada para o site; o conteúdo tem uma única origem canônica.
 
-Deploy Previews, Branch Deploys e Netlify Dev recebem `SITE_URL` vazio para evitar indexação. Builds locais também permanecem sem indexação quando a variável não estiver definida. A variável automática `URL` da Netlify não é usada como origem pública.
+Deploy Previews, Branch Deploys e Netlify Dev recebem `SITE_URL` vazio. O build também verifica `CONTEXT`, impedindo a indexação mesmo quando uma variável herdada contém a origem principal. Builds locais sem a origem principal explícita e builds destinados ao domínio secundário ou a outra origem permanecem sem indexação. `CONTEXT=production` exige `SITE_URL=https://lavamed.com.br`; outra configuração interrompe o build. A variável automática `URL` da Netlify não é usada como origem pública.
+
+Fora de produção, o HTML contém `noindex,nofollow`, o sitemap fica vazio e o arquivo gerado `dist/_headers` aplica `X-Robots-Tag` a todas as rotas. O robots permite rastreamento para que o robô consiga ler o noindex. Isso não é controle de acesso: previews confidenciais precisam de proteção na hospedagem. Em produção, o noindex do arquivo de headers vale apenas para `404.html`.
+
+As 19 rotas conservam seus slugs e a barra final. Pretty URLs da Netlify cuida da normalização da barra; não se deve forçar redirects entre duas variantes equivalentes. `dist/_redirects` contém apenas aliases explícitos de `index.html` para as respectivas rotas, com 301, sem captura de caminhos inexistentes. Confira essas regras na CDN após o deploy autorizado; o servidor local cobre o comportamento esperado, mas não emula integralmente a Netlify.
 
 ## Validação local
 
@@ -22,7 +26,7 @@ npm run check
 Remove-Item Env:SITE_URL
 ```
 
-O teste de domínios verifica as 20 páginas HTML, metadados, dados estruturados, sitemap e robots nos cenários local, secundário e produção. Ao terminar, restaura o build local sem indexação.
+O teste de domínios verifica as 20 páginas HTML, metadados, dados estruturados, links, sitemap, robots e headers em sete cenários: local, secundário, produção, deploy-preview, branch-deploy, dev e origem de preview personalizada. Também rejeita produção com origem incorreta. Ao terminar, restaura o build local sem indexação.
 
 ## Netlify e descoberta
 
